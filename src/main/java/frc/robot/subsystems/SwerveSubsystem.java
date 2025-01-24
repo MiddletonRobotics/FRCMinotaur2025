@@ -397,6 +397,13 @@ public class SwerveSubsystem extends SubsystemBase {
             swerveModules[3].getAngle().getDegrees(),
         };
 
+        double loggingRelEncoderDrive[] = {
+            swerveModules[0].getDrivePosition().getDegrees(),
+            swerveModules[1].getDrivePosition().getDegrees(),
+            swerveModules[2].getDrivePosition().getDegrees(),
+            swerveModules[3].getDrivePosition().getDegrees(),
+        };
+
 
         SmartDashboard.putNumberArray("MeasuredSwerveStates", measuredStates);
         SmartDashboard.putNumberArray("DesiredSwerveStates", desiredStates);
@@ -410,6 +417,11 @@ public class SwerveSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Front-Right Rel Encoder Position", loggingRelEncoder[1]);
         SmartDashboard.putNumber("Back-Left Rel Encoder Position", loggingRelEncoder[2]);
         SmartDashboard.putNumber("Back-Right Rel Encoder Position", loggingRelEncoder[3]);
+
+        SmartDashboard.putNumber("Front-Left Rel Drive Encoder Position", loggingRelEncoderDrive[0]);
+        SmartDashboard.putNumber("Front-Right Rel Drive Encoder Position", loggingRelEncoderDrive[1]);
+        SmartDashboard.putNumber("Back-Left Rel Drive Encoder Position", loggingRelEncoderDrive[2]);
+        SmartDashboard.putNumber("Back-Right Rel Drive Encoder Position", loggingRelEncoderDrive[3]);
 
         SmartDashboard.putNumber("Pigieon Yaw Value", getYaw().getDegrees());
   }

@@ -74,7 +74,6 @@ public class SwerveModule {
         configureDriveMotor(moduleConstants);
 
         lastAngle = getSwerveModuleState().angle;
-        resetToAbsolute();
     }
 
     private void configureSwerveEncoder() {
@@ -100,6 +99,7 @@ public class SwerveModule {
             .pid(Constants.ModuleConstants.angleKP, Constants.ModuleConstants.angleKI, Constants.ModuleConstants.angleKD);
 
         angleMotor.configure(angleConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        resetToAbsolute();
     }
 
     private void configureDriveMotor(SwerveModuleConstants moduleConstants) {
@@ -120,11 +120,15 @@ public class SwerveModule {
     }
 
     public Rotation2d getSwerveEncoder() {
-        return Rotation2d.fromRotations(swerveEncoder.getAbsolutePosition().getValueAsDouble());
+        return Rotation2d.fromDegrees(swerveEncoder.getAbsolutePosition().getValueAsDouble() * 360);
     }
 
     public Rotation2d getAngle() {
         return Rotation2d.fromDegrees(angleEncoder.getPosition());
+    }
+
+    public Rotation2d getDrivePosition() {
+        return Rotation2d.fromDegrees(driveEncocder.getPosition());
     }
 
     public SwerveModuleState getDesiredState() {
