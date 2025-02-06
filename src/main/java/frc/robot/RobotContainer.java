@@ -26,7 +26,7 @@ public class RobotContainer {
 
     swerveSubsystem.setDefaultCommand(new SwerveController(
       swerveSubsystem,  
-      () -> DriverController.getLeftY(),
+      () -> -DriverController.getLeftY(),
       () -> DriverController.getLeftX(), 
       () -> DriverController.getRightX(),
       () -> false

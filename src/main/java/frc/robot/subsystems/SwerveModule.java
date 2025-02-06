@@ -25,9 +25,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 import frc.robot.Robot;
-import frc.robot.utilities.CANSparkMaxUtil;
 import frc.robot.utilities.OnboardModuleState;
-import frc.robot.utilities.CANSparkMaxUtil.Usage;
 import frc.robot.utilities.constants.Constants;
 import frc.robot.utilities.constants.SwerveModuleConstants;
 
