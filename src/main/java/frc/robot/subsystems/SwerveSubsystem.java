@@ -58,7 +58,7 @@ public class SwerveSubsystem extends SubsystemBase {
     private final Pigeon2 gyro;
 
     private SwerveDriveOdometry swerveOdometry;
-    private SwerveModule[] swerveModules;
+    private REVSwerveModule[] swerveModules;
 
     private RobotConfig robotConfiguration;
 
@@ -79,11 +79,11 @@ public class SwerveSubsystem extends SubsystemBase {
 
         zeroHeading();
         
-        swerveModules = new SwerveModule[] {
-            new SwerveModule(0, Constants.ModuleConstants.FrontLeftModule.constants),
-            new SwerveModule(1,Constants.ModuleConstants.FrontRightModule.constants),
-            new SwerveModule(2,Constants.ModuleConstants.BackLeftModule.constants),
-            new SwerveModule(3,Constants.ModuleConstants.BackRightModule.constants)
+        swerveModules = new REVSwerveModule[] {
+            new REVSwerveModule(0, Constants.ModuleConstants.FrontLeftModule.constants),
+            new REVSwerveModule(1,Constants.ModuleConstants.FrontRightModule.constants),
+            new REVSwerveModule(2,Constants.ModuleConstants.BackLeftModule.constants),
+            new REVSwerveModule(3,Constants.ModuleConstants.BackRightModule.constants)
         };
 
         swerveOdometry = new SwerveDriveOdometry(Constants.SwerveConstants.SwerveKinematics, getYaw(), getSwerveModulePositions());
@@ -133,7 +133,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond);
 
-        for(SwerveModule module : swerveModules) {
+        for(REVSwerveModule module : swerveModules) {
             module.setDesiredState(swerveModuleStates[module.moduleNumber], false);
         }
     }
@@ -142,7 +142,7 @@ public class SwerveSubsystem extends SubsystemBase {
         SwerveModuleState[] swerveModuleStates = Constants.SwerveConstants.SwerveKinematics.toSwerveModuleStates(new ChassisSpeeds(translation.getX(), translation.getY(), 0.0));
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond);
 
-        for (SwerveModule module : swerveModules) {
+        for (REVSwerveModule module : swerveModules) {
             module.setDesiredState(swerveModuleStates[module.moduleNumber], isOpenLoop);
         }
     }
@@ -294,7 +294,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     public SwerveModuleState[] getSwerveModuleStates() {
         SwerveModuleState[] states = new SwerveModuleState[4];
-        for(SwerveModule module : swerveModules) {
+        for(REVSwerveModule module : swerveModules) {
             states[module.moduleNumber] = module.getSwerveModuleState();
         }
 
@@ -303,7 +303,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     public SwerveModulePosition[] getSwerveModulePositions() {
         SwerveModulePosition[] positions = new SwerveModulePosition[4];
-        for(SwerveModule module : swerveModules) {
+        for(REVSwerveModule module : swerveModules) {
             positions[module.moduleNumber] = module.getSwerveModulePosition();
         }
 
@@ -317,7 +317,7 @@ public class SwerveSubsystem extends SubsystemBase {
     public void setModuleStates(SwerveModuleState[] desiredStates) {
         SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond);
 
-        for(SwerveModule module : swerveModules) {
+        for(REVSwerveModule module : swerveModules) {
             module.setDesiredState(desiredStates[module.moduleNumber], false);
         }
     }
@@ -332,7 +332,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void resetModulesToAbsolute() {
-        for(SwerveModule module : swerveModules) {
+        for(REVSwerveModule module : swerveModules) {
             module.resetToAbsolute();
         }
     }
@@ -350,7 +350,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void stop() {
-        for(SwerveModule module : swerveModules) {
+        for(REVSwerveModule module : swerveModules) {
             module.stop();
         }
     }

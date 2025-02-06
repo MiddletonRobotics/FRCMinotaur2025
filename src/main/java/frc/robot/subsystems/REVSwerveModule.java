@@ -30,7 +30,7 @@ import frc.robot.utilities.constants.Constants;
 import frc.robot.utilities.constants.SwerveModuleConstants;
 
 //Sets up swerve drive class with encoders. This section can and should be added to.
-public class SwerveModule {
+public class REVSwerveModule {
     public int moduleNumber;
     private Rotation2d lastAngle;
     private Rotation2d angleOffset;
@@ -52,7 +52,7 @@ public class SwerveModule {
 
     private final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(Constants.ModuleConstants.driveKS, Constants.ModuleConstants.driveKV, Constants.ModuleConstants.driveKA);
 
-    public SwerveModule(int moduleNumber, SwerveModuleConstants moduleConstants) {
+    public REVSwerveModule(int moduleNumber, SwerveModuleConstants moduleConstants) {
         this.moduleNumber = moduleNumber;
         this.angleOffset = moduleConstants.angleOffset;
 
