@@ -19,11 +19,11 @@ import frc.robot.utilities.SwerveModuleGearing;
 public class Constants {
     public static final class ModuleConstants {
         /* Swerve Voltage Compensation */
-        public static final double voltageCompensation = 12.0; // For PID tuning, the max voltage that the PID will compensate for this value (for example at 12V your PID will tune for receiving for 12V, or the max battery output)
+        public static final double voltageCompensation = 12.0;
     
         /* Swerve Current Limiting */
-        public static final int angleContinuousCurrentLimit = 20; // Steering the swerve modules requires less power, and doesn't have a lot of movement, therefore we can reduce the amperes we are feeding it
-        public static final int driveContinuousCurrentLimit = 40; // Drive motors should be at the maximum reccomended amperes to get the most power and speed from it
+        public static final int angleContinuousCurrentLimit = 20; 
+        public static final int driveContinuousCurrentLimit = 40; 
 
         /* PID Values for the Motors. Used to correct the error when trying to move the motors to a desired location */
         public static final double steeringKp = 0.02; 
@@ -112,12 +112,12 @@ public class Constants {
     }
 
     public static final class AutonomousConstants {
-        public static final double PhysicalMaxSpeedMetersPerSecond = 4.4;
-        public static final double MaxAccelerationMetersPerSecondSquared = 3;
-        public static final double MaxAngularSpeedRadiansPerSecond = 2 * Math.PI;
-        public static final double MaxAngularSpeedRadiansPerSecondSquared = Math.PI;
+        public static final double LimitedMaxVelocity = Units.feetToMeters(16.5); 
+        public static final double LimitedMaxAcceleration =  Units.feetToMeters(9.5); 
+        public static final double LimitedMaxAngularVelocity = 2 * Math.PI; 
+        public static final double LimitedlMaxAngularAcceleration = 2 * Math.PI;
 
-        public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(MaxAngularSpeedRadiansPerSecond, MaxAngularSpeedRadiansPerSecondSquared);
+        public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(LimitedMaxAngularVelocity, LimitedlMaxAngularAcceleration);
 
         public static final PIDConstants TranslationPID = new PIDConstants(5.0, 0.0, 0.0);
         public static final PIDConstants RotationalPID = new PIDConstants(9, 5.0, 0.0);
@@ -125,11 +125,11 @@ public class Constants {
 
     public static final class DriverConstants {
         /* Default ports for our two Controllers */
-        public static final int driverControllerPort = 0; // Driver Controller only controlls the driving and maneuverability of the robot
-        public static final int operatorControllerPort = 1; // Operator Controllers helps with all of the other mechanisms and subsystems attached on the robot.
+        public static final int driverControllerPort = 0; 
+        public static final int operatorControllerPort = 1; 
 
-        public static final double kDeadband = 0.1; // Default deband to help with stick drift on the controllers, recorded values we get is usually (+- 0.05)
-        public static final boolean disableHAL = false; // Disables the HAL for the robot, used for testing purposes
+        public static final double kDeadband = 0.1;
+        public static final boolean disableHAL = false; 
 
         public static final boolean IS_ALLIANCE_RED = true;
         public static final boolean IS_ALLIANCE_BLUE = !IS_ALLIANCE_RED;
