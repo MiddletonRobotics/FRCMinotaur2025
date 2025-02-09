@@ -23,14 +23,14 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.utilities.OnboardModuleState;
 import frc.robot.utilities.constants.Constants;
 import frc.robot.utilities.constants.SwerveModuleConstants;
 
 //Sets up swerve drive class with encoders. This section can and should be added to.
-public class REVSwerveModule {
+public class REVSwerveModule extends SubsystemBase {
     public int moduleNumber;
     private Rotation2d lastAngle;
     private Rotation2d angleOffset;
@@ -38,12 +38,12 @@ public class REVSwerveModule {
     private SwerveModuleState expectedState = new SwerveModuleState();
 
     private SparkMax driveMotor;
-    private SparkMax angleMotor;
+    private SparkMax steeringMotor;
 
-    private SparkMaxConfig driveConfig, angleConfig;
+    private SparkMaxConfig driveConfiguration, steeringConfiguration;
 
-    private RelativeEncoder driveEncocder;
-    private RelativeEncoder angleEncoder;
+    private RelativeEncoder driveEncoder;
+    private RelativeEncoder steeringEncoder;
     private CANcoder swerveEncoder;
     private CANcoderConfigurator swerveEncoderConfigurator;
 
@@ -59,19 +59,19 @@ public class REVSwerveModule {
         swerveEncoder = new CANcoder(moduleConstants.swerveEncoderID);
         configureSwerveEncoder();
 
-        angleMotor = new SparkMax(moduleConstants.angleMotorID, MotorType.kBrushless);
-        angleEncoder = angleMotor.getEncoder();
-        anglePIDController = angleMotor.getClosedLoopController();
-        angleConfig = new SparkMaxConfig();
-        configureAngleMotor(moduleConstants);
+        steeringMotor = new SparkMax(moduleConstants.angleMotorID, MotorType.kBrushless);
+        steeringEncoder = steeringMotor.getEncoder();
+        anglePIDController = steeringMotor.getClosedLoopController();
+        steeringConfiguration = new SparkMaxConfig();
+        configureSteeringMotor(moduleConstants);
 
         driveMotor = new SparkMax(moduleConstants.driveMotorID, MotorType.kBrushless);
-        driveEncocder = driveMotor.getEncoder();
+        driveEncoder = driveMotor.getEncoder();
         drivePIDController = driveMotor.getClosedLoopController();
-        driveConfig = new SparkMaxConfig();
+        driveConfiguration = new SparkMaxConfig();
         configureDriveMotor(moduleConstants);
 
-        lastAngle = getSwerveModuleState().angle;
+        lastAngle = getActualModuleState().angle;
     }
 
     private void configureSwerveEncoder() {
@@ -84,73 +84,73 @@ public class REVSwerveModule {
         swerveEncoderConfigurator.apply(new CANcoderConfiguration().withMagnetSensor(magnetSensorConfiguration));
     }
 
-    private void configureAngleMotor(SwerveModuleConstants moduleConstants) {
-        angleConfig
-            .inverted(moduleConstants.angleInvert)
+    private void configureSteeringMotor(SwerveModuleConstants moduleConstants) {
+        steeringConfiguration
+            .inverted(Constants.SwerveConstants.angleInvert)
             .idleMode(IdleMode.kBrake)
             .smartCurrentLimit(Constants.ModuleConstants.angleContinuousCurrentLimit)
             .voltageCompensation(Constants.ModuleConstants.voltageCompensation);
-        angleConfig.encoder
-            .positionConversionFactor(Constants.SwerveConstants.AngleConversionFactor);
-        angleConfig.closedLoop
+        steeringConfiguration.encoder
+            .positionConversionFactor(Constants.SwerveConstants.SteeringConversionFactor);
+        steeringConfiguration.closedLoop
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-            .pid(Constants.ModuleConstants.angleKP, Constants.ModuleConstants.angleKI, Constants.ModuleConstants.angleKD);
+            .pid(Constants.ModuleConstants.steeringKp, 0.0, Constants.ModuleConstants.steeringKd);
 
-        angleMotor.configure(angleConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        steeringMotor.configure(steeringConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         resetToAbsolute();
     }
 
     private void configureDriveMotor(SwerveModuleConstants moduleConstants) {
-        driveConfig
-            .inverted(moduleConstants.driveInvert)
+        driveConfiguration
+            .inverted(Constants.SwerveConstants.driveInvert)
             .idleMode(IdleMode.kBrake)
             .smartCurrentLimit(Constants.ModuleConstants.driveContinuousCurrentLimit)
             .voltageCompensation(Constants.ModuleConstants.voltageCompensation);
-        driveConfig.encoder
+        driveConfiguration.encoder
             .positionConversionFactor(Constants.SwerveConstants.DriveConversionPositionFactor)
             .velocityConversionFactor(Constants.SwerveConstants.DriveConversionVelocityFactor);
-        driveConfig.closedLoop
+        driveConfiguration.closedLoop
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-            .pid(Constants.ModuleConstants.driveKP, Constants.ModuleConstants.driveKI, Constants.ModuleConstants.driveKD);
+            .pid(Constants.ModuleConstants.driveKp, 0.0, Constants.ModuleConstants.driveKd);
 
-        driveMotor.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        driveEncocder.setPosition(0.0);
+        driveMotor.configure(driveConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        driveEncoder.setPosition(0.0);
     }
 
     public Rotation2d getSwerveEncoder() {
         return Rotation2d.fromDegrees(swerveEncoder.getAbsolutePosition().getValueAsDouble() * 360);
     }
 
-    public Rotation2d getAngle() {
-        return Rotation2d.fromDegrees(angleEncoder.getPosition());
+    public Rotation2d getSteeringAngularPosition() {
+        return Rotation2d.fromDegrees(steeringEncoder.getPosition());
     }
 
-    public Rotation2d getDrivePosition() {
-        return Rotation2d.fromDegrees(driveEncocder.getPosition());
+    public Rotation2d getWheelPositionMeters() {
+        return Rotation2d.fromDegrees(driveEncoder.getPosition());
     }
 
-    public SwerveModuleState getDesiredState() {
+    public SwerveModuleState getDesiredModuleState() {
         return expectedState;
     }
 
-    public SwerveModuleState getSwerveModuleState() {
-        return new SwerveModuleState(driveEncocder.getVelocity(), getAngle());
+    public SwerveModuleState getActualModuleState() {
+        return new SwerveModuleState(driveEncoder.getVelocity(), getSteeringAngularPosition());
     }
 
-    public SwerveModulePosition getSwerveModulePosition() {
-        return new SwerveModulePosition(driveEncocder.getPosition(), getAngle());
+    public SwerveModulePosition getModulePosition() {
+        return new SwerveModulePosition(driveEncoder.getPosition(), getSteeringAngularPosition());
     }
 
     public void resetToAbsolute() {
         double absolutePosition = getSwerveEncoder().getDegrees();
-        angleEncoder.setPosition(absolutePosition);
+        steeringEncoder.setPosition(absolutePosition);
     }
 
     public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop) {
 
         if(Math.abs(desiredState.speedMetersPerSecond) < 0.006) {
             driveMotor.set(0);
-            angleMotor.set(0);
+            steeringMotor.set(0);
 
             if(desiredState.angle == lastAngle) {
                 resetToAbsolute();
@@ -159,7 +159,7 @@ public class REVSwerveModule {
             return;
         }
 
-        desiredState = OnboardModuleState.optimize(desiredState, getSwerveModuleState().angle);
+        desiredState = OnboardModuleState.optimize(desiredState, getActualModuleState().angle);
         this.expectedState = desiredState;
 
         setAngle(desiredState);
@@ -168,7 +168,7 @@ public class REVSwerveModule {
 
     private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop) {
         if (isOpenLoop) {
-            double percentOutput = desiredState.speedMetersPerSecond / Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond;
+            double percentOutput = desiredState.speedMetersPerSecond / Constants.SwerveConstants.PhysicalMaxVelocity;
             driveMotor.set(percentOutput);
         } else {
             drivePIDController.setReference(desiredState.speedMetersPerSecond, SparkMax.ControlType.kVelocity, ClosedLoopSlot.kSlot0, feedforward.calculate(desiredState.speedMetersPerSecond));
@@ -176,11 +176,11 @@ public class REVSwerveModule {
     }
 
     private void setAngle(SwerveModuleState desiredState) {
-        Rotation2d angle = (Math.abs(desiredState.speedMetersPerSecond) <= (Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond * 0.01)) ? lastAngle : desiredState.angle;
+        Rotation2d angle = (Math.abs(desiredState.speedMetersPerSecond) <= (Constants.SwerveConstants.PhysicalMaxAngularVelocity * 0.01)) ? lastAngle : desiredState.angle;
         anglePIDController.setReference(angle.getDegrees(), SparkMax.ControlType.kPosition, ClosedLoopSlot.kSlot0);
 
         if(Robot.isSimulation()) {
-            angleEncoder.setPosition(angle.getDegrees());
+            steeringEncoder.setPosition(angle.getDegrees());
         }
 
         lastAngle = angle;
@@ -191,7 +191,7 @@ public class REVSwerveModule {
     }
 
     public void stopAngleMotor() {
-        angleMotor.set(0);
+        steeringMotor.set(0);
     }
 
     public void stop() {

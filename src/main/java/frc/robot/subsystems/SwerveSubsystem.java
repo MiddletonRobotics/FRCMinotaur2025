@@ -89,8 +89,6 @@ public class SwerveSubsystem extends SubsystemBase {
         swerveOdometry = new SwerveDriveOdometry(Constants.SwerveConstants.SwerveKinematics, getYaw(), getSwerveModulePositions());
         field = new Field2d();
 
-        /*
-
         try{
             robotConfiguration = RobotConfig.fromGUISettings();
           } catch (Exception e) {
@@ -119,7 +117,6 @@ public class SwerveSubsystem extends SubsystemBase {
         );
 
         PathPlannerLogging.setLogActivePathCallback((poses) -> field.getObject("path").setPoses(poses));
-        */
 
         SmartDashboard.putData("Field", field);
         BaseStatusSignal.setUpdateFrequencyForAll(50, gyroYaw);
@@ -131,16 +128,16 @@ public class SwerveSubsystem extends SubsystemBase {
             : new ChassisSpeeds(translation.getX(), translation.getY(), rotation)
         );
 
-        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond);
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.SwerveConstants.PhysicalMaxVelocity);
 
         for(REVSwerveModule module : swerveModules) {
-            module.setDesiredState(swerveModuleStates[module.moduleNumber], false);
+            module.setDesiredState(swerveModuleStates[module.moduleNumber], isOpenLoop);
         }
     }
 
     public void goStraight(Translation2d translation, boolean isOpenLoop) {
         SwerveModuleState[] swerveModuleStates = Constants.SwerveConstants.SwerveKinematics.toSwerveModuleStates(new ChassisSpeeds(translation.getX(), translation.getY(), 0.0));
-        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond);
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.SwerveConstants.PhysicalMaxVelocity);
 
         for (REVSwerveModule module : swerveModules) {
             module.setDesiredState(swerveModuleStates[module.moduleNumber], isOpenLoop);
@@ -154,7 +151,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     public void driveRobotRelative(ChassisSpeeds speeds) {
         SwerveModuleState[] states =  Constants.SwerveConstants.SwerveKinematics.toSwerveModuleStates(speeds);
-        SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond);
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.SwerveConstants.PhysicalMaxVelocity);
         setModuleStates(states);
     }
 
@@ -189,11 +186,11 @@ public class SwerveSubsystem extends SubsystemBase {
                     double ySpeed = yController.calculate(this.getPose().getY(), target.get().getY());
                     double omegaSpeed = omegaController.calculate(this.getYaw().getDegrees(), target.get().getRotation().getDegrees());
 
-                    double xSpeedDelivered = translationLimiter.calculate(xSpeed) * (Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond * 0.3);
-                    double ySpeedDelivered = strafeLimiter.calculate(ySpeed) * (Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond * 0.3);
-                    double rotDelivered = rotationLimiter.calculate(omegaSpeed) * (Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond * 0.3);
+                    double xSpeedDelivered = translationLimiter.calculate(xSpeed) * (Constants.SwerveConstants.PhysicalMaxVelocity * 0.3);
+                    double ySpeedDelivered = strafeLimiter.calculate(ySpeed) * (Constants.SwerveConstants.PhysicalMaxVelocity * 0.3);
+                    double rotDelivered = rotationLimiter.calculate(omegaSpeed) * (Constants.SwerveConstants.PhysicalMaxVelocity * 0.3);
 
-                    drive(new Translation2d(xSpeedDelivered, ySpeedDelivered).times(Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond), rotDelivered * Constants.SwerveConstants.PhysicalAngularMaxVelocity, false, true);
+                    drive(new Translation2d(xSpeedDelivered, ySpeedDelivered).times(Constants.SwerveConstants.PhysicalMaxVelocity), rotDelivered * Constants.SwerveConstants.PhysicalMaxAngularVelocity, false, true);
                 },
                 interrupted -> {
                     this.drive(new Translation2d(0, 0),0, true, true);
@@ -237,11 +234,11 @@ public class SwerveSubsystem extends SubsystemBase {
                 double ySpeed = yController.calculate(0, target.get().getY());
                 double omegaSpeed = omegaPID.calculate(0, target.get().getRotation().getDegrees());
 
-                double xSpeedDelivered = translationLimiter.calculate(xSpeed) * (Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond * 0.3);
-                double ySpeedDelivered = strafeLimiter.calculate(ySpeed) * (Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond * 0.3);
-                double rotDelivered = rotationLimiter.calculate(omegaSpeed) * (Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond * 0.3);
+                double xSpeedDelivered = translationLimiter.calculate(xSpeed) * (Constants.SwerveConstants.PhysicalMaxVelocity * 0.3);
+                double ySpeedDelivered = strafeLimiter.calculate(ySpeed) * (Constants.SwerveConstants.PhysicalMaxVelocity * 0.3);
+                double rotDelivered = rotationLimiter.calculate(omegaSpeed) * (Constants.SwerveConstants.PhysicalMaxVelocity * 0.3);
 
-                drive(new Translation2d(xSpeedDelivered, ySpeedDelivered).times(Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond), rotDelivered * Constants.SwerveConstants.PhysicalAngularMaxVelocity, true, true);
+                drive(new Translation2d(xSpeedDelivered, ySpeedDelivered).times(Constants.SwerveConstants.PhysicalMaxVelocity), rotDelivered * Constants.SwerveConstants.PhysicalMaxAngularVelocity, true, true);
             },
 
             interrupted -> {
@@ -264,9 +261,9 @@ public class SwerveSubsystem extends SubsystemBase {
     */
 
     public Command goToPoint(Pose2d targetPose) {
-        PIDController xController = new PIDController(Constants.ModuleConstants.driveKP, Constants.ModuleConstants.driveKI, Constants.ModuleConstants.driveKD);
-        PIDController yController = new PIDController(Constants.ModuleConstants.driveKP, Constants.ModuleConstants.driveKI, Constants.ModuleConstants.driveKD);
-        PIDController thetaController = new PIDController(Constants.ModuleConstants.angleKP, Constants.ModuleConstants.angleKI, Constants.ModuleConstants.angleKD);
+        PIDController xController = new PIDController(Constants.ModuleConstants.driveKp, 0.0, Constants.ModuleConstants.driveKd);
+        PIDController yController = new PIDController(Constants.ModuleConstants.driveKp, 0.0, Constants.ModuleConstants.driveKd);
+        PIDController thetaController = new PIDController(Constants.ModuleConstants.steeringKp, 0.0, Constants.ModuleConstants.steeringKd);
 
         return new FunctionalCommand(
             () ->
@@ -276,11 +273,11 @@ public class SwerveSubsystem extends SubsystemBase {
                 double sY = yController.calculate(getPose().getY(), targetPose.getY());
                 double sR = thetaController.calculate(getPose().getRotation().getRadians(), targetPose.getRotation().getRadians());
 
-                double xSpeedDelivered = translationLimiter.calculate(sX) * Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond;
-                double ySpeedDelivered = strafeLimiter.calculate(sY) * Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond;
-                double rotDelivered = rotationLimiter.calculate(sR) * Constants.SwerveConstants.PhysicalAngularMaxVelocity;
+                double xSpeedDelivered = translationLimiter.calculate(sX) * Constants.SwerveConstants.PhysicalMaxVelocity;
+                double ySpeedDelivered = strafeLimiter.calculate(sY) * Constants.SwerveConstants.PhysicalMaxVelocity;
+                double rotDelivered = rotationLimiter.calculate(sR) * Constants.SwerveConstants.PhysicalMaxAngularVelocity;
 
-                drive(new Translation2d(xSpeedDelivered, ySpeedDelivered).times(Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond), rotDelivered * Constants.SwerveConstants.PhysicalAngularMaxVelocity, false, true);
+                drive(new Translation2d(xSpeedDelivered, ySpeedDelivered).times(Constants.SwerveConstants.PhysicalMaxVelocity), rotDelivered * Constants.SwerveConstants.PhysicalMaxAngularVelocity, false, true);
             },
             interrupted -> {
                 xController.close();
@@ -295,7 +292,7 @@ public class SwerveSubsystem extends SubsystemBase {
     public SwerveModuleState[] getSwerveModuleStates() {
         SwerveModuleState[] states = new SwerveModuleState[4];
         for(REVSwerveModule module : swerveModules) {
-            states[module.moduleNumber] = module.getSwerveModuleState();
+            states[module.moduleNumber] = module.getActualModuleState();
         }
 
         return states;
@@ -304,7 +301,7 @@ public class SwerveSubsystem extends SubsystemBase {
     public SwerveModulePosition[] getSwerveModulePositions() {
         SwerveModulePosition[] positions = new SwerveModulePosition[4];
         for(REVSwerveModule module : swerveModules) {
-            positions[module.moduleNumber] = module.getSwerveModulePosition();
+            positions[module.moduleNumber] = module.getModulePosition();
         }
 
         return positions;
@@ -315,7 +312,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void setModuleStates(SwerveModuleState[] desiredStates) {
-        SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond);
+        SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, Constants.SwerveConstants.PhysicalMaxVelocity);
 
         for(REVSwerveModule module : swerveModules) {
             module.setDesiredState(desiredStates[module.moduleNumber], false);
@@ -360,68 +357,6 @@ public class SwerveSubsystem extends SubsystemBase {
         BaseStatusSignal.refreshAll(gyroYaw);
         swerveOdometry.update(getYaw(), getSwerveModulePositions());
         field.setRobotPose(getPose());
-
-        double measuredStates[] = {
-            swerveModules[0].getSwerveModuleState().angle.getDegrees(),
-            swerveModules[0].getSwerveModuleState().speedMetersPerSecond,
-            swerveModules[1].getSwerveModuleState().angle.getDegrees(),
-            swerveModules[1].getSwerveModuleState().speedMetersPerSecond,
-            swerveModules[2].getSwerveModuleState().angle.getDegrees(),
-            swerveModules[2].getSwerveModuleState().speedMetersPerSecond,
-            swerveModules[3].getSwerveModuleState().angle.getDegrees(),
-            swerveModules[3].getSwerveModuleState().speedMetersPerSecond,
-        };
-
-        double desiredStates[] = {
-            swerveModules[0].getDesiredState().angle.getDegrees(),
-            swerveModules[0].getDesiredState().speedMetersPerSecond,
-            swerveModules[1].getDesiredState().angle.getDegrees(),
-            swerveModules[1].getDesiredState().speedMetersPerSecond,
-            swerveModules[2].getDesiredState().angle.getDegrees(),
-            swerveModules[2].getDesiredState().speedMetersPerSecond,
-            swerveModules[3].getDesiredState().angle.getDegrees(),
-            swerveModules[3].getDesiredState().speedMetersPerSecond,
-        };
-
-        double loggingEncoders[] = {
-            swerveModules[0].getSwerveEncoder().getDegrees(),
-            swerveModules[1].getSwerveEncoder().getDegrees(),
-            swerveModules[2].getSwerveEncoder().getDegrees(),
-            swerveModules[3].getSwerveEncoder().getDegrees(),
-        };
-
-        double loggingRelEncoder[] = {
-            swerveModules[0].getAngle().getDegrees(),
-            swerveModules[1].getAngle().getDegrees(),
-            swerveModules[2].getAngle().getDegrees(),
-            swerveModules[3].getAngle().getDegrees(),
-        };
-
-        double loggingRelEncoderDrive[] = {
-            swerveModules[0].getDrivePosition().getDegrees(),
-            swerveModules[1].getDrivePosition().getDegrees(),
-            swerveModules[2].getDrivePosition().getDegrees(),
-            swerveModules[3].getDrivePosition().getDegrees(),
-        };
-
-
-        SmartDashboard.putNumberArray("MeasuredSwerveStates", measuredStates);
-        SmartDashboard.putNumberArray("DesiredSwerveStates", desiredStates);
-
-        SmartDashboard.putNumber("Front-Left ABS Encoder Position", loggingEncoders[0]);
-        SmartDashboard.putNumber("Front-Right ABS Encoder Position", loggingEncoders[1]);
-        SmartDashboard.putNumber("Back-Left ABS Encoder Position", loggingEncoders[2]);
-        SmartDashboard.putNumber("Back-Right ABS Encoder Position", loggingEncoders[3]);
-
-        SmartDashboard.putNumber("Front-Left Rel Encoder Position", loggingRelEncoder[0]);
-        SmartDashboard.putNumber("Front-Right Rel Encoder Position", loggingRelEncoder[1]);
-        SmartDashboard.putNumber("Back-Left Rel Encoder Position", loggingRelEncoder[2]);
-        SmartDashboard.putNumber("Back-Right Rel Encoder Position", loggingRelEncoder[3]);
-
-        SmartDashboard.putNumber("Front-Left Rel Drive Encoder Position", loggingRelEncoderDrive[0]);
-        SmartDashboard.putNumber("Front-Right Rel Drive Encoder Position", loggingRelEncoderDrive[1]);
-        SmartDashboard.putNumber("Back-Left Rel Drive Encoder Position", loggingRelEncoderDrive[2]);
-        SmartDashboard.putNumber("Back-Right Rel Drive Encoder Position", loggingRelEncoderDrive[3]);
 
         SmartDashboard.putNumber("Pigieon Yaw Value", getYaw().getDegrees());
   }

@@ -37,6 +37,6 @@ public class SwerveController extends Command {
         double strafeValue = strafeLimiter.calculate(MathUtil.applyDeadband(strafeSupplier.getAsDouble(), Constants.DriverConstants.kDeadband));
         double rotationValue = rotationLimiter.calculate(MathUtil.applyDeadband(rotationSupplier.getAsDouble(), Constants.DriverConstants.kDeadband));
 
-        swerveSubsystem.drive(new Translation2d(translationValue, strafeValue).times(Constants.SwerveConstants.PhysicalMaxSpeedMetersPerSecond), rotationValue * Constants.SwerveConstants.PhysicalAngularMaxVelocity, !robotCentricSupplier.getAsBoolean(), true);
+        swerveSubsystem.drive(new Translation2d(translationValue, strafeValue).times(Constants.SwerveConstants.PhysicalMaxVelocity), rotationValue * Constants.SwerveConstants.PhysicalMaxAngularVelocity, !robotCentricSupplier.getAsBoolean(), false);
     }
 }
