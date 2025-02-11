@@ -17,6 +17,36 @@ import frc.robot.utilities.SwerveModuleGearing;
 // All of the constants that are accessed by other files, to prevent repetition and allows easy changing
 
 public class Constants {
+
+    public static final class CoralConstants {
+        public static final int CAN_ID = 12; // Choose appropriate CAN ID
+    }
+
+    public static final class ElevatorConstants {
+            public static final int LEFT_CAN_ID = 10;
+            public static final int RIGHT_CAN_ID = 11;
+            public static final double INCHES_PER_ROTATION = 1.0;
+            public static final double MAX_HEIGHT = 36.0;
+            public static final double MIN_HEIGHT = 0.0;
+            public static final double MAX_VELOCITY = 36.0;
+            public static final double MAX_SPEED = 1.0;
+            
+            public static final double kP = 0.1;
+            public static final double kI = 0.0;
+            public static final double kD = 0.0;
+            
+            public static final double kS = 0.0;
+            public static final double kV = 0.0;
+            public static final double kG = 0.0;
+
+
+            public static final double POSITION_TOLERANCE = 0.1;
+            public static final int CURRENT_LIMIT = 40; // Adjust as needed
+            public static final double VOLTAGE_COMPENSATION = 12.0;
+            public static final double POSITION_CONVERSION_FACTOR = 1.0; // Adjust based on your encoder setup
+            public static final double VELOCITY_CONVERSION_FACTOR = 1.0;
+        }
+
     public static final class ModuleConstants {
         /* Swerve Voltage Compensation */
         public static final double voltageCompensation = 12.0;
