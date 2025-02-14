@@ -71,7 +71,7 @@ public class SwerveSubsystem extends SubsystemBase {
     private Field2d field;
 
     public SwerveSubsystem() {
-        gyro = new Pigeon2(13);
+        gyro = new Pigeon2(14);
         gyro.getConfigurator().apply(new Pigeon2Configuration());
         gyro.getConfigurator().setYaw(0.0);
 

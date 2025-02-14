@@ -96,8 +96,8 @@ public class Constants {
         public static final class FrontLeftModule {
             public static final int driveMotorID = 2;
             public static final int steeringMotorID = 3;
-            public static final int swerveEncoderID = 12;
-            public static final Rotation2d angleOffset = Rotation2d.fromRotations(0.374267578125);
+            public static final int swerveEncoderID = 10;
+            public static final Rotation2d angleOffset = Rotation2d.fromRotations(0);
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(driveMotorID, steeringMotorID, swerveEncoderID, angleOffset);
         }
 
@@ -106,25 +106,25 @@ public class Constants {
             public static final int driveMotorID = 4;
             public static final int steeringMotorID = 5;
             public static final int swerveEncoderID = 11;
-            public static final Rotation2d angleOffset = Rotation2d.fromRotations(0.552734375);
+            public static final Rotation2d angleOffset = Rotation2d.fromRotations(0.143799);
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(driveMotorID, steeringMotorID, swerveEncoderID, angleOffset);
         }
 
         /* Back Left Module - Module 2 */
         public static final class BackLeftModule {
-            public static final int driveMotorID = 8;
-            public static final int steeringMotorID = 9;
-            public static final int swerveEncoderID = 10;
-            public static final Rotation2d angleOffset = Rotation2d.fromRotations(0.2373046875);
+            public static final int driveMotorID = 6;
+            public static final int steeringMotorID = 7;
+            public static final int swerveEncoderID = 12;
+            public static final Rotation2d angleOffset = Rotation2d.fromRotations(0.05);
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(driveMotorID, steeringMotorID, swerveEncoderID, angleOffset);
         }
 
         /* Back Right Module - Module 3 */
         public static final class BackRightModule {
-            public static final int driveMotorID = 6;
-            public static final int steeringMotorID = 7;
-            public static final int swerveEncoderID = 14;
-            public static final Rotation2d angleOffset = Rotation2d.fromRotations(0.294189453125);
+            public static final int driveMotorID = 8;
+            public static final int steeringMotorID = 9;
+            public static final int swerveEncoderID = 13;
+            public static final Rotation2d angleOffset = Rotation2d.fromRotations(0.3);
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(driveMotorID, steeringMotorID, swerveEncoderID, angleOffset);
         }
     }
