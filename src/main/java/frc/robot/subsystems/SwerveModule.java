@@ -25,6 +25,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.utilities.OnboardModuleState;
@@ -123,12 +124,20 @@ public class SwerveModule extends SubsystemBase {
         return Rotation2d.fromDegrees(swerveEncoder.getAbsolutePosition().getValueAsDouble() * 360);
     }
 
+    public double getDriveMotor() {
+        return driveMotor.get();
+    }
+
     public Rotation2d getSteeringAngularPosition() {
         return Rotation2d.fromDegrees(steeringEncoder.getPosition());
     }
 
-    public Rotation2d getWheelPositionMeters() {
-        return Rotation2d.fromDegrees(driveEncoder.getPosition());
+    public double getDrivePosition() {
+        return driveEncoder.getPosition();
+    }
+
+    public double getDriveVelocity() {
+        return driveEncoder.getVelocity();
     }
 
     public SwerveModuleState getDesiredModuleState() {
@@ -146,6 +155,10 @@ public class SwerveModule extends SubsystemBase {
     public void resetToAbsolute() {
         double absolutePosition = getSwerveEncoder().getDegrees();
         steeringEncoder.setPosition(absolutePosition);
+    }
+
+    public void setDriveVoltage(Voltage voltage) {
+        driveMotor.setVoltage(voltage);
     }
 
     public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop) {

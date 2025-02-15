@@ -16,6 +16,9 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.PathPlannerLogging;
 
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Volts;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -24,11 +27,15 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.measure.MutDistance;
+import edu.wpi.first.units.measure.MutLinearVelocity;
+import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.utilities.constants.Constants;
 
 /* Sets up class that assigns motors to each swerve module and get swerving.
@@ -45,6 +52,13 @@ public class SwerveSubsystem extends SubsystemBase {
 
     private Field2d field;
 
+    private final SysIdRoutine m_sysIdRoutine;
+    private final MutVoltage m_appliedVoltage = Volts.mutable(0);
+    private final MutDistance m_distance = Meters.mutable(0);
+    private final MutLinearVelocity m_velocity = MetersPerSecond.mutable(0);
+
+
+
     public enum DriveMode {
         FIELD_RELATIVE,
         ROBOT_RELATIVE
@@ -53,6 +67,8 @@ public class SwerveSubsystem extends SubsystemBase {
     private DriveMode driveMode;
 
     public SwerveSubsystem() {
+        System.out.println("[Initialization] Creating SwerveSubsystem");
+
         gyro = new Pigeon2(14);
         gyro.getConfigurator().apply(new Pigeon2Configuration());
         gyro.getConfigurator().setYaw(0.0);
@@ -74,7 +90,6 @@ public class SwerveSubsystem extends SubsystemBase {
         try{
             robotConfiguration = RobotConfig.fromGUISettings();
           } catch (Exception e) {
-            // Handle exception as needed
             e.printStackTrace();
           }
 
@@ -99,6 +114,39 @@ public class SwerveSubsystem extends SubsystemBase {
         );
 
         driveMode = DriveMode.FIELD_RELATIVE;
+        
+        m_sysIdRoutine = new SysIdRoutine(new SysIdRoutine.Config(), new SysIdRoutine.Mechanism( // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
+            voltage -> {
+            swerveModules[0].setDriveVoltage(voltage);
+            swerveModules[1].setDriveVoltage(voltage);
+            swerveModules[2].setDriveVoltage(voltage);
+            swerveModules[3].setDriveVoltage(voltage);
+            }, // Tell SysId how to record a frame of data for each motor on the mechanism being characterized.
+            log -> {
+            // Record a frame for the left motors.  Since these share an encoder, we consider the entire group to be one motor.
+            log.motor("Front-Left Module")
+                .voltage(m_appliedVoltage.mut_replace(swerveModules[0].getDriveMotor() * RobotController.getBatteryVoltage(), Volts))
+                .linearPosition(m_distance.mut_replace(swerveModules[0].getDrivePosition(), Meters))
+                .linearVelocity(m_velocity.mut_replace(swerveModules[0].getDriveVelocity(), MetersPerSecond));
+            // Record a frame for the right motors.  Since these share an encoder, we consider
+            // the entire group to be one motor.
+            log.motor("Front-Right Module")
+                .voltage(m_appliedVoltage.mut_replace(swerveModules[1].getDriveMotor() * RobotController.getBatteryVoltage(), Volts))
+                .linearPosition(m_distance.mut_replace(swerveModules[1].getDrivePosition(), Meters))
+                .linearVelocity(m_velocity.mut_replace(swerveModules[0].getDriveVelocity(), MetersPerSecond));
+
+            log.motor("Back-Left Module")
+                .voltage(m_appliedVoltage.mut_replace(swerveModules[2].getDriveMotor() * RobotController.getBatteryVoltage(), Volts))
+                .linearPosition(m_distance.mut_replace(swerveModules[2].getDrivePosition(), Meters))
+                .linearVelocity(m_velocity.mut_replace(swerveModules[0].getDriveVelocity(), MetersPerSecond));
+
+            log.motor("Back-Right Module")
+                .voltage(m_appliedVoltage.mut_replace(swerveModules[3].getDriveMotor() * RobotController.getBatteryVoltage(), Volts))
+                .linearPosition(m_distance.mut_replace(swerveModules[3].getDrivePosition(), Meters))
+                .linearVelocity(m_velocity.mut_replace(swerveModules[0].getDriveVelocity(), MetersPerSecond));
+            }, this)
+        );
+
         PathPlannerLogging.setLogActivePathCallback((poses) -> field.getObject("path").setPoses(poses));
 
         SmartDashboard.putData("Field", field);
