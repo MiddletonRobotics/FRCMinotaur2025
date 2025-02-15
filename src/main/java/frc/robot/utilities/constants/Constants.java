@@ -17,61 +17,6 @@ import frc.robot.utilities.SwerveModuleGearing;
 // All of the constants that are accessed by other files, to prevent repetition and allows easy changing
 
 public class Constants {
-
-    public static final class CoralConstants {
-        public static final int CAN_ID = 12; // Choose appropriate CAN ID
-    }
-
-    public class ElevatorConstants {
-        public static class ElevatorSpecs {
-            public static final double gearing = 6.0;
-            public static final double carriageMassKg = 12;
-            public static final double drumRadiusMeters = Units.inchesToMeters(2);
-            public static final double minHeightMeters = Units.inchesToMeters(0);
-            public static final double maxHeightMeters = Units.feetToMeters(6); // remeasure maxV and A
-            // public static final boolean simulateGravity = true;
-            public static final double startingHeightMeters = 0;
-    
-            public static final double baseHeight = Units.feetToMeters(3.25);
-    
-            public static int[] motorIds = { 15, 16 };
-            public static boolean[] motorInverted = { false, true };
-    
-    
-    
-            public static int zeroOffset = 0;
-        }
-    
-        public static class ElevatorControl {
-            public static final double kP = 0.02;
-            public static final double kI = 0.0;
-            public static final double kD = 0;
-            public static final double kS = 0;
-            public static final double kG = 2.2977;
-            public static final double kV = 2.35; // 12 - 2.3 / 4.139
-            public static final double kA = 0;
-            public static final double maxV = 4.139;
-            public static final double maxA = 3.988; // change in velocity / seconds
-        }
-    
-        public enum ElevatorStates {
-            STOP,
-            L1,
-            L2,
-            L3,
-            L4,
-            MAX,
-            STOW
-        }
-    
-        public static class StateHeights {
-            public static final double l1Height = Units.inchesToMeters(18);
-            public static final double l2Height = Units.inchesToMeters(31.875 - 28.5 + 14.428 - 4.9 + 0.6 + 3);
-            public static final double l3Height = Units.inchesToMeters(47.625 - 28.5 + 14.428 - 4.9 + 0.6 + 3);
-            public static final double l4Height = Units.inchesToMeters(72 - 28.5 + 14.428 - 4.9 + 0.6 + 3);
-        }
-    }
-
     public static final class ModuleConstants {
         /* Swerve Voltage Compensation */
         public static final double voltageCompensation = 12.0;
@@ -188,5 +133,102 @@ public class Constants {
 
         public static final boolean IS_ALLIANCE_RED = true;
         public static final boolean IS_ALLIANCE_BLUE = !IS_ALLIANCE_RED;
+    }
+
+    public static final class CoralConstants {
+        public static final int CAN_ID = 12; // Choose appropriate CAN ID
+    }
+
+    public class ElevatorConstants {
+        public static final int leftElevatorID = 15;
+        public static final int rightElevatorID = 16;
+
+        public static final boolean rightElevatorInverted = false;
+        public static final boolean leftElevatorInverted = true;
+
+        public static final int ElevatorContinousCurrent = 30;
+        public static final double ElevatorVoltageCompensation = 12.0;
+
+        public static final double MinimumHeightMeters = Units.inchesToMeters(0);
+        public static final double MaximumHeightMeters = Units.feetToMeters(6);
+        public static final double StartingHeightMeters = 0;
+        public static final double BaseHeight = Units.feetToMeters(3.25);
+
+        public static final double ElevatorGearRatio = (60.0 / 10.0);
+        public static final double SprocketPitchDiameter = Units.inchesToMeters(((16.0 * 0.25) / Math.PI));
+        public static final double ElevatorPositionConversionFactor = SprocketPitchDiameter * Math.PI / ElevatorGearRatio;
+        public static final double ElevatorVelocityConversionFactor = SprocketPitchDiameter * Math.PI / 60 * ElevatorGearRatio;
+
+        /* Elevator PID Characterization Values */
+        public static final double ElevatorProfileKp = 0.01;
+        public static final double ElevatorProfileKi = 0.00;
+        public static final double ElevatorProfileKd = 0.00;
+
+        public static final double ElevatorSparkKp = 0.01;
+        public static final double ElevatorSparkKi = 0.01;
+        public static final double ElevatorSparkKd = 0.00;
+
+        /* Elevator Motor Characterization Values */
+        public static final double ElevatorFeedforwardkS = 0.0;
+        public static final double ElevatorFeedforwardkG = 2.2977;
+        public static final double ElevatorFeedforwardkV = 2.35;
+        public static final double ElevatorFeedforwardkA = 0.0;
+
+        public static final double LimitedMaxVelocity = 4.139;
+        public static final double LimitedMacAcceleration = 3.988;
+
+        public static class ElevatorHeights {
+            public static final double l1Height = Units.inchesToMeters(18);
+            public static final double l2Height = Units.inchesToMeters(31.875 - 28.5 + 14.428 - 4.9 + 0.6 + 3);
+            public static final double l3Height = Units.inchesToMeters(47.625 - 28.5 + 14.428 - 4.9 + 0.6 + 3);
+            public static final double l4Height = Units.inchesToMeters(72 - 28.5 + 14.428 - 4.9 + 0.6 + 3);
+        }
+
+        public enum ElevatorStates {
+            STOP,
+            L1,
+            L2,
+            L3,
+            L4,
+            MAX,
+            STOW
+        }
+
+        public static class ElevatorSpecs {
+            public static final double gearing = 6.0;
+            public static final double carriageMassKg = 12;
+            public static final double drumRadiusMeters = Units.inchesToMeters(2);
+            public static final double minHeightMeters = Units.inchesToMeters(0);
+            public static final double maxHeightMeters = Units.feetToMeters(6); // remeasure maxV and A
+            // public static final boolean simulateGravity = true;
+            public static final double startingHeightMeters = 0;
+    
+            public static final double baseHeight = Units.feetToMeters(3.25);
+    
+            public static int[] motorIds = { 15, 16 };
+            public static boolean[] motorInverted = { false, true };
+    
+    
+    
+            public static int zeroOffset = 0;
+        }
+    
+        public static class ElevatorControl {
+            public static final double kP = 0.02;
+            public static final double kI = 0.0;
+            public static final double kD = 0;
+            public static final double kS = 0;
+            public static final double kG = 2.2977;
+            public static final double kV = 2.35; // 12 - 2.3 / 4.139
+            public static final double kA = 0;
+        }
+
+    
+        public static class StateHeights {
+            public static final double l1Height = Units.inchesToMeters(18);
+            public static final double l2Height = Units.inchesToMeters(31.875 - 28.5 + 14.428 - 4.9 + 0.6 + 3);
+            public static final double l3Height = Units.inchesToMeters(47.625 - 28.5 + 14.428 - 4.9 + 0.6 + 3);
+            public static final double l4Height = Units.inchesToMeters(72 - 28.5 + 14.428 - 4.9 + 0.6 + 3);
+        }
     }
 }

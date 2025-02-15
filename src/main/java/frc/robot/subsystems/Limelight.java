@@ -20,7 +20,8 @@ import java.util.Map;
 //import org.littletonrobotics.junction.Logger;
 
 public class Limelight extends SubsystemBase {
-    /*
+  /* 
+
   NetworkTable table;
 
   NetworkTableEntry tx;
@@ -90,15 +91,7 @@ public class Limelight extends SubsystemBase {
     return outtakeLimelight;
   }
 
-  private Limelight(
-      String limelightName,
-      double limelightHeightMeters,
-      double limelightAngleDegrees,
-      double xOffsetMeters,
-      double yOffsetMeters,
-      boolean facingBackward,
-      boolean isTestSubsystem,
-      boolean enabled) {
+  private Limelight(String limelightName, double limelightHeightMeters, double limelightAngleDegrees,double xOffsetMeters, double yOffsetMeters, boolean facingBackward, boolean isTestSubsystem, boolean enabled) {
     name = limelightName;
     limeHeight = limelightHeightMeters;
     limeAngle = limelightAngleDegrees;
@@ -113,6 +106,7 @@ public class Limelight extends SubsystemBase {
       ty = table.getEntry("ty");
       ta = table.getEntry("ta");
       tv = table.getEntry("tv");
+      
       ledMode = table.getEntry("ledMode");
       camMode = table.getEntry("camMode");
       pipeline = table.getEntry("pipeline");
@@ -345,6 +339,5 @@ public class Limelight extends SubsystemBase {
       currentPipeline = pipelineIdx;
     }
   }
-
-  */
+    */
 }
