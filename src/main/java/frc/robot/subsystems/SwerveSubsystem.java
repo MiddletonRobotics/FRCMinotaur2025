@@ -1,16 +1,10 @@
-//Import required packages to apply swerve drive to robot.
 package frc.robot.subsystems;
 
-import java.security.cert.X509CRL;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Supplier;
+import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.BaseStatusSignal;
-import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.hardware.Pigeon2;
-import com.kauailabs.navx.frc.AHRS;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.GoalEndState;
@@ -22,10 +16,6 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.PathPlannerLogging;
 
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.estimator.PoseEstimator;
-import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -34,19 +24,9 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.DeferredCommand;
-import edu.wpi.first.wpilibj2.command.FunctionalCommand;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RepeatCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.utilities.constants.Constants;
@@ -61,14 +41,16 @@ public class SwerveSubsystem extends SubsystemBase {
     private SwerveModule[] swerveModules;
 
     private RobotConfig robotConfiguration;
-
     private BaseStatusSignal gyroYaw;
 
-    private SlewRateLimiter translationLimiter = new SlewRateLimiter(2.9);
-    private SlewRateLimiter strafeLimiter = new SlewRateLimiter(2.9);
-    private SlewRateLimiter rotationLimiter = new SlewRateLimiter(2.9);
-
     private Field2d field;
+
+    public enum DriveMode {
+        FIELD_RELATIVE,
+        ROBOT_RELATIVE
+    }
+
+    private DriveMode driveMode;
 
     public SwerveSubsystem() {
         gyro = new Pigeon2(14);
@@ -116,17 +98,32 @@ public class SwerveSubsystem extends SubsystemBase {
             this
         );
 
+        driveMode = DriveMode.FIELD_RELATIVE;
         PathPlannerLogging.setLogActivePathCallback((poses) -> field.getObject("path").setPoses(poses));
 
         SmartDashboard.putData("Field", field);
         BaseStatusSignal.setUpdateFrequencyForAll(50, gyroYaw);
     }
 
-    public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
-        SwerveModuleState[] swerveModuleStates = Constants.SwerveConstants.SwerveKinematics.toSwerveModuleStates(fieldRelative 
-            ? ChassisSpeeds.fromFieldRelativeSpeeds(translation.getX(), translation.getY(), rotation, getYaw())
-            : new ChassisSpeeds(translation.getX(), translation.getY(), rotation)
-        );
+    public void switchDriveMode() {
+       if(this.driveMode == DriveMode.FIELD_RELATIVE) {
+        this.driveMode = DriveMode.ROBOT_RELATIVE;
+       } else if (this.driveMode == DriveMode.ROBOT_RELATIVE) {
+        this.driveMode = DriveMode.FIELD_RELATIVE;
+       }
+    }
+
+    public void drive(Translation2d translation, double rotation, boolean isOpenLoop) {
+        SwerveModuleState[] swerveModuleStates;
+
+        switch(driveMode) {
+            case FIELD_RELATIVE:
+                swerveModuleStates = Constants.SwerveConstants.SwerveKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(translation.getX(), translation.getY(), rotation, getYaw()));
+            case ROBOT_RELATIVE:
+                swerveModuleStates = Constants.SwerveConstants.SwerveKinematics.toSwerveModuleStates(new ChassisSpeeds(translation.getX(), translation.getY(), rotation));
+            default:
+                swerveModuleStates = Constants.SwerveConstants.SwerveKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(translation.getX(), translation.getY(), rotation, getYaw()));
+        }
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.SwerveConstants.PhysicalMaxVelocity);
 
@@ -224,6 +221,7 @@ public class SwerveSubsystem extends SubsystemBase {
         swerveOdometry.update(getYaw(), getSwerveModulePositions());
         field.setRobotPose(getPose());
 
-        SmartDashboard.putNumber("Pigieon Yaw Value", getYaw().getDegrees());
+        Logger.recordOutput("SwerveSubsystem/Drive Mode", this.driveMode);
+        Logger.recordOutput("SwerveSubsystem/Pigieon Yaw Value", getYaw().getDegrees());
   }
 }

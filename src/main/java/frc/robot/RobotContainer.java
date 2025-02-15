@@ -28,15 +28,15 @@ public class RobotContainer {
       swerveSubsystem,  
       () -> -DriverController.getLeftY(),
       () -> -DriverController.getLeftX(), 
-      () -> DriverController.getRightX(),
-      () -> false
+      () -> DriverController.getRightX()
     ));
 
     configureBindings();
   }
 
   private void configureBindings() {
-    DriverController.a().toggleOnTrue(new InstantCommand(() -> swerveSubsystem.zeroHeading()));
+    DriverController.back().onTrue(new InstantCommand(() -> swerveSubsystem.zeroHeading()));
+    DriverController.start().toggleOnTrue(new InstantCommand(() -> swerveSubsystem.switchDriveMode()));
   }
 
   public Command getAutonomousCommand() {

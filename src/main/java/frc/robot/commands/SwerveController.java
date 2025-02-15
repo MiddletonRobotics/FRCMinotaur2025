@@ -15,18 +15,16 @@ public class SwerveController extends Command {
     private DoubleSupplier translationSupplier;
     private DoubleSupplier strafeSupplier;
     private DoubleSupplier rotationSupplier;
-    private BooleanSupplier robotCentricSupplier;
 
     private SlewRateLimiter translationLimiter = new SlewRateLimiter(2.9);
     private SlewRateLimiter strafeLimiter = new SlewRateLimiter(2.9);
     private SlewRateLimiter rotationLimiter = new SlewRateLimiter(2.9);
 
-    public SwerveController(SwerveSubsystem swerveSubsystem, DoubleSupplier translationSupplier, DoubleSupplier strafeSupplier, DoubleSupplier rotationSupplier, BooleanSupplier robotCentricSupplier) {
+    public SwerveController(SwerveSubsystem swerveSubsystem, DoubleSupplier translationSupplier, DoubleSupplier strafeSupplier, DoubleSupplier rotationSupplier) {
         this.swerveSubsystem = swerveSubsystem;
         this.translationSupplier = translationSupplier;
         this.strafeSupplier = strafeSupplier;
         this.rotationSupplier = rotationSupplier;
-        this.robotCentricSupplier = robotCentricSupplier;
 
         addRequirements(swerveSubsystem);
     }
@@ -37,6 +35,6 @@ public class SwerveController extends Command {
         double strafeValue = strafeLimiter.calculate(MathUtil.applyDeadband(strafeSupplier.getAsDouble(), Constants.DriverConstants.kDeadband));
         double rotationValue = rotationLimiter.calculate(MathUtil.applyDeadband(rotationSupplier.getAsDouble(), Constants.DriverConstants.kDeadband));
 
-        swerveSubsystem.drive(new Translation2d(translationValue, strafeValue).times(Constants.SwerveConstants.PhysicalMaxVelocity), rotationValue * Constants.SwerveConstants.PhysicalMaxAngularVelocity, !robotCentricSupplier.getAsBoolean(), false);
+        swerveSubsystem.drive(new Translation2d(translationValue, strafeValue).times(Constants.SwerveConstants.PhysicalMaxVelocity), rotationValue * Constants.SwerveConstants.PhysicalMaxAngularVelocity, false);
     }
 }
