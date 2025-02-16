@@ -34,6 +34,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.utilities.constants.Constants;
@@ -52,12 +53,10 @@ public class SwerveSubsystem extends SubsystemBase {
 
     private Field2d field;
 
-    private final SysIdRoutine m_sysIdRoutine;
+    private final SysIdRoutine sysIDRoutine;
     private final MutVoltage m_appliedVoltage = Volts.mutable(0);
     private final MutDistance m_distance = Meters.mutable(0);
     private final MutLinearVelocity m_velocity = MetersPerSecond.mutable(0);
-
-
 
     public enum DriveMode {
         FIELD_RELATIVE,
@@ -114,37 +113,35 @@ public class SwerveSubsystem extends SubsystemBase {
         );
 
         driveMode = DriveMode.FIELD_RELATIVE;
-        
-        m_sysIdRoutine = new SysIdRoutine(new SysIdRoutine.Config(), new SysIdRoutine.Mechanism( // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
+
+        sysIDRoutine = new SysIdRoutine(new SysIdRoutine.Config(), new SysIdRoutine.Mechanism( // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
             voltage -> {
-            swerveModules[0].setDriveVoltage(voltage);
-            swerveModules[1].setDriveVoltage(voltage);
-            swerveModules[2].setDriveVoltage(voltage);
-            swerveModules[3].setDriveVoltage(voltage);
-            }, // Tell SysId how to record a frame of data for each motor on the mechanism being characterized.
+                swerveModules[0].setDriveVoltage(voltage);
+                swerveModules[1].setDriveVoltage(voltage);
+                swerveModules[2].setDriveVoltage(voltage);
+                swerveModules[3].setDriveVoltage(voltage);
+            },
             log -> {
-            // Record a frame for the left motors.  Since these share an encoder, we consider the entire group to be one motor.
-            log.motor("Front-Left Module")
-                .voltage(m_appliedVoltage.mut_replace(swerveModules[0].getDriveMotor() * RobotController.getBatteryVoltage(), Volts))
-                .linearPosition(m_distance.mut_replace(swerveModules[0].getDrivePosition(), Meters))
-                .linearVelocity(m_velocity.mut_replace(swerveModules[0].getDriveVelocity(), MetersPerSecond));
-            // Record a frame for the right motors.  Since these share an encoder, we consider
-            // the entire group to be one motor.
-            log.motor("Front-Right Module")
-                .voltage(m_appliedVoltage.mut_replace(swerveModules[1].getDriveMotor() * RobotController.getBatteryVoltage(), Volts))
-                .linearPosition(m_distance.mut_replace(swerveModules[1].getDrivePosition(), Meters))
-                .linearVelocity(m_velocity.mut_replace(swerveModules[0].getDriveVelocity(), MetersPerSecond));
+                log.motor("Front-Left Module")
+                    .voltage(m_appliedVoltage.mut_replace(swerveModules[0].getDriveMotor() * RobotController.getBatteryVoltage(), Volts))
+                    .linearPosition(m_distance.mut_replace(swerveModules[0].getDrivePosition(), Meters))
+                    .linearVelocity(m_velocity.mut_replace(swerveModules[0].getDriveVelocity(), MetersPerSecond));
+                log.motor("Front-Right Module")
+                    .voltage(m_appliedVoltage.mut_replace(swerveModules[1].getDriveMotor() * RobotController.getBatteryVoltage(), Volts))
+                    .linearPosition(m_distance.mut_replace(swerveModules[1].getDrivePosition(), Meters))
+                    .linearVelocity(m_velocity.mut_replace(swerveModules[0].getDriveVelocity(), MetersPerSecond));
 
-            log.motor("Back-Left Module")
-                .voltage(m_appliedVoltage.mut_replace(swerveModules[2].getDriveMotor() * RobotController.getBatteryVoltage(), Volts))
-                .linearPosition(m_distance.mut_replace(swerveModules[2].getDrivePosition(), Meters))
-                .linearVelocity(m_velocity.mut_replace(swerveModules[0].getDriveVelocity(), MetersPerSecond));
+                log.motor("Back-Left Module")
+                    .voltage(m_appliedVoltage.mut_replace(swerveModules[2].getDriveMotor() * RobotController.getBatteryVoltage(), Volts))
+                    .linearPosition(m_distance.mut_replace(swerveModules[2].getDrivePosition(), Meters))
+                    .linearVelocity(m_velocity.mut_replace(swerveModules[0].getDriveVelocity(), MetersPerSecond));
 
-            log.motor("Back-Right Module")
-                .voltage(m_appliedVoltage.mut_replace(swerveModules[3].getDriveMotor() * RobotController.getBatteryVoltage(), Volts))
-                .linearPosition(m_distance.mut_replace(swerveModules[3].getDrivePosition(), Meters))
-                .linearVelocity(m_velocity.mut_replace(swerveModules[0].getDriveVelocity(), MetersPerSecond));
-            }, this)
+                log.motor("Back-Right Module")
+                    .voltage(m_appliedVoltage.mut_replace(swerveModules[3].getDriveMotor() * RobotController.getBatteryVoltage(), Volts))
+                    .linearPosition(m_distance.mut_replace(swerveModules[3].getDrivePosition(), Meters))
+                    .linearVelocity(m_velocity.mut_replace(swerveModules[0].getDriveVelocity(), MetersPerSecond));
+                }, 
+            this)
         );
 
         PathPlannerLogging.setLogActivePathCallback((poses) -> field.getObject("path").setPoses(poses));
@@ -228,6 +225,14 @@ public class SwerveSubsystem extends SubsystemBase {
         for(SwerveModule module : swerveModules) {
             module.setDesiredState(desiredStates[module.moduleNumber], false);
         }
+    }
+
+    public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+        return sysIDRoutine.quasistatic(direction);
+    }
+
+    public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+        return sysIDRoutine.dynamic(direction);
     }
 
     public Pose2d getPose() {

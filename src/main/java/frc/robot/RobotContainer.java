@@ -6,21 +6,26 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+
 import frc.robot.commands.SwerveController;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.utilities.constants.Constants;
 
 public class RobotContainer {
   private final SwerveSubsystem swerveSubsystem;
-  private final CommandXboxController DriverController;
+  private final XboxController DriverController, OperatorController, TestingController;
 
   public RobotContainer() {
     swerveSubsystem = new SwerveSubsystem();
-    DriverController = new CommandXboxController(Constants.DriverConstants.driverControllerPort);
+    DriverController = new XboxController(Constants.DriverConstants.driverControllerPort);
+    OperatorController = new XboxController(Constants.DriverConstants.operatorControllerPort);
+    TestingController = new XboxController(Constants.DriverConstants.tesingControllerPort);
 
     RobotController.setBrownoutVoltage(6.0);
 
@@ -31,12 +36,23 @@ public class RobotContainer {
       () -> DriverController.getRightX()
     ));
 
-    configureBindings();
+    configureDriverController();
+    configureOperatorController();
+    configureTestingController();
   }
 
-  private void configureBindings() {
-    DriverController.back().onTrue(new InstantCommand(() -> swerveSubsystem.zeroHeading()));
-    DriverController.start().toggleOnTrue(new InstantCommand(() -> swerveSubsystem.switchDriveMode()));
+  public void configureDriverController() {
+    new Trigger(() -> DriverController.getBackButton()).onTrue(new InstantCommand(() -> swerveSubsystem.zeroHeading()));
+    new Trigger(() -> DriverController.getStartButton()).onTrue(new InstantCommand(() -> swerveSubsystem.switchDriveMode()));
+  }
+
+  public void configureOperatorController() {}
+
+  public void configureTestingController() {
+    new Trigger(() -> TestingController.getAButton()).onTrue(swerveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    new Trigger(() -> TestingController.getBButton()).onTrue(swerveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    new Trigger(() -> TestingController.getXButton()).onTrue(swerveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    new Trigger(() -> TestingController.getYButton()).onTrue(swerveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
   }
 
   public Command getAutonomousCommand() {

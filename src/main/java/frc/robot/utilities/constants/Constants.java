@@ -128,18 +128,6 @@ public class Constants {
         public static final PIDConstants RotationalPID = new PIDConstants(9, 5.0, 0.0);
     }
 
-    public static final class DriverConstants {
-        /* Default ports for our two Controllers */
-        public static final int driverControllerPort = 0; 
-        public static final int operatorControllerPort = 1; 
-
-        public static final double kDeadband = 0.1;
-        public static final boolean disableHAL = false; 
-
-        public static final boolean IS_ALLIANCE_RED = true;
-        public static final boolean IS_ALLIANCE_BLUE = !IS_ALLIANCE_RED;
-    }
-
     public static final class CoralConstants {
         public static final int CAN_ID = 12; // Choose appropriate CAN ID
     }
@@ -176,8 +164,8 @@ public class Constants {
         /* Elevator Motor Characterization Values */
         public static final double ElevatorFeedforwardkS = 0.0;
         public static final double ElevatorFeedforwardkG = 2.2977;
-        public static final double ElevatorFeedforwardkV = 2.35;
-        public static final double ElevatorFeedforwardkA = 0.0;
+        public static final double ElevatorFeedforwardkV = 7.23;
+        public static final double ElevatorFeedforwardkA = 0.05;
 
         public static final double LimitedMaxVelocity = 4.139;
         public static final double LimitedMacAcceleration = 3.988;
@@ -223,5 +211,14 @@ public class Constants {
             Map.entry(15, stageAprilTagHeight),
             Map.entry(16, stageAprilTagHeight)
         );
+    }
+
+    public static final class DriverConstants {
+        public static final int driverControllerPort = 0; 
+        public static final int operatorControllerPort = 1; 
+        public static final int tesingControllerPort = 2; 
+
+        public static final double kDeadband = 0.1;
+        public static final boolean disableHAL = false; 
     }
 }
