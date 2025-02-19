@@ -96,7 +96,7 @@ public class SwerveSubsystem extends SubsystemBase {
             this::getPose, 
             this::resetSwerveOdometry,
             this::getRobotRelativeSpeeds, 
-            this::driveRobotRelative, 
+            (speeds, feedforwards) -> driveRobotRelative(speeds), 
             new PPHolonomicDriveController(
                 Constants.AutonomousConstants.TranslationPID, 
                 Constants.AutonomousConstants.RotationalPID

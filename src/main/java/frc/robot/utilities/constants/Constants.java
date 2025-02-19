@@ -125,7 +125,7 @@ public class Constants {
         public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(LimitedMaxAngularVelocity, LimitedlMaxAngularAcceleration);
 
         public static final PIDConstants TranslationPID = new PIDConstants(5.0, 0.0, 0.0);
-        public static final PIDConstants RotationalPID = new PIDConstants(9, 5.0, 0.0);
+        public static final PIDConstants RotationalPID = new PIDConstants(5.0, 5.0, 0.0);
     }
 
     public static final class CoralConstants {
