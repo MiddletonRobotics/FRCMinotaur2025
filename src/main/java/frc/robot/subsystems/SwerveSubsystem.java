@@ -78,19 +78,19 @@ public class SwerveSubsystem extends SubsystemBase {
         
         swerveModules = new SwerveModule[] {
             new SwerveModule(0, Constants.ModuleConstants.FrontLeftModule.constants),
-            new SwerveModule(1,Constants.ModuleConstants.FrontRightModule.constants),
-            new SwerveModule(2,Constants.ModuleConstants.BackLeftModule.constants),
-            new SwerveModule(3,Constants.ModuleConstants.BackRightModule.constants)
+            new SwerveModule(1, Constants.ModuleConstants.FrontRightModule.constants),
+            new SwerveModule(2, Constants.ModuleConstants.BackLeftModule.constants),
+            new SwerveModule(3, Constants.ModuleConstants.BackRightModule.constants)
         };
 
         swerveOdometry = new SwerveDriveOdometry(Constants.SwerveConstants.SwerveKinematics, getYaw(), getSwerveModulePositions());
         field = new Field2d();
 
-        try{
+        try {
             robotConfiguration = RobotConfig.fromGUISettings();
           } catch (Exception e) {
             e.printStackTrace();
-          }
+        }
 
         AutoBuilder.configure(
             this::getPose, 
@@ -145,8 +145,6 @@ public class SwerveSubsystem extends SubsystemBase {
         );
 
         PathPlannerLogging.setLogActivePathCallback((poses) -> field.getObject("path").setPoses(poses));
-
-        SmartDashboard.putData("Field", field);
         BaseStatusSignal.setUpdateFrequencyForAll(50, gyroYaw);
     }
 
@@ -169,7 +167,7 @@ public class SwerveSubsystem extends SubsystemBase {
                 swerveModuleStates = Constants.SwerveConstants.SwerveKinematics.toSwerveModuleStates(new ChassisSpeeds(translation.getX(), translation.getY(), rotation));
                 break;
             default:
-            swerveModuleStates = Constants.SwerveConstants.SwerveKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(translation.getX(), translation.getY(), rotation, getYaw()));
+                swerveModuleStates = Constants.SwerveConstants.SwerveKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(translation.getX(), translation.getY(), rotation, getYaw()));
         }
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.SwerveConstants.PhysicalMaxVelocity);
@@ -275,10 +273,9 @@ public class SwerveSubsystem extends SubsystemBase {
         BaseStatusSignal.refreshAll(gyroYaw);
         swerveOdometry.update(getYaw(), getSwerveModulePositions());
         field.setRobotPose(getPose());
-        SmartDashboard.putNumber("Pigieon Value Yaw", gyroYaw.getValueAsDouble());
 
-        Logger.recordOutput("SwerveSubsystem/Drive Mode", this.driveMode);
+        SmartDashboard.putNumber("Pigieon Value Yaw", gyroYaw.getValueAsDouble());
         SmartDashboard.putString("Mode", "" + driveMode);
-        Logger.recordOutput("SwerveSubsystem/Pigieon Yaw Value", getYaw().getDegrees());
+        SmartDashboard.putData("Field", field);
   }
 }
