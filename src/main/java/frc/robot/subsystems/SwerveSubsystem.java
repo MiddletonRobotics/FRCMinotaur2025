@@ -164,10 +164,12 @@ public class SwerveSubsystem extends SubsystemBase {
         switch(driveMode) {
             case FIELD_RELATIVE:
                 swerveModuleStates = Constants.SwerveConstants.SwerveKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(translation.getX(), translation.getY(), rotation, getYaw()));
+                break;
             case ROBOT_RELATIVE:
                 swerveModuleStates = Constants.SwerveConstants.SwerveKinematics.toSwerveModuleStates(new ChassisSpeeds(translation.getX(), translation.getY(), rotation));
+                break;
             default:
-                swerveModuleStates = Constants.SwerveConstants.SwerveKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(translation.getX(), translation.getY(), rotation, getYaw()));
+            swerveModuleStates = Constants.SwerveConstants.SwerveKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(translation.getX(), translation.getY(), rotation, getYaw()));
         }
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.SwerveConstants.PhysicalMaxVelocity);
@@ -273,8 +275,10 @@ public class SwerveSubsystem extends SubsystemBase {
         BaseStatusSignal.refreshAll(gyroYaw);
         swerveOdometry.update(getYaw(), getSwerveModulePositions());
         field.setRobotPose(getPose());
+        SmartDashboard.putNumber("Pigieon Value Yaw", gyroYaw.getValueAsDouble());
 
         Logger.recordOutput("SwerveSubsystem/Drive Mode", this.driveMode);
+        SmartDashboard.putString("Mode", "" + driveMode);
         Logger.recordOutput("SwerveSubsystem/Pigieon Yaw Value", getYaw().getDegrees());
   }
 }
