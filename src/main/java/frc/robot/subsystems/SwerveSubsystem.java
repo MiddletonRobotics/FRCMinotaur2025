@@ -282,6 +282,11 @@ public class SwerveSubsystem extends SubsystemBase {
         swerveOdometry.update(getYaw(), getSwerveModulePositions());
         field.setRobotPose(getPose());
 
+
+        for(SwerveModuleTalonFX module : swerveModules) {
+            SmartDashboard.putNumber("Module Drive Position", module.getModulePosition().distanceMeters);
+            SmartDashboard.putNumber("Module Steer Position", module.getActualModuleState().angle.getDegrees());
+        }
         SmartDashboard.putNumber("Pigieon Value Yaw", gyroYaw.getValueAsDouble());
         SmartDashboard.putString("Mode", "" + driveMode);
         SmartDashboard.putData("Field", field);
