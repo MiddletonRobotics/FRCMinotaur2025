@@ -145,7 +145,7 @@ public class SwerveModuleTalonFX extends SubsystemBase {
         );
     }
 
-    public SwerveModulePosition getPosition() {
+    public SwerveModulePosition getModulePosition() {
         return new SwerveModulePosition(
             Conversions.rotationsToMeters(driveMotor.getPosition().getValueAsDouble(), Constants.SwerveConstants.WheelCircumference), 
             Rotation2d.fromRotations(steeringMotor.getPosition().getValueAsDouble())

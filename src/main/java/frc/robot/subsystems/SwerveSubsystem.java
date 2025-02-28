@@ -46,7 +46,7 @@ public class SwerveSubsystem extends SubsystemBase {
     private final Pigeon2 gyro;
 
     private SwerveDriveOdometry swerveOdometry;
-    private SwerveModuleSpark[] swerveModules;
+    private SwerveModuleTalonFX[] swerveModules;
 
     private RobotConfig robotConfiguration;
     private BaseStatusSignal gyroYaw;
@@ -76,11 +76,11 @@ public class SwerveSubsystem extends SubsystemBase {
 
         zeroHeading();
         
-        swerveModules = new SwerveModuleSpark[] {
-            new SwerveModuleSpark(0, Constants.ModuleConstants.FrontLeftModule.constants),
-            new SwerveModuleSpark(1, Constants.ModuleConstants.FrontRightModule.constants),
-            new SwerveModuleSpark(2, Constants.ModuleConstants.BackLeftModule.constants),
-            new SwerveModuleSpark(3, Constants.ModuleConstants.BackRightModule.constants)
+        swerveModules = new SwerveModuleTalonFX[] {
+            new SwerveModuleTalonFX(0, Constants.ModuleConstants.FrontLeftModule.constants),
+            new SwerveModuleTalonFX(1, Constants.ModuleConstants.FrontRightModule.constants),
+            new SwerveModuleTalonFX(2, Constants.ModuleConstants.BackLeftModule.constants),
+            new SwerveModuleTalonFX(3, Constants.ModuleConstants.BackRightModule.constants)
         };
 
         swerveOdometry = new SwerveDriveOdometry(Constants.SwerveConstants.SwerveKinematics, getYaw(), getSwerveModulePositions());
@@ -176,7 +176,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.SwerveConstants.PhysicalMaxVelocity);
 
-        for(SwerveModuleSpark module : swerveModules) {
+        for(SwerveModuleTalonFX module : swerveModules) {
             module.setDesiredState(swerveModuleStates[module.moduleNumber], isOpenLoop);
         }
     }
@@ -185,7 +185,7 @@ public class SwerveSubsystem extends SubsystemBase {
         SwerveModuleState[] swerveModuleStates = Constants.SwerveConstants.SwerveKinematics.toSwerveModuleStates(new ChassisSpeeds(translation.getX(), translation.getY(), 0.0));
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.SwerveConstants.PhysicalMaxVelocity);
 
-        for (SwerveModuleSpark module : swerveModules) {
+        for (SwerveModuleTalonFX module : swerveModules) {
             module.setDesiredState(swerveModuleStates[module.moduleNumber], isOpenLoop);
         }
     }
@@ -203,7 +203,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     public SwerveModuleState[] getSwerveModuleStates() {
         SwerveModuleState[] states = new SwerveModuleState[4];
-        for(SwerveModuleSpark module : swerveModules) {
+        for(SwerveModuleTalonFX module : swerveModules) {
             states[module.moduleNumber] = module.getActualModuleState();
         }
 
@@ -212,7 +212,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     public SwerveModulePosition[] getSwerveModulePositions() {
         SwerveModulePosition[] positions = new SwerveModulePosition[4];
-        for(SwerveModuleSpark module : swerveModules) {
+        for(SwerveModuleTalonFX module : swerveModules) {
             positions[module.moduleNumber] = module.getModulePosition();
         }
 
@@ -226,7 +226,7 @@ public class SwerveSubsystem extends SubsystemBase {
     public void setModuleStates(SwerveModuleState[] desiredStates) {
         SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, Constants.SwerveConstants.PhysicalMaxVelocity);
 
-        for(SwerveModuleSpark module : swerveModules) {
+        for(SwerveModuleTalonFX module : swerveModules) {
             module.setDesiredState(desiredStates[module.moduleNumber], false);
         }
     }
@@ -253,7 +253,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void resetModulesToAbsolute() {
-        for(SwerveModuleSpark module : swerveModules) {
+        for(SwerveModuleTalonFX module : swerveModules) {
             module.resetToAbsolute();
         }
     }
@@ -271,7 +271,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void stop() {
-        for(SwerveModuleSpark module : swerveModules) {
+        for(SwerveModuleTalonFX module : swerveModules) {
             module.stop();
         }
     }
