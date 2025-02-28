@@ -57,10 +57,10 @@ public class RobotContainer {
   public void configureOperatorController() {}
 
   public void configureTestingController() {
-    new Trigger(() -> TestingController.getAButton()).onTrue(swerveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    new Trigger(() -> TestingController.getBButton()).onTrue(swerveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-    new Trigger(() -> TestingController.getXButton()).onTrue(swerveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    new Trigger(() -> TestingController.getYButton()).onTrue(swerveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    //new Trigger(() -> TestingController.getAButton()).onTrue(swerveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    //new Trigger(() -> TestingController.getBButton()).onTrue(swerveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    //new Trigger(() -> TestingController.getXButton()).onTrue(swerveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    //new Trigger(() -> TestingController.getYButton()).onTrue(swerveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
   }
 
   public Command getAutonomousCommand() {

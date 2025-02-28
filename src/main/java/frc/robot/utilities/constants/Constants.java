@@ -105,7 +105,7 @@ public class Constants {
 
         /* Swerve Profiling Values */
         public static final double PhysicalMaxVelocity = Units.feetToMeters(16.5); 
-        public static final double PhysicalMaxAcceleration =  Units.feetToMeters(9.5); // 
+        public static final double PhysicalMaxAcceleration =  Units.feetToMeters(8.0); 
         public static final double PhysicalMaxAngularVelocity = 2 * Math.PI; 
         public static final double PhysicalMaxAngularAcceleration = 2 * Math.PI;
 

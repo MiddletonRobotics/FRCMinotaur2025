@@ -46,14 +46,14 @@ public class SwerveSubsystem extends SubsystemBase {
     private final Pigeon2 gyro;
 
     private SwerveDriveOdometry swerveOdometry;
-    private SwerveModule[] swerveModules;
+    private SwerveModuleSpark[] swerveModules;
 
     private RobotConfig robotConfiguration;
     private BaseStatusSignal gyroYaw;
 
     private Field2d field;
 
-    private final SysIdRoutine sysIDRoutine;
+    //private final SysIdRoutine sysIDRoutine;
     private final MutVoltage m_appliedVoltage = Volts.mutable(0);
     private final MutDistance m_distance = Meters.mutable(0);
     private final MutLinearVelocity m_velocity = MetersPerSecond.mutable(0);
@@ -76,11 +76,11 @@ public class SwerveSubsystem extends SubsystemBase {
 
         zeroHeading();
         
-        swerveModules = new SwerveModule[] {
-            new SwerveModule(0, Constants.ModuleConstants.FrontLeftModule.constants),
-            new SwerveModule(1, Constants.ModuleConstants.FrontRightModule.constants),
-            new SwerveModule(2, Constants.ModuleConstants.BackLeftModule.constants),
-            new SwerveModule(3, Constants.ModuleConstants.BackRightModule.constants)
+        swerveModules = new SwerveModuleSpark[] {
+            new SwerveModuleSpark(0, Constants.ModuleConstants.FrontLeftModule.constants),
+            new SwerveModuleSpark(1, Constants.ModuleConstants.FrontRightModule.constants),
+            new SwerveModuleSpark(2, Constants.ModuleConstants.BackLeftModule.constants),
+            new SwerveModuleSpark(3, Constants.ModuleConstants.BackRightModule.constants)
         };
 
         swerveOdometry = new SwerveDriveOdometry(Constants.SwerveConstants.SwerveKinematics, getYaw(), getSwerveModulePositions());
@@ -114,6 +114,8 @@ public class SwerveSubsystem extends SubsystemBase {
 
         driveMode = DriveMode.FIELD_RELATIVE;
 
+        /*
+
         sysIDRoutine = new SysIdRoutine(new SysIdRoutine.Config(), new SysIdRoutine.Mechanism( // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
             voltage -> {
                 swerveModules[0].setDriveVoltage(voltage);
@@ -144,6 +146,8 @@ public class SwerveSubsystem extends SubsystemBase {
             this)
         );
 
+        */
+
         PathPlannerLogging.setLogActivePathCallback((poses) -> field.getObject("path").setPoses(poses));
         BaseStatusSignal.setUpdateFrequencyForAll(50, gyroYaw);
     }
@@ -172,7 +176,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.SwerveConstants.PhysicalMaxVelocity);
 
-        for(SwerveModule module : swerveModules) {
+        for(SwerveModuleSpark module : swerveModules) {
             module.setDesiredState(swerveModuleStates[module.moduleNumber], isOpenLoop);
         }
     }
@@ -181,7 +185,7 @@ public class SwerveSubsystem extends SubsystemBase {
         SwerveModuleState[] swerveModuleStates = Constants.SwerveConstants.SwerveKinematics.toSwerveModuleStates(new ChassisSpeeds(translation.getX(), translation.getY(), 0.0));
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.SwerveConstants.PhysicalMaxVelocity);
 
-        for (SwerveModule module : swerveModules) {
+        for (SwerveModuleSpark module : swerveModules) {
             module.setDesiredState(swerveModuleStates[module.moduleNumber], isOpenLoop);
         }
     }
@@ -199,7 +203,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     public SwerveModuleState[] getSwerveModuleStates() {
         SwerveModuleState[] states = new SwerveModuleState[4];
-        for(SwerveModule module : swerveModules) {
+        for(SwerveModuleSpark module : swerveModules) {
             states[module.moduleNumber] = module.getActualModuleState();
         }
 
@@ -208,7 +212,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     public SwerveModulePosition[] getSwerveModulePositions() {
         SwerveModulePosition[] positions = new SwerveModulePosition[4];
-        for(SwerveModule module : swerveModules) {
+        for(SwerveModuleSpark module : swerveModules) {
             positions[module.moduleNumber] = module.getModulePosition();
         }
 
@@ -222,11 +226,13 @@ public class SwerveSubsystem extends SubsystemBase {
     public void setModuleStates(SwerveModuleState[] desiredStates) {
         SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, Constants.SwerveConstants.PhysicalMaxVelocity);
 
-        for(SwerveModule module : swerveModules) {
+        for(SwerveModuleSpark module : swerveModules) {
             module.setDesiredState(desiredStates[module.moduleNumber], false);
         }
     }
 
+    /*
+     
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
         return sysIDRoutine.quasistatic(direction);
     }
@@ -234,6 +240,8 @@ public class SwerveSubsystem extends SubsystemBase {
     public Command sysIdDynamic(SysIdRoutine.Direction direction) {
         return sysIDRoutine.dynamic(direction);
     }
+
+    */
 
     public Pose2d getPose() {
         return swerveOdometry.getPoseMeters();
@@ -245,7 +253,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void resetModulesToAbsolute() {
-        for(SwerveModule module : swerveModules) {
+        for(SwerveModuleSpark module : swerveModules) {
             module.resetToAbsolute();
         }
     }
@@ -263,7 +271,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void stop() {
-        for(SwerveModule module : swerveModules) {
+        for(SwerveModuleSpark module : swerveModules) {
             module.stop();
         }
     }
