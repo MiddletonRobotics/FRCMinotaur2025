@@ -4,8 +4,10 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.pathplanner.lib.auto.AutoBuilder;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.XboxController;
@@ -35,7 +37,7 @@ public class RobotContainer {
 
     autonomousChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Autonomous Chooser",autonomousChooser);
-    RobotController.setBrownoutVoltage(6.0);
+    RobotController.setBrownoutVoltage(6.75);
 
     swerveSubsystem.setDefaultCommand(new SwerveController(
       swerveSubsystem,  
@@ -50,8 +52,9 @@ public class RobotContainer {
   }
 
   public void configureDriverController() {
-    new Trigger(() -> DriverController.getBackButton()).onTrue(new InstantCommand(() -> swerveSubsystem.zeroHeading()));
+    new Trigger(() -> DriverController.getBackButton()).onTrue(new InstantCommand(() -> swerveSubsystem.resetYaw(Rotation2d.fromDegrees(0.0))));
     new Trigger(() -> DriverController.getStartButton()).onTrue(new InstantCommand(() -> swerveSubsystem.switchDriveMode()));
+    new Trigger(() -> DriverController.getRightBumperButton()).onTrue(new InstantCommand(() -> swerveSubsystem.switchSlowMode()));
   }
 
   public void configureOperatorController() {}
@@ -61,6 +64,10 @@ public class RobotContainer {
     //new Trigger(() -> TestingController.getBButton()).onTrue(swerveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kReverse));
     //new Trigger(() -> TestingController.getXButton()).onTrue(swerveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
     //new Trigger(() -> TestingController.getYButton()).onTrue(swerveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+  }
+
+  public SwerveSubsystem getSwerveSubsystem() {
+    return swerveSubsystem;
   }
 
   public Command getAutonomousCommand() {

@@ -133,7 +133,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     public boolean atSetpointState() {
         switch (state) {
             case L1:
-                return UtilityFunctions.withinMargin(0.01, Constants.ElevatorConstants.ElevatorHeights.l1Height, getPositionMeters());
+                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.ElevatorHeights.l1Height);
             case L2:
                 return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.ElevatorHeights.l2Height);
             case L3:

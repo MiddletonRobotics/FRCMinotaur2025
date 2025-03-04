@@ -54,7 +54,11 @@ public class SwerveModuleSpark extends SubsystemBase {
     private final SparkClosedLoopController drivePIDController;
     private final SparkClosedLoopController anglePIDController;
 
-    private final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(Constants.ModuleConstants.driveKS, Constants.ModuleConstants.driveKV, Constants.ModuleConstants.driveKA);
+    private final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(
+        Constants.ModuleConstants.SparkMaxModuleConstants.driveKS, 
+        Constants.ModuleConstants.SparkMaxModuleConstants.driveKV, 
+        Constants.ModuleConstants.SparkMaxModuleConstants.driveKA
+    );
 
     public SwerveModuleSpark(int moduleNumber, SwerveModuleConstants moduleConstants) {
         this.moduleNumber = moduleNumber;
@@ -75,7 +79,7 @@ public class SwerveModuleSpark extends SubsystemBase {
         driveConfiguration = new SparkMaxConfig();
         configureDriveMotor(moduleConstants);
 
-        lastAngle = getActualModuleState().angle;
+        lastAngle = getModuleState().angle;
     }
 
     private void configureSwerveEncoder() {
@@ -92,13 +96,13 @@ public class SwerveModuleSpark extends SubsystemBase {
         steeringConfiguration
             .inverted(Constants.SwerveConstants.angleInvert)
             .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(Constants.ModuleConstants.angleContinuousCurrentLimit)
-            .voltageCompensation(Constants.ModuleConstants.voltageCompensation);
+            .smartCurrentLimit(Constants.ModuleConstants.SparkMaxModuleConstants.SteerSmartCurrentLimit)
+            .voltageCompensation(Constants.ModuleConstants.SparkMaxModuleConstants.VoltageCompensation);
         steeringConfiguration.encoder
             .positionConversionFactor(Constants.SwerveConstants.SteeringConversionFactor);
         steeringConfiguration.closedLoop
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-            .pid(Constants.ModuleConstants.steeringKp, 0.0, Constants.ModuleConstants.steeringKd);
+            .pid(Constants.ModuleConstants.SparkMaxModuleConstants.steeringKp, 0.0, Constants.ModuleConstants.SparkMaxModuleConstants.steeringKd);
 
         steeringMotor.configure(steeringConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         resetToAbsolute();
@@ -108,14 +112,14 @@ public class SwerveModuleSpark extends SubsystemBase {
         driveConfiguration
             .inverted(Constants.SwerveConstants.driveInvert)
             .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(Constants.ModuleConstants.driveContinuousCurrentLimit)
-            .voltageCompensation(Constants.ModuleConstants.voltageCompensation);
+            .smartCurrentLimit(Constants.ModuleConstants.SparkMaxModuleConstants.DriveSmartCurrentLimit)
+            .voltageCompensation(Constants.ModuleConstants.SparkMaxModuleConstants.VoltageCompensation);
         driveConfiguration.encoder
             .positionConversionFactor(Constants.SwerveConstants.DriveConversionPositionFactor)
             .velocityConversionFactor(Constants.SwerveConstants.DriveConversionVelocityFactor);
         driveConfiguration.closedLoop
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-            .pid(Constants.ModuleConstants.driveKp, 0.0, Constants.ModuleConstants.driveKd);
+            .pid(Constants.ModuleConstants.SparkMaxModuleConstants.driveKp, 0.0, Constants.ModuleConstants.SparkMaxModuleConstants.driveKd);
 
         driveMotor.configure(driveConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         driveEncoder.setPosition(0.0);
@@ -145,7 +149,7 @@ public class SwerveModuleSpark extends SubsystemBase {
         return expectedState;
     }
 
-    public SwerveModuleState getActualModuleState() {
+    public SwerveModuleState getModuleState() {
         return new SwerveModuleState(driveEncoder.getVelocity(), getSteeringAngularPosition());
     }
 
@@ -162,7 +166,7 @@ public class SwerveModuleSpark extends SubsystemBase {
         driveMotor.setVoltage(voltage);
     }
 
-    public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop) {
+    public void set(SwerveModuleState desiredState, boolean isOpenLoop) {
 
         if(Math.abs(desiredState.speedMetersPerSecond) < 0.006) {
             driveMotor.set(0);
@@ -175,7 +179,7 @@ public class SwerveModuleSpark extends SubsystemBase {
             return;
         }
 
-        desiredState = OnboardModuleState.optimize(desiredState, getActualModuleState().angle);
+        desiredState = OnboardModuleState.optimize(desiredState, getModuleState().angle);
         this.expectedState = desiredState;
 
         setAngle(desiredState);

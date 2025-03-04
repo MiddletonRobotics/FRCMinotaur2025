@@ -23,24 +23,43 @@ public class Constants {
     public static final boolean debug = true;
 
     public static final class ModuleConstants {
-        /* Swerve Voltage Compensation */
-        public static final double voltageCompensation = 12.0;
-    
-        /* Swerve Current Limiting */
-        public static final int angleContinuousCurrentLimit = 20; 
-        public static final int driveContinuousCurrentLimit = 40; 
+        public static final class SparkMaxModuleConstants {
+            public static final double VoltageCompensation = 12.0;
 
-        /* PID Values for the Motors. Used to correct the error when trying to move the motors to a desired location */
-        public static final double steeringKp = 0.02; 
-        public static final double steeringKd = 0.1; 
+            public static final int SteerSmartCurrentLimit = 20; 
+            public static final int SteerSecondaryCurrentLimit = 50;
 
-        public static final double driveKp = 0.1; 
-        public static final double driveKd = 0.1; 
+            public static final int DriveSmartCurrentLimit = 40; 
+            public static final int DriveSecondaryCurrentLimit = 70;
 
-        /* Drive Motor Characterization Values */
-        public static final double driveKS = 0.667;
-        public static final double driveKV = 2.44;
-        public static final double driveKA = 0.27;
+            public static final double steeringKp = 0.02; 
+            public static final double steeringKd = 0.1; 
+
+            public static final double driveKp = 0.1; 
+            public static final double driveKd = 0.1; 
+
+            public static final double driveKS = 0.667;
+            public static final double driveKV = 2.44;
+            public static final double driveKA = 0.27;
+        }
+
+        public static final class TalonFXModuleConstants {
+            public static final double driveKp = 10.0; 
+            public static final double driveKd = 0.0; 
+
+            public static final double driveKS = 0.667;
+            public static final double driveKV = 2.44;
+            public static final double driveKA = 0.27;
+
+            public static final double steeringKp = 10.0; 
+            public static final double steeringKd = 0.0; 
+
+            public static final boolean driveStatorCurrentLimitEnable = true;
+            public static final double driveStatorCurrentLimit = 80;
+
+            public static final boolean steerStatorCurrentLimitEnable = true;
+            public static final double steerStatorCurrentLimit = 40;
+        }
 
         /* Front Left Module - Module 0 */
         public static final class FrontLeftModule {
@@ -124,8 +143,8 @@ public class Constants {
 
         public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(LimitedMaxAngularVelocity, LimitedlMaxAngularAcceleration);
 
-        public static final PIDConstants TranslationPID = new PIDConstants(5.0, 0.0, 0.0);
-        public static final PIDConstants RotationalPID = new PIDConstants(5.0, 5.0, 0.0);
+        public static final PIDConstants TranslationPID = new PIDConstants(10.0, 0.0, 0.0);
+        public static final PIDConstants RotationalPID = new PIDConstants(10.0, 5.0, 0.0);
     }
 
     public static final class CoralConstants {
