@@ -6,17 +6,42 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import frc.robot.utilities.constants.Constants;
 
 public class CoralSubsystem extends SubsystemBase {
-    private final SparkMax coralMotor;
+    private final SparkMax coralSpinnerMotor;
+    private final SparkMax coralPivotMotor;
+
+
 
     public CoralSubsystem() {
-        coralMotor = new SparkMax(Constants.CoralConstants.CAN_ID, MotorType.kBrushless);
+        coralSpinnerMotor = new SparkMax(Constants.CoralPivotConstants.CAN_ID, MotorType.kBrushless);
+        coralPivotMotor = new SparkMax(Constants.CoralPivotConstants.CAN_ID, MotorType.kBrushless);
     }
 
-    public void spin(double speed) {
-        coralMotor.set(speed);
+    public void Coralspin(double speed) {
+        coralSpinnerMotor.set(speed);
+
+
+
     }
 
-    public void stop() {
-        coralMotor.set(0);
+    public void CoralSpinstop() {
+        coralSpinnerMotor.set(0);
     }
+
+
+
+
+
+
+    public void CoralPivot(double speed) {
+        coralPivotMotor.set(speed);
+
+
+
+    }
+
+    public void CoralPivotstop() {
+        coralPivotMotor.set(0);
+    }
+    
 }
+

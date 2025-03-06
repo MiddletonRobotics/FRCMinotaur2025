@@ -141,7 +141,7 @@ public class SwerveModule extends SubsystemBase {
         steerMotorConfiguration.Slot0.kI = 0.0;
         steerMotorConfiguration.Slot0.kD = Constants.ModuleConstants.TalonFXModuleConstants.steeringKd;
 
-        steerMotorConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        steerMotorConfiguration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         steerMotorConfiguration.Feedback.SensorToMechanismRatio = Constants.SwerveConstants.SteeringConversionFactor;
         steerMotorConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 

@@ -98,6 +98,7 @@ public class Constants {
         }
     }
 
+
     public static final class SwerveConstants {
         public static final double TrackWidthX = Units.inchesToMeters(28); 
         public static final double WheelBaseY = Units.inchesToMeters(28); 
@@ -147,8 +148,23 @@ public class Constants {
         public static final PIDConstants RotationalPID = new PIDConstants(10.0, 5.0, 0.0);
     }
 
-    public static final class CoralConstants {
-        public static final int CAN_ID = 12; // Choose appropriate CAN ID
+    public static final class CoralSpinnerConstants {
+        public static final int CAN_ID = 3; // Choose appropriate CAN ID
+    }
+     
+    public static final class CoralPivotConstants {
+        public static final int CAN_ID = 8; // Choose appropriate CAN ID
+    }
+
+    public static final class AlgeaSpinnerConstants {
+        public static final int CAN_ID = 9; // Choose appropriate CAN ID
+    }
+     
+    public static final class AlgeaPivot1Constants {
+        public static final int CAN_ID = 17; // Choose appropriate CAN ID
+    }
+    public static final class AlgeaPivot2Constants {
+        public static final int CAN_ID = 18; // Choose appropriate CAN ID
     }
 
     public class ElevatorConstants {
