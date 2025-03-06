@@ -142,7 +142,7 @@ public class SwerveModule extends SubsystemBase {
         steerMotorConfiguration.Slot0.kD = Constants.ModuleConstants.TalonFXModuleConstants.steeringKd;
 
         steerMotorConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-        steerMotorConfiguration.Feedback.RotorToSensorRatio = Constants.SwerveConstants.SteeringConversionFactor;
+        steerMotorConfiguration.Feedback.SensorToMechanismRatio = Constants.SwerveConstants.SteeringConversionFactor;
         steerMotorConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
         steeringMotor.getConfigurator().apply(steerMotorConfiguration);
@@ -159,7 +159,7 @@ public class SwerveModule extends SubsystemBase {
         driveMotorConfiguration.Slot0.kD = Constants.ModuleConstants.TalonFXModuleConstants.driveKd;
 
         driveMotorConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-        driveMotorConfiguration.Feedback.RotorToSensorRatio = Constants.SwerveConstants.DriveConversionPositionFactor;
+        driveMotorConfiguration.Feedback.SensorToMechanismRatio = Constants.SwerveConstants.DriveConversionPositionFactor;
         driveMotorConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
         driveMotor.getConfigurator().apply(driveMotorConfiguration);
