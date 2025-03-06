@@ -149,15 +149,15 @@ public class Constants {
     }
 
     public static final class CoralSpinnerConstants {
-        public static final int CAN_ID = 3; // Choose appropriate CAN ID
+        public static final int CAN_ID = 31;// Choose appropriate CAN ID
     }
      
     public static final class CoralPivotConstants {
-        public static final int CAN_ID = 8; // Choose appropriate CAN ID
+        public static final int CAN_ID = 55;
     }
 
     public static final class AlgeaSpinnerConstants {
-        public static final int CAN_ID = 9; // Choose appropriate CAN ID
+        public static final int CAN_ID = 46;// Choose appropriate CAN ID
     }
      
     public static final class AlgeaPivot1Constants {
@@ -168,8 +168,8 @@ public class Constants {
     }
 
     public class ElevatorConstants {
-        public static final int leftElevatorID = 15;
-        public static final int rightElevatorID = 16;
+        public static final int leftElevatorID = 16;
+        public static final int rightElevatorID = 15;
 
         public static final boolean rightElevatorInverted = false;
         public static final boolean leftElevatorInverted = true;

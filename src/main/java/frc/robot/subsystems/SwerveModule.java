@@ -135,6 +135,7 @@ public class SwerveModule extends SubsystemBase {
     private void configureSteeringMotor(SwerveModuleConstants moduleConstants) {
         steerMotorConfiguration.CurrentLimits.StatorCurrentLimitEnable = Constants.ModuleConstants.TalonFXModuleConstants.steerStatorCurrentLimitEnable;
         steerMotorConfiguration.CurrentLimits.StatorCurrentLimit = Constants.ModuleConstants.TalonFXModuleConstants.steerStatorCurrentLimit;
+        steerMotorConfiguration.Audio.BeepOnConfig = false;
         //steerMotorConfiguration.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
 
         steerMotorConfiguration.Slot0.kP = Constants.ModuleConstants.TalonFXModuleConstants.steeringKp;
@@ -153,6 +154,7 @@ public class SwerveModule extends SubsystemBase {
     private void configureDriveMotor(SwerveModuleConstants moduleConstants) {
         driveMotorConfiguration.CurrentLimits.StatorCurrentLimitEnable = Constants.ModuleConstants.TalonFXModuleConstants.driveStatorCurrentLimitEnable;
         driveMotorConfiguration.CurrentLimits.StatorCurrentLimit = Constants.ModuleConstants.TalonFXModuleConstants.driveStatorCurrentLimit;
+        driveMotorConfiguration.Audio.BeepOnConfig = false;
 
         driveMotorConfiguration.Slot0.kP = Constants.ModuleConstants.TalonFXModuleConstants.driveKp;
         driveMotorConfiguration.Slot0.kI = 0.0;

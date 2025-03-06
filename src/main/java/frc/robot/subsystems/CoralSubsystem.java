@@ -13,7 +13,7 @@ public class CoralSubsystem extends SubsystemBase {
 
     public CoralSubsystem() {
         coralSpinnerMotor = new SparkMax(Constants.CoralPivotConstants.CAN_ID, MotorType.kBrushless);
-        coralPivotMotor = new SparkMax(Constants.CoralPivotConstants.CAN_ID, MotorType.kBrushless);
+        coralPivotMotor = new SparkMax(24, MotorType.kBrushless);
     }
 
     public void Coralspin(double speed) {

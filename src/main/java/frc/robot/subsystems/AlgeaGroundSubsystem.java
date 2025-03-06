@@ -6,17 +6,17 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import frc.robot.utilities.constants.Constants;
 
 
-public class AlgeaSubsystem extends SubsystemBase {
+public class AlgeaGroundSubsystem extends SubsystemBase {
     private final SparkMax AlgeaSpinnerMotor;
     private final SparkMax AlgeaPivot1Motor;
-    private final SparkMax AlgeaPivot2Motor;
+    //private final SparkMax AlgeaPivot2Motor;
 
 
 
 
-    public AlgeaSubsystem() {
+    public AlgeaGroundSubsystem() {
         AlgeaPivot1Motor = new SparkMax(Constants.AlgeaPivot1Constants.CAN_ID, MotorType.kBrushless);
-        AlgeaPivot2Motor = new SparkMax(Constants.AlgeaPivot2Constants.CAN_ID, MotorType.kBrushless);
+        //AlgeaPivot2Motor = new SparkMax(Constants.AlgeaPivot2Constants.CAN_ID, MotorType.kBrushless);
 
         AlgeaSpinnerMotor = new SparkMax(Constants.AlgeaSpinnerConstants.CAN_ID, MotorType.kBrushless);
     }
@@ -39,7 +39,7 @@ public class AlgeaSubsystem extends SubsystemBase {
 
     public void AlgeaPivot(double speed) {
         AlgeaPivot1Motor.set(speed);
-        AlgeaPivot2Motor.set(speed);
+        //AlgeaPivot2Motor.set(speed);
 
 
 
@@ -48,7 +48,7 @@ public class AlgeaSubsystem extends SubsystemBase {
 
     public void AlgeaPivotstop(double speed) {
         AlgeaPivot1Motor.set(0);
-        AlgeaPivot2Motor.set(0);
+        //AlgeaPivot2Motor.set(0);
 
     }
     

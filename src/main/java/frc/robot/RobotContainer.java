@@ -20,15 +20,18 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 import frc.robot.commands.SwerveController;
-import frc.robot.subsystems.AlgeaSubsystem;
+import frc.robot.subsystems.AlgeaGroundSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
+import frc.robot.subsystems.ElevatorSubsystem;
+
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.utilities.constants.Constants;
 
 public class RobotContainer {
   private final SwerveSubsystem swerveSubsystem;
-  CoralSubsystem coralSubsystem = new CoralSubsystem(); // Create an instance
-  AlgeaSubsystem algeaSubsystem = new AlgeaSubsystem(); // Create an instance
+  CoralSubsystem coralSubsystem = new CoralSubsystem();
+  ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem(); // Create an instance
+  AlgeaGroundSubsystem algeaGroundSubsystem = new AlgeaGroundSubsystem(); // Create an instance
 
   private final XboxController DriverController, OperatorController, TestingController;
 
@@ -59,7 +62,7 @@ public class RobotContainer {
   public void configureDriverController() {
     new Trigger(() -> DriverController.getBackButton()).onTrue(new InstantCommand(() -> swerveSubsystem.resetYaw(Rotation2d.fromDegrees(0.0))));
     new Trigger(() -> DriverController.getStartButton()).onTrue(new InstantCommand(() -> swerveSubsystem.switchDriveMode()));
-    new Trigger(() -> DriverController.getRightBumperButton()).onTrue(new InstantCommand(() -> swerveSubsystem.switchSlowMode()));
+   // new Trigger(() -> DriverController.getRightBumperButton()).onTrue(new InstantCommand(() -> swerveSubsystem.switchSlowMode()));
 
 
 
@@ -70,24 +73,27 @@ new Trigger(() -> DriverController.getAButton())
     .onFalse(new InstantCommand(() -> coralSubsystem.Coralspin(0.0), coralSubsystem)); // Stops motors
 
 
-    new Trigger(() -> DriverController.getAButton())
-    .onTrue(new InstantCommand(() -> algeaSubsystem.Algeaspin(0.5), algeaSubsystem)); // Runs motors at 50%
+    new Trigger(() -> DriverController.getLeftBumperButton())
+    .onTrue(new InstantCommand(() -> algeaGroundSubsystem.Algeaspin(0.5), algeaGroundSubsystem)); // Runs motors at 50%
 
-new Trigger(() -> DriverController.getAButton())
-    .onFalse(new InstantCommand(() -> algeaSubsystem.AlgeaSpinstop(), algeaSubsystem));
+    new Trigger(() -> DriverController.getLeftBumperButton())
+    .onFalse(new InstantCommand(() -> algeaGroundSubsystem.AlgeaSpinstop(), algeaGroundSubsystem));
     
     
     
     
     
-    new Trigger(() -> DriverController.getAButton())
-    .onTrue(new InstantCommand(() -> algeaSubsystem.AlgeaPivot(0.5), algeaSubsystem)); // Runs motors at 50%
+    new Trigger(() -> DriverController.getRightBumperButton())
+    .onTrue(new InstantCommand(() -> algeaGroundSubsystem.AlgeaPivot(0.5), algeaGroundSubsystem)); // Runs motors at 50%
 
-new Trigger(() -> DriverController.getAButton())
-    .onFalse(new InstantCommand(() -> algeaSubsystem.AlgeaPivotstop(0.0), algeaSubsystem));// Stops motors
+    new Trigger(() -> DriverController.getRightBumperButton())
+    .onFalse(new InstantCommand(() -> algeaGroundSubsystem.AlgeaPivotstop(0.0), algeaGroundSubsystem));// Stops motors
 
+    new Trigger(() -> DriverController.getBButton())
+    .whileTrue(new InstantCommand(() -> elevatorSubsystem.runElevatorUp(0.2), elevatorSubsystem));// Stops motors
 
-  
+    new Trigger(() -> DriverController.getBButton())
+    .onFalse(new InstantCommand(() -> elevatorSubsystem.runElevatorUp(0.0), elevatorSubsystem));// Stops motors
   }
 
 

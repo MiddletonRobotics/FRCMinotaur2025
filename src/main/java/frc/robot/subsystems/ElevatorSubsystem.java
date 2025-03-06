@@ -61,16 +61,16 @@ public class ElevatorSubsystem extends SubsystemBase {
     public ElevatorSubsystem() {
         System.out.println("[Initialization] Creating ElevatorSubsystem");
 
-        rightElevatorGearbox = new SparkMax(Constants.ElevatorConstants.rightElevatorID, MotorType.kBrushless);
-        rightElevatorEncoder = rightElevatorGearbox.getEncoder();
-        rightElevatorConfiguration = new SparkMaxConfig();
-        configureRightGearbox();
-
         leftElevatorGearbox = new SparkMax(Constants.ElevatorConstants.leftElevatorID, MotorType.kBrushless);
         leftElevatorEncoder = leftElevatorGearbox.getEncoder();
         elevatorPIDController = leftElevatorGearbox.getClosedLoopController();
         leftElevatorConfiguration = new SparkMaxConfig();
         configureLeftGearbox();
+
+        rightElevatorGearbox = new SparkMax(Constants.ElevatorConstants.rightElevatorID, MotorType.kBrushless);
+        rightElevatorEncoder = rightElevatorGearbox.getEncoder();
+        rightElevatorConfiguration = new SparkMaxConfig();
+        configureRightGearbox();
 
         feedforward = new ElevatorFeedforward(
             Constants.ElevatorConstants.ElevatorFeedforwardkS,
@@ -102,8 +102,8 @@ public class ElevatorSubsystem extends SubsystemBase {
             .inverted(Constants.ElevatorConstants.rightElevatorInverted)
             .idleMode(IdleMode.kBrake)
             .smartCurrentLimit(Constants.ElevatorConstants.ElevatorContinousCurrent)
-            .voltageCompensation(Constants.ElevatorConstants.ElevatorVoltageCompensation)
-            .follow(leftElevatorGearbox);
+            .voltageCompensation(Constants.ElevatorConstants.ElevatorVoltageCompensation);
+            //.follow(leftElevatorGearbox);
         rightElevatorConfiguration.encoder
             .positionConversionFactor(Constants.ElevatorConstants.ElevatorPositionConversionFactor)
             .velocityConversionFactor(Constants.ElevatorConstants.ElevatorVelocityConversionFactor);
@@ -127,6 +127,15 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     public double getVelocityRadPerSec() {
         return (leftElevatorEncoder.getVelocity() + rightElevatorEncoder.getVelocity()) / 2;
+    }
+
+    public void runElevatorUp(double speed) {
+        leftElevatorGearbox.set(speed);
+        rightElevatorGearbox.set(speed);
+    }
+    public void runElevatorDown(double speed) {
+        leftElevatorGearbox.set(speed);
+        rightElevatorGearbox.set(speed);
     }
 
     /** returns true when the state is reached */
@@ -232,7 +241,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        runState();
-        logData();
+        //runState();
+        //logData();
     }
 }
