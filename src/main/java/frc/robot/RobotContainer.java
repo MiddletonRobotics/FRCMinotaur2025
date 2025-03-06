@@ -4,113 +4,68 @@
 
 package frc.robot;
 
-import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.pathplanner.lib.auto.AutoBuilder;
+import static edu.wpi.first.units.Units.*;
+
+import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
-import frc.robot.commands.SwerveController;
-import frc.robot.subsystems.AlgeaGroundSubsystem;
-import frc.robot.subsystems.CoralSubsystem;
-import frc.robot.subsystems.ElevatorSubsystem;
-
-import frc.robot.subsystems.SwerveSubsystem;
-import frc.robot.utilities.constants.Constants;
+import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class RobotContainer {
-  private final SwerveSubsystem swerveSubsystem;
-  CoralSubsystem coralSubsystem = new CoralSubsystem();
-  ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem(); // Create an instance
-  AlgeaGroundSubsystem algeaGroundSubsystem = new AlgeaGroundSubsystem(); // Create an instance
+    private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
+    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
-  private final XboxController DriverController, OperatorController, TestingController;
+    /* Setting up bindings for necessary control of the swerve drive platform */
+    private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
+            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
-  private final SendableChooser<Command> autonomousChooser;
+    private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
+    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
-  public RobotContainer() {
-    swerveSubsystem = new SwerveSubsystem();
-    DriverController = new XboxController(Constants.DriverConstants.driverControllerPort);
-    OperatorController = new XboxController(Constants.DriverConstants.operatorControllerPort);
-    TestingController = new XboxController(Constants.DriverConstants.tesingControllerPort);
+    private final Telemetry logger = new Telemetry(MaxSpeed);
 
-    autonomousChooser = AutoBuilder.buildAutoChooser();
-    SmartDashboard.putData("Autonomous Chooser",autonomousChooser);
-    RobotController.setBrownoutVoltage(6.75);
+    private final CommandXboxController joystick = new CommandXboxController(0);
+    public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
-    swerveSubsystem.setDefaultCommand(new SwerveController(
-      swerveSubsystem,  
-      () -> -DriverController.getLeftY(),
-      () -> -DriverController.getLeftX(), 
-      () -> DriverController.getRightX()
-    ));
+    public RobotContainer() {
+        configureBindings();
+    }
 
-    configureDriverController();
-    configureOperatorController();
-    configureTestingController();
-  }
+    private void configureBindings() {
+        // Note that X is defined as forward according to WPILib convention,
+        // and Y is defined as to the left according to WPILib convention.
+        drivetrain.setDefaultCommand(
+            drivetrain.applyRequest(() ->
+                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+            )
+        );
 
-  public void configureDriverController() {
-    new Trigger(() -> DriverController.getBackButton()).onTrue(new InstantCommand(() -> swerveSubsystem.resetYaw(Rotation2d.fromDegrees(0.0))));
-    new Trigger(() -> DriverController.getStartButton()).onTrue(new InstantCommand(() -> swerveSubsystem.switchDriveMode()));
-   // new Trigger(() -> DriverController.getRightBumperButton()).onTrue(new InstantCommand(() -> swerveSubsystem.switchSlowMode()));
+        joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
+        joystick.b().whileTrue(drivetrain.applyRequest(() -> point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))));
 
+        // Run SysId routines when holding back/start and X/Y.
+        // Note that each routine should be run exactly once in a single log.
+        joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+        joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+        joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+        joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
+        // reset the field-centric heading on left bumper press
+        joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        drivetrain.registerTelemetry(logger::telemeterize);
+    }
 
-    new Trigger(() -> DriverController.getAButton())
-    .onTrue(new InstantCommand(() -> coralSubsystem.Coralspin(0.5), coralSubsystem)); // Runs motors at 50%
-
-new Trigger(() -> DriverController.getAButton())
-    .onFalse(new InstantCommand(() -> coralSubsystem.Coralspin(0.0), coralSubsystem)); // Stops motors
-
-
-    new Trigger(() -> DriverController.getLeftBumperButton())
-    .onTrue(new InstantCommand(() -> algeaGroundSubsystem.Algeaspin(0.5), algeaGroundSubsystem)); // Runs motors at 50%
-
-    new Trigger(() -> DriverController.getLeftBumperButton())
-    .onFalse(new InstantCommand(() -> algeaGroundSubsystem.AlgeaSpinstop(), algeaGroundSubsystem));
-    
-    
-    
-    
-    
-    new Trigger(() -> DriverController.getRightBumperButton())
-    .onTrue(new InstantCommand(() -> algeaGroundSubsystem.AlgeaPivot(0.5), algeaGroundSubsystem)); // Runs motors at 50%
-
-    new Trigger(() -> DriverController.getRightBumperButton())
-    .onFalse(new InstantCommand(() -> algeaGroundSubsystem.AlgeaPivotstop(0.0), algeaGroundSubsystem));// Stops motors
-
-    new Trigger(() -> DriverController.getBButton())
-    .whileTrue(new InstantCommand(() -> elevatorSubsystem.runElevatorUp(0.2), elevatorSubsystem));// Stops motors
-
-    new Trigger(() -> DriverController.getBButton())
-    .onFalse(new InstantCommand(() -> elevatorSubsystem.runElevatorUp(0.0), elevatorSubsystem));// Stops motors
-  }
-
-
-  public void configureOperatorController() {}
-
-  public void configureTestingController() {
-    //new Trigger(() -> TestingController.getAButton()).onTrue(swerveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    //new Trigger(() -> TestingController.getBButton()).onTrue(swerveSubsystem.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-    //new Trigger(() -> TestingController.getXButton()).onTrue(swerveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    //new Trigger(() -> TestingController.getYButton()).onTrue(swerveSubsystem.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-  }
-
-  public SwerveSubsystem getSwerveSubsystem() {
-    return swerveSubsystem;
-  }
-
-  public Command getAutonomousCommand() {
-    return autonomousChooser.getSelected();
-  }
+    public Command getAutonomousCommand() {
+        return Commands.print("No autonomous command configured");
+    }
 }
