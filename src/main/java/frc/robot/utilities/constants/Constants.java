@@ -148,6 +148,11 @@ public class Constants {
         public static final PIDConstants RotationalPID = new PIDConstants(10.0, 5.0, 0.0);
     }
 
+
+    public static final class AlgeaProcessorConstants {
+        public static final int rollerID = 17;
+        public static final int pivotingID = 18;
+    }
     public static final class CoralSpinnerConstants {
         public static final int CAN_ID = 31;// Choose appropriate CAN ID
     }
@@ -158,13 +163,6 @@ public class Constants {
 
     public static final class AlgeaSpinnerConstants {
         public static final int CAN_ID = 46;// Choose appropriate CAN ID
-    }
-     
-    public static final class AlgeaPivot1Constants {
-        public static final int CAN_ID = 17; // Choose appropriate CAN ID
-    }
-    public static final class AlgeaPivot2Constants {
-        public static final int CAN_ID = 18; // Choose appropriate CAN ID
     }
 
     public class ElevatorConstants {

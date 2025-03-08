@@ -241,7 +241,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        //runState();
-        //logData();
+        runState();
+        logData();
     }
 }
