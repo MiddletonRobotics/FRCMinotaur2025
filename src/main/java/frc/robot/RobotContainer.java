@@ -15,11 +15,14 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.AlgeaElevatorSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.CoralSubsystem;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -37,8 +40,12 @@ public class RobotContainer {
     private final SendableChooser<Command> autonomousChooser;
 
     private final CommandXboxController driverController = new CommandXboxController(0);
-    private final CommandXboxController joystick1 = new CommandXboxController(1);
+    private final CommandXboxController operatorController = new CommandXboxController(1);
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+    private AlgeaElevatorSubsystem algeaElevatorSubsystem = new AlgeaElevatorSubsystem();
+
+    private CoralSubsystem coralSubsystem = new CoralSubsystem();
+
 
     public RobotContainer() {
         autonomousChooser = AutoBuilder.buildAutoChooser();
@@ -67,6 +74,21 @@ public class RobotContainer {
         driverController.back().and(driverController.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
         driverController.start().and(driverController.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
         driverController.start().and(driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+
+        operatorController.a().whileTrue(new InstantCommand(() -> algeaElevatorSubsystem.startRolling(1.0)));
+        operatorController.a().whileFalse(new InstantCommand(() -> algeaElevatorSubsystem.stopRolling()));
+
+
+        operatorController.b().whileTrue(new InstantCommand(() -> algeaElevatorSubsystem.backwardRolling()));
+
+        operatorController.b().whileFalse(new InstantCommand(() -> algeaElevatorSubsystem.stopRolling()));
+
+
+       operatorController.x().whileTrue(new InstantCommand(() -> coralSubsystem.Coralspin(-0.7)));
+       operatorController.x().whileFalse(new InstantCommand(() -> coralSubsystem.CoralSpinstop()));
+
+
+
 
         // reset the field-centric heading on left bumper press
         driverController.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));

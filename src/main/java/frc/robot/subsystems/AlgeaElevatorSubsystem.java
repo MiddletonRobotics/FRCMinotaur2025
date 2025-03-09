@@ -31,6 +31,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.Robot;
@@ -84,11 +85,13 @@ public class AlgeaElevatorSubsystem extends SubsystemBase {
         algeaElevatorPivotingMotor = new SparkMax(19, MotorType.kBrushless);
         algeaElevatorPivotingEncoder = algeaElevatorPivotingMotor.getEncoder();
         pivotingPIDController = algeaElevatorPivotingMotor.getClosedLoopController();
+        pivotingConfiguration = new SparkMaxConfig();
         configurePivotingMotor();
 
-        algeaElevatorRollerMotor = new SparkMax(21, MotorType.kBrushless);
+        algeaElevatorRollerMotor = new SparkMax(20, MotorType.kBrushless);
         algeaElevatorRollingEncoder = algeaElevatorRollerMotor.getEncoder();
         rollerPIDController = algeaElevatorRollerMotor.getClosedLoopController();
+        rollerConfiguration = new SparkMaxConfig();
         configureRollerMotor();
 
         //algeaLimitSwitch = new DigitalInput(0);
@@ -113,8 +116,8 @@ public class AlgeaElevatorSubsystem extends SubsystemBase {
     public void configureRollerMotor() {
         rollerConfiguration
             .idleMode(IdleMode.kBrake)
-            .inverted(true)
-            .smartCurrentLimit(20);
+            .inverted(false)
+            .smartCurrentLimit(45);
         rollerConfiguration.encoder
             .positionConversionFactor(1)
             .velocityConversionFactor(1);
@@ -125,14 +128,16 @@ public class AlgeaElevatorSubsystem extends SubsystemBase {
         algeaElevatorRollingEncoder.setPosition(0.0);
     }
 
+    
+
     @Override
     public void periodic() {
-        logger.add("Pivoting Motor Encoder Position", algeaElevatorPivotingEncoder.getPosition());
-        logger.add("Pivoting Motor Tempurature", algeaElevatorPivotingMotor.getMotorTemperature());
+        SmartDashboard.putNumber("Pivoting Motor Position", algeaElevatorPivotingEncoder.getPosition());
+        SmartDashboard.putNumber("Pivoting Motor Tempurature", algeaElevatorPivotingMotor.getMotorTemperature());
 
-        logger.add("Roller Motor Velocity", algeaElevatorPivotingEncoder.getVelocity());
-        logger.add("Roller Motor RPM", algeaElevatorPivotingMotor.get());
-        logger.add("Roller Motor Tempurature", algeaElevatorPivotingMotor.getMotorTemperature());
+        SmartDashboard.putNumber("Roller Motor Velocity", algeaElevatorPivotingEncoder.getVelocity());
+        SmartDashboard.putNumber("Roller Motor RPM", algeaElevatorPivotingMotor.get());
+        SmartDashboard.putNumber("Roller Motor Tempurature", algeaElevatorRollerMotor.getMotorTemperature());
     }
 
     public void startRolling(double speed) {
@@ -142,6 +147,11 @@ public class AlgeaElevatorSubsystem extends SubsystemBase {
     public void stopRolling() {
         algeaElevatorRollerMotor.set(0.0);
     }
+
+    public void backwardRolling() {
+        algeaElevatorRollerMotor.set(-1.0);
+    }
+
 
     public void runToPosition() {
         double targetPosition = pivotingState.getPosition();
