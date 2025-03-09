@@ -1,5 +1,8 @@
 package frc.robot.utilities.constants;
 
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+
 import java.util.Map;
 
 import com.pathplanner.lib.config.PIDConstants;
@@ -14,7 +17,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-
+import edu.wpi.first.units.measure.LinearAcceleration;
+import edu.wpi.first.units.measure.LinearVelocity;
 import frc.robot.utilities.SwerveModuleGearing;
 
 // All of the constants that are accessed by other files, to prevent repetition and allows easy changing
@@ -200,8 +204,8 @@ public class Constants {
         public static final double ElevatorFeedforwardkV = 7.23;
         public static final double ElevatorFeedforwardkA = 0.05;
 
-        public static final double LimitedMaxVelocity = 4.139;
-        public static final double LimitedMacAcceleration = 3.988;
+        public static final LinearVelocity LimitedMaxVelocity = MetersPerSecond.of(4.139);
+        public static final LinearAcceleration LimitedMacAcceleration = MetersPerSecondPerSecond.of(3.988);
 
         public static class ElevatorHeights {
             public static final double l1Height = Units.inchesToMeters(18);

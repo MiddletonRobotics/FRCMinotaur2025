@@ -1,6 +1,10 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.Rotations;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -25,6 +29,8 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.Robot;
@@ -46,7 +52,10 @@ import frc.robot.utilities.UtilityFunctions;
 public class ElevatorSubsystem extends SubsystemBase {
     private ElevatorStates state = ElevatorStates.STOP;
 
-    private TrapezoidProfile.Constraints elevatorConstraints = new TrapezoidProfile.Constraints(Constants.ElevatorConstants.LimitedMaxVelocity, Constants.ElevatorConstants.LimitedMacAcceleration);
+    private DigitalInput topLimitSwitch;
+    private DigitalInput bottomLimitSwitch;
+
+    private TrapezoidProfile.Constraints elevatorConstraints;
     private ProfiledPIDController profile;
     private ElevatorFeedforward feedforward;
 
@@ -79,6 +88,11 @@ public class ElevatorSubsystem extends SubsystemBase {
             Constants.ElevatorConstants.ElevatorFeedforwardkA
         );
 
+        elevatorConstraints = new TrapezoidProfile.Constraints(
+            Constants.ElevatorConstants.LimitedMaxVelocity.in(MetersPerSecond), 
+            Constants.ElevatorConstants.LimitedMacAcceleration.in(MetersPerSecondPerSecond)
+        );
+
         profile = new ProfiledPIDController(Constants.ElevatorConstants.ElevatorProfileKp, 0.0, Constants.ElevatorConstants.ElevatorProfileKd, elevatorConstraints);
     }
 
@@ -92,21 +106,16 @@ public class ElevatorSubsystem extends SubsystemBase {
             .positionConversionFactor(Constants.ElevatorConstants.ElevatorPositionConversionFactor)
             .velocityConversionFactor(Constants.ElevatorConstants.ElevatorVelocityConversionFactor);
         leftElevatorConfiguration.closedLoop
-            .pid(Constants.ElevatorConstants.ElevatorSparkKp, 0.0, Constants.ElevatorConstants.ElevatorSparkKd);
+            .pid(Constants.ElevatorConstants.ElevatorSparkKp, 0.0, Constants.ElevatorConstants.ElevatorSparkKd)
+            .feedbackSensor(FeedbackSensor.kPrimaryEncoder);
 
         leftElevatorGearbox.configure(leftElevatorConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     public void configureRightGearbox() {
         rightElevatorConfiguration
-            .inverted(Constants.ElevatorConstants.rightElevatorInverted)
-            .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(Constants.ElevatorConstants.ElevatorContinousCurrent)
-            .voltageCompensation(Constants.ElevatorConstants.ElevatorVoltageCompensation);
-            //.follow(leftElevatorGearbox);
-        rightElevatorConfiguration.encoder
-            .positionConversionFactor(Constants.ElevatorConstants.ElevatorPositionConversionFactor)
-            .velocityConversionFactor(Constants.ElevatorConstants.ElevatorVelocityConversionFactor);
+            .apply(leftElevatorConfiguration)
+            .follow(leftElevatorGearbox);
 
         rightElevatorGearbox.configure(rightElevatorConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
@@ -125,7 +134,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         return (leftPosition + rightPosition) / 2;
     }
 
-    public double getVelocityRadPerSec() {
+    public double getVelocityRadiansPerSecond() {
         return (leftElevatorEncoder.getVelocity() + rightElevatorEncoder.getVelocity()) / 2;
     }
 
@@ -223,7 +232,7 @@ public class ElevatorSubsystem extends SubsystemBase {
      private void logData() {
         Logger.recordOutput("Elevator/Current Command", this.getCurrentCommand() == null ? "None" : this.getCurrentCommand().getName());
         Logger.recordOutput("Elevator/Position", getPositionMeters());
-        Logger.recordOutput("Elevator/Velocity", getVelocityRadPerSec());
+        Logger.recordOutput("Elevator/Velocity", getVelocityRadiansPerSecond());
         //Logger.recordOutput("subsystems/elevator/acceleration", data.accelerationMetersPerSecondSquared);
         //Logger.recordOutput("subsystems/elevator/input volts", ((data.leftAppliedVolts + data.rightAppliedVolts) / 2.0));
         Logger.recordOutput("Elevator/Left Applied Output", leftElevatorGearbox.getAppliedOutput());
