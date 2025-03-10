@@ -96,11 +96,11 @@ public class ElevatorSubsystem extends SubsystemBase {
         profile = new ProfiledPIDController(Constants.ElevatorConstants.ElevatorProfileKp, 0.0, Constants.ElevatorConstants.ElevatorProfileKd, elevatorConstraints);
     }
 
-    public void configureLeftGearbox() {
+    private void configureLeftGearbox() {
         leftElevatorConfiguration
             .inverted(Constants.ElevatorConstants.leftElevatorInverted)
             .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(Constants.ElevatorConstants.ElevatorContinousCurrent)
+            .smartCurrentLimit(80)
             .voltageCompensation(Constants.ElevatorConstants.ElevatorVoltageCompensation);
         leftElevatorConfiguration.encoder
             .positionConversionFactor(Constants.ElevatorConstants.ElevatorPositionConversionFactor)
@@ -112,10 +112,18 @@ public class ElevatorSubsystem extends SubsystemBase {
         leftElevatorGearbox.configure(leftElevatorConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
-    public void configureRightGearbox() {
+    private void configureRightGearbox() {
         rightElevatorConfiguration
-            .apply(leftElevatorConfiguration)
-            .follow(leftElevatorGearbox);
+            .inverted(false)
+            .idleMode(IdleMode.kBrake)
+            .smartCurrentLimit(80)
+            .voltageCompensation(Constants.ElevatorConstants.ElevatorVoltageCompensation);
+        rightElevatorConfiguration.encoder
+            .positionConversionFactor(Constants.ElevatorConstants.ElevatorPositionConversionFactor)
+            .velocityConversionFactor(Constants.ElevatorConstants.ElevatorVelocityConversionFactor);
+        rightElevatorConfiguration.closedLoop
+            .pid(Constants.ElevatorConstants.ElevatorSparkKp, 0.0, Constants.ElevatorConstants.ElevatorSparkKd)
+            .feedbackSensor(FeedbackSensor.kPrimaryEncoder);
 
         rightElevatorGearbox.configure(rightElevatorConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }

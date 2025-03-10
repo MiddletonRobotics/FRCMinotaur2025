@@ -16,13 +16,21 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-
+import frc.robot.commands.CoralSpinnerCommands;
+import frc.robot.commands.DealgeafierCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AlgeaElevatorSubsystem;
+//import frc.robot.subsystems.AlgeaElevatorSubsystem.RollUntilLimitCommand;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralSubsystem;
+import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.AlgeaElevatorSubsystem.PivotingState;
+import frc.robot.utilities.constants.Constants.ElevatorConstants.ElevatorStates;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -42,16 +50,20 @@ public class RobotContainer {
     private final CommandXboxController driverController = new CommandXboxController(0);
     private final CommandXboxController operatorController = new CommandXboxController(1);
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
-    private AlgeaElevatorSubsystem algeaElevatorSubsystem = new AlgeaElevatorSubsystem();
 
     private CoralSubsystem coralSubsystem = new CoralSubsystem();
-
+    private final AlgeaElevatorSubsystem algeaElevatorSubsystem = new AlgeaElevatorSubsystem();
+    private final ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem();
 
     public RobotContainer() {
         autonomousChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Autonomous Chooser", autonomousChooser);
 
         configureBindings();
+    }
+
+    public void onInit() {
+        algeaElevatorSubsystem.stopRolling();
     }
 
     private void configureBindings() {
@@ -75,20 +87,24 @@ public class RobotContainer {
         driverController.start().and(driverController.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
         driverController.start().and(driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
-        operatorController.a().whileTrue(new InstantCommand(() -> algeaElevatorSubsystem.startRolling(1.0)));
+        operatorController.a().whileTrue(new InstantCommand(() -> algeaElevatorSubsystem.startRolling(1)));
         operatorController.a().whileFalse(new InstantCommand(() -> algeaElevatorSubsystem.stopRolling()));
 
-
-        operatorController.b().whileTrue(new InstantCommand(() -> algeaElevatorSubsystem.backwardRolling()));
-
+        operatorController.b().whileTrue(new InstantCommand(() -> algeaElevatorSubsystem.startRolling(-1)));
         operatorController.b().whileFalse(new InstantCommand(() -> algeaElevatorSubsystem.stopRolling()));
 
 
-       operatorController.x().whileTrue(new InstantCommand(() -> coralSubsystem.Coralspin(-0.7)));
-       operatorController.x().whileFalse(new InstantCommand(() -> coralSubsystem.CoralSpinstop()));
+        //operatorController.x().whileTrue(new InstantCommand(() -> coralSubsystem.Coralspin(-0.7)));
+        //operatorController.x().whileFalse(new InstantCommand(() -> coralSubsystem.CoralSpinstop()));
 
+        operatorController.rightBumper().whileTrue(new RunCommand(() -> elevatorSubsystem.runElevatorUp(0.4)));
+        operatorController.rightBumper().onFalse(new InstantCommand(() -> elevatorSubsystem.runElevatorUp(0.0)));
 
+        operatorController.leftBumper().whileTrue(new RunCommand(() -> elevatorSubsystem.runElevatorDown(-0.05)));
+        operatorController.leftBumper().onFalse(new InstantCommand(() -> elevatorSubsystem.runElevatorDown(0.0)));
 
+        operatorController.x().onTrue(DealgeafierCommands.runPivotToPosition(algeaElevatorSubsystem, PivotingState.REEF));
+        operatorController.y().onTrue(DealgeafierCommands.runPivotToPosition(algeaElevatorSubsystem, PivotingState.STORED));
 
         // reset the field-centric heading on left bumper press
         driverController.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));

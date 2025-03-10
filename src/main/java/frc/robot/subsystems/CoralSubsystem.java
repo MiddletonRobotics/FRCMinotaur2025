@@ -55,9 +55,10 @@ public class CoralSubsystem extends SubsystemBase {
     //private SparkClosedLoopController pivotingPIDController;
     private SparkClosedLoopController CoralSpinnerPIDController;
 
+    private DigitalInput CoralLimitSwitch;
 
     public CoralSubsystem() {
-        coralSpinnerMotor = new SparkMax(Constants.CoralSpinnerConstants.CAN_ID, MotorType.kBrushless);
+        coralSpinnerMotor = new SparkMax(21, MotorType.kBrushless);
 
         CoralSpinnerEncoder = coralSpinnerMotor.getEncoder();
         CoralSpinnerPIDController = coralSpinnerMotor.getClosedLoopController();
@@ -85,6 +86,10 @@ public class CoralSubsystem extends SubsystemBase {
 
     public void CoralSpinstop() {
         coralSpinnerMotor.set(0);
+    }
+
+    public boolean CoralfirstLimitBroken() {
+        return CoralLimitSwitch.get();
     }
 
 }

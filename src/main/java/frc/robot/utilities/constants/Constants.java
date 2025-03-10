@@ -158,7 +158,7 @@ public class Constants {
         public static final int pivotingID = 18;
     }
     public static final class CoralSpinnerConstants {
-        public static final int CAN_ID = 21;// Choose appropriate CAN ID
+        //public static final int CAN_ID = 21;// Choose appropriate CAN ID
     }
      
     public static final class CoralPivotConstants {
@@ -194,7 +194,7 @@ public class Constants {
         public static final double ElevatorProfileKi = 0.00;
         public static final double ElevatorProfileKd = 0.00;
 
-        public static final double ElevatorSparkKp = 0.01;
+        public static final double ElevatorSparkKp = 0.03;
         public static final double ElevatorSparkKi = 0.01;
         public static final double ElevatorSparkKd = 0.00;
 

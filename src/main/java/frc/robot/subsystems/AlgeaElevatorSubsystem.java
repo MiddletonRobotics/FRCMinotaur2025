@@ -1,13 +1,8 @@
 package frc.robot.subsystems;
 
-
 import static edu.wpi.first.units.Units.Radians;
 
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
 import org.littletonrobotics.junction.Logger;
-
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.ClosedLoopSlot;
@@ -16,32 +11,15 @@ import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.math.controller.ElevatorFeedforward;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
-import frc.robot.Robot;
-import frc.robot.utilities.constants.Constants;
-import frc.robot.utilities.constants.Constants.ElevatorConstants;
-import frc.robot.utilities.constants.Constants.ElevatorConstants.ElevatorStates;
-import frc.robot.utilities.ShuffleData;
-import frc.robot.utilities.UtilityFunctions;
-
-
 
 public class AlgeaElevatorSubsystem extends SubsystemBase {
     private SparkMax algeaElevatorPivotingMotor;
@@ -56,16 +34,14 @@ public class AlgeaElevatorSubsystem extends SubsystemBase {
     private SparkClosedLoopController pivotingPIDController;
     private SparkClosedLoopController rollerPIDController;
 
-    private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 0.0, 0.0, 0.0);
-
     private DigitalInput algeaLimitSwitch;
 
-    private ShuffleboardTab logger; 
+    private ShuffleboardTab logger;
 
-    private enum PivotingState {
+    public enum PivotingState {
         STORED(0),
         BARGE(0),
-        REEF(0),
+        REEF(31.619),
         GROUND(0);
 
         private final double position;
@@ -94,7 +70,7 @@ public class AlgeaElevatorSubsystem extends SubsystemBase {
         rollerConfiguration = new SparkMaxConfig();
         configureRollerMotor();
 
-        //algeaLimitSwitch = new DigitalInput(0);
+        algeaLimitSwitch = new DigitalInput(0); // Initialize limit switch on DIO port 0
         logger = Shuffleboard.getTab(getName());
     }
 
@@ -102,12 +78,12 @@ public class AlgeaElevatorSubsystem extends SubsystemBase {
         pivotingConfiguration
             .idleMode(IdleMode.kBrake)
             .inverted(true)
-            .smartCurrentLimit(20);
+            .smartCurrentLimit(35);
         pivotingConfiguration.encoder
-            .positionConversionFactor(1)
+            .positionConversionFactor(42/18)
             .velocityConversionFactor(1);
         pivotingConfiguration.closedLoop
-            .pid(0.01, 0.0, 0.0);
+            .pid(0.3, 0.0, 0.0);
 
         algeaElevatorPivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         algeaElevatorPivotingEncoder.setPosition(0.0);
@@ -116,7 +92,7 @@ public class AlgeaElevatorSubsystem extends SubsystemBase {
     public void configureRollerMotor() {
         rollerConfiguration
             .idleMode(IdleMode.kBrake)
-            .inverted(false)
+            .inverted(true)
             .smartCurrentLimit(45);
         rollerConfiguration.encoder
             .positionConversionFactor(1)
@@ -127,17 +103,14 @@ public class AlgeaElevatorSubsystem extends SubsystemBase {
         algeaElevatorRollerMotor.configure(rollerConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         algeaElevatorRollingEncoder.setPosition(0.0);
     }
-
-    
-
-    @Override
+@Override
     public void periodic() {
-        SmartDashboard.putNumber("Pivoting Motor Position", algeaElevatorPivotingEncoder.getPosition());
-        SmartDashboard.putNumber("Pivoting Motor Tempurature", algeaElevatorPivotingMotor.getMotorTemperature());
-
-        SmartDashboard.putNumber("Roller Motor Velocity", algeaElevatorPivotingEncoder.getVelocity());
-        SmartDashboard.putNumber("Roller Motor RPM", algeaElevatorPivotingMotor.get());
-        SmartDashboard.putNumber("Roller Motor Tempurature", algeaElevatorRollerMotor.getMotorTemperature());
+        SmartDashboard.putNumber("Pivoting Motor Encoder Position", algeaElevatorPivotingEncoder.getPosition());
+        SmartDashboard.putNumber("Pivoting Motor Temperature", algeaElevatorPivotingMotor.getMotorTemperature());
+        SmartDashboard.putNumber("Target", pivotingState.getPosition());
+        SmartDashboard.putNumber("Roller Motor Velocity", algeaElevatorRollingEncoder.getVelocity());
+        SmartDashboard.putNumber("Roller Motor RPM", algeaElevatorRollerMotor.get());
+        SmartDashboard.putNumber("Roller Motor Temperature", algeaElevatorRollerMotor.getMotorTemperature());
     }
 
     public void startRolling(double speed) {
@@ -145,16 +118,28 @@ public class AlgeaElevatorSubsystem extends SubsystemBase {
     }
 
     public void stopRolling() {
-        algeaElevatorRollerMotor.set(0.0);
+        algeaElevatorRollerMotor.set(-0.1);
     }
 
-    public void backwardRolling() {
-        algeaElevatorRollerMotor.set(-1.0);
+    public void setPivotingState(PivotingState pivotingState) {
+        this.pivotingState = pivotingState;
     }
 
+    public PivotingState getPivotingState() {
+        return pivotingState;
+    }
 
     public void runToPosition() {
         double targetPosition = pivotingState.getPosition();
         pivotingPIDController.setReference(targetPosition, ControlType.kPosition, ClosedLoopSlot.kSlot0);
+    }
+
+    public boolean atSetpoint() {
+        double targetPosition = pivotingState.getPosition();
+        return (targetPosition - algeaElevatorPivotingEncoder.getPosition() < 2 || targetPosition - algeaElevatorPivotingEncoder.getPosition() > -2) ? true : false; 
+    }
+
+    public boolean firstLimitBroken() {
+        return algeaLimitSwitch.get();
     }
 }
