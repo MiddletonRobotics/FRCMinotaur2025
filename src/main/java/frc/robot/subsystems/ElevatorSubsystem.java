@@ -31,6 +31,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.Robot;
@@ -167,9 +168,9 @@ public class ElevatorSubsystem extends SubsystemBase {
             case L4:
                 return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.ElevatorHeights.l4Height);
             case MAX:
-                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.MaximumHeightMeters);
+                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.MaximumHeightMeters.in(Meters));
             case STOW:
-                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.BaseHeight);
+                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.BaseHeight.in(Meters));
             default:
                 return false;
         }
@@ -194,10 +195,10 @@ public class ElevatorSubsystem extends SubsystemBase {
                 setGoal(Constants.ElevatorConstants.ElevatorHeights.l4Height);
                 break;
             case MAX:
-                setGoal(Constants.ElevatorConstants.MaximumHeightMeters);
+                setGoal(Constants.ElevatorConstants.MaximumHeightMeters.in(Meters));
                 break;
             case STOW:
-                setGoal(Constants.ElevatorConstants.BaseHeight);
+                setGoal(Constants.ElevatorConstants.BaseHeight.in(Meters));
                 break;
             default:
                 setGoal(0);
@@ -249,6 +250,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         Logger.recordOutput("Elevator/Right Output Current", rightElevatorGearbox.getOutputCurrent());
         Logger.recordOutput("Elevator/Left Motor Tempurature", leftElevatorGearbox.getMotorTemperature());
         Logger.recordOutput("Elevator/Right Motor Tempurature", rightElevatorGearbox.getMotorTemperature());
+        
     }
 
     public void stop() {
@@ -260,5 +262,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     public void periodic() {
         runState();
         logData();
+
+        SmartDashboard.putNumber("Elevator Encoder", getPositionMeters());
     }
 }

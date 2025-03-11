@@ -1,5 +1,7 @@
 package frc.robot.utilities.constants;
 
+import static edu.wpi.first.units.Units.Feet;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 
@@ -17,6 +19,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.DistanceUnit;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
 import frc.robot.utilities.SwerveModuleGearing;
@@ -179,10 +183,10 @@ public class Constants {
         public static final int ElevatorContinousCurrent = 30;
         public static final double ElevatorVoltageCompensation = 12.0;
 
-        public static final double MinimumHeightMeters = Units.inchesToMeters(0);
-        public static final double MaximumHeightMeters = Units.feetToMeters(6);
-        public static final double StartingHeightMeters = 0;
-        public static final double BaseHeight = Units.feetToMeters(3.25);
+        public static final Distance MinimumHeightMeters = Meters.of(0.0);
+        public static final Distance MaximumHeightMeters = Feet.of(6);
+        public static final Distance StartingHeightMeters = Meters.of(0.0);
+        public static final Distance BaseHeight = Feet.of(3.25);
 
         public static final double ElevatorGearRatio = (60.0 / 10.0);
         public static final double SprocketPitchDiameter = Units.inchesToMeters(((16.0 * 0.25) / Math.PI));
