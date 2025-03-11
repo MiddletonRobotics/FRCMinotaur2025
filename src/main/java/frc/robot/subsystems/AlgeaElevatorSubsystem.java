@@ -83,7 +83,7 @@ public class AlgeaElevatorSubsystem extends SubsystemBase {
             .positionConversionFactor(42/18)
             .velocityConversionFactor(1);
         pivotingConfiguration.closedLoop
-            .pid(0.3, 0.0, 0.0);
+            .pid(0.03, 0.0, 0.0);
 
         algeaElevatorPivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         algeaElevatorPivotingEncoder.setPosition(0.0);
@@ -93,7 +93,7 @@ public class AlgeaElevatorSubsystem extends SubsystemBase {
         rollerConfiguration
             .idleMode(IdleMode.kBrake)
             .inverted(true)
-            .smartCurrentLimit(45);
+            .smartCurrentLimit(32);
         rollerConfiguration.encoder
             .positionConversionFactor(1)
             .velocityConversionFactor(1);
@@ -103,7 +103,7 @@ public class AlgeaElevatorSubsystem extends SubsystemBase {
         algeaElevatorRollerMotor.configure(rollerConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         algeaElevatorRollingEncoder.setPosition(0.0);
     }
-@Override
+    @Override
     public void periodic() {
         SmartDashboard.putNumber("Pivoting Motor Encoder Position", algeaElevatorPivotingEncoder.getPosition());
         SmartDashboard.putNumber("Pivoting Motor Temperature", algeaElevatorPivotingMotor.getMotorTemperature());
@@ -111,6 +111,15 @@ public class AlgeaElevatorSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Roller Motor Velocity", algeaElevatorRollingEncoder.getVelocity());
         SmartDashboard.putNumber("Roller Motor RPM", algeaElevatorRollerMotor.get());
         SmartDashboard.putNumber("Roller Motor Temperature", algeaElevatorRollerMotor.getMotorTemperature());
+        SmartDashboard.putBoolean("Algea Limit Switch", firstLimitBroken());
+    }
+
+    public void setNeutralModes(IdleMode idleMode) {
+        rollerConfiguration.idleMode(idleMode);
+        pivotingConfiguration.idleMode(idleMode);
+
+        algeaElevatorRollerMotor.configure(rollerConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        algeaElevatorPivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     public void startRolling(double speed) {
@@ -140,6 +149,10 @@ public class AlgeaElevatorSubsystem extends SubsystemBase {
     }
 
     public boolean firstLimitBroken() {
-        return algeaLimitSwitch.get();
+        return !algeaLimitSwitch.get();
     }
+
+    public Command intakeUntilBroken(double speed) {
+        return startEnd(() -> startRolling(speed), () -> stopRolling()).until(() -> firstLimitBroken());
+      }
 }

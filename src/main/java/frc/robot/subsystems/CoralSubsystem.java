@@ -80,11 +80,11 @@ public class CoralSubsystem extends SubsystemBase {
         CoralSpinnerEncoder.setPosition(0.0);
     }
 
-    public void Coralspin(double speed) {
+    public void spinCoral(double speed) {
         coralSpinnerMotor.set(speed);
     }
 
-    public void CoralSpinstop() {
+    public void stopCoral() {
         coralSpinnerMotor.set(0);
     }
 
