@@ -80,7 +80,7 @@ public class AlgeaElevatorSubsystem extends SubsystemBase {
             .inverted(true)
             .smartCurrentLimit(35);
         pivotingConfiguration.encoder
-            .positionConversionFactor(42/18)
+            .positionConversionFactor(360 / (25 * (42 / 36)))
             .velocityConversionFactor(1);
         pivotingConfiguration.closedLoop
             .pid(0.03, 0.0, 0.0);

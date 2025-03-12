@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.commands.AlgeaGroundCommands;
 import frc.robot.commands.CoralSpinnerCommands;
 import frc.robot.commands.DealgeafierCommands;
 import frc.robot.commands.ElevatorCommands;
@@ -34,6 +35,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.AlgeaElevatorSubsystem.PivotingState;
+import frc.robot.subsystems.AlgeaGroundSubsystem.GroundPivotingState;
 import frc.robot.utilities.constants.Constants.ElevatorConstants.ElevatorStates;
 
 public class RobotContainer {
@@ -111,13 +113,17 @@ public class RobotContainer {
     public void configureOperatorBindings() {   
         operatorController.leftBumper().onTrue(DealgeafierCommands.intakeUntilBroken(algeaElevatorSubsystem, 1));
         operatorController.rightBumper().onTrue(DealgeafierCommands.shootAlgea(algeaElevatorSubsystem, 1));
+
+        operatorController.a().onTrue(CoralSpinnerCommands.funnelIntakingUntilBroken(coralSubsystem, null));
+        operatorController.b().onTrue(CoralSpinnerCommands.scoreCoral(coralSubsystem, null));
+        operatorController.x().onTrue(AlgeaGroundCommands.runGroundPivotToPosition(algeaGroundSubsystem, GroundPivotingState.GROUND));
     }
 
     private void configureManualBindings() {
-        manualController.a().whileTrue(new InstantCommand(() -> algeaGroundSubsystem.startGroundPivot(1)));
+        manualController.a().whileTrue(new InstantCommand(() -> algeaGroundSubsystem.startGroundPivot(0.15)));
         manualController.a().whileFalse(new InstantCommand(() -> algeaGroundSubsystem.stopGroundPivot()));
 
-        manualController.b().whileTrue(new InstantCommand(() -> algeaGroundSubsystem.startGroundPivot(-1)));
+        manualController.b().whileTrue(new InstantCommand(() -> algeaGroundSubsystem.startGroundPivot(-0.15)));
         manualController.b().whileFalse(new InstantCommand(() -> algeaGroundSubsystem.stopGroundPivot()));
 
         manualController.x().whileTrue(new InstantCommand(() -> coralSubsystem.spinCoral(-0.7)));

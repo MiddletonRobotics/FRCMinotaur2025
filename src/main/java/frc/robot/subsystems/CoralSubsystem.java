@@ -31,6 +31,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.Robot;
@@ -39,6 +40,8 @@ import frc.robot.utilities.constants.Constants.ElevatorConstants;
 import frc.robot.utilities.constants.Constants.ElevatorConstants.ElevatorStates;
 import frc.robot.utilities.ShuffleData;
 import frc.robot.utilities.UtilityFunctions;
+
+
 
 public class CoralSubsystem extends SubsystemBase {
 
@@ -55,7 +58,9 @@ public class CoralSubsystem extends SubsystemBase {
     //private SparkClosedLoopController pivotingPIDController;
     private SparkClosedLoopController CoralSpinnerPIDController;
 
-    private DigitalInput CoralLimitSwitch;
+    private DigitalInput firstBeamBreak;
+    private DigitalInput secondBeamBreak;
+
 
     public CoralSubsystem() {
         coralSpinnerMotor = new SparkMax(21, MotorType.kBrushless);
@@ -64,6 +69,10 @@ public class CoralSubsystem extends SubsystemBase {
         CoralSpinnerPIDController = coralSpinnerMotor.getClosedLoopController();
         CoralSpinnerConfiguration = new SparkMaxConfig();
         configureCoralSpinner();
+
+        firstBeamBreak = new DigitalInput(1);
+        secondBeamBreak = new DigitalInput(2);
+
     }
     public void configureCoralSpinner() {
         CoralSpinnerConfiguration
@@ -88,9 +97,23 @@ public class CoralSubsystem extends SubsystemBase {
         coralSpinnerMotor.set(0);
     }
 
-    public boolean CoralfirstLimitBroken() {
-        return CoralLimitSwitch.get();
+    public void slowCoral() {
+        coralSpinnerMotor.set(0.1);
     }
 
+    public boolean firstBeamBroken() {
+        return !firstBeamBreak.get();
+    }
+
+    public boolean secondBeamBreak() {
+        return !secondBeamBreak.get();
+    }
+
+    @Override
+    public void periodic() {
+        SmartDashboard.putBoolean("Coral First Beam Break", firstBeamBroken());
+        SmartDashboard.putBoolean("Coral Second Beam Break", secondBeamBreak());
+
+    }
 }
 

@@ -8,8 +8,8 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import frc.robot.subsystems.AlgeaElevatorSubsystem.PivotingState;
 import frc.robot.utilities.constants.Constants;
 
-
-
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Radians;
 
 import org.littletonrobotics.junction.Logger;
@@ -24,6 +24,9 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.units.AngleUnit;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -44,22 +47,26 @@ public class AlgeaGroundSubsystem extends SubsystemBase {
     private SparkClosedLoopController groundPivotingPIDController;
     private SparkClosedLoopController groundRollerPIDController;
 
+    private ArmFeedforward feedforward = new ArmFeedforward(
+        0.275,
+        0.475,
+        0.07
+    );   
+
 
     private ShuffleboardTab logger;
 
     public enum GroundPivotingState {
-        STORED(0),
-        BARGE(0),
-        REEF(31.619),
-        GROUND(0);
+        STORED(Degrees.of(0.0)),
+        GROUND(Degrees.of(56.0));
 
-        private final double position;
+        private final Angle position;
 
-        private GroundPivotingState(double position) {
+        private GroundPivotingState(Angle position) {
             this.position = position;
         }
 
-        public double getPosition() {
+        public Angle getPosition() {
             return this.position;
         }
     }
@@ -67,13 +74,13 @@ public class AlgeaGroundSubsystem extends SubsystemBase {
     private GroundPivotingState groundPivotingState = GroundPivotingState.STORED;
 
     public AlgeaGroundSubsystem() {
-        algeaGroundPivotingMotor = new SparkMax(17, MotorType.kBrushless);
+        algeaGroundPivotingMotor = new SparkMax(18, MotorType.kBrushless);
         algeaGroundPivotingEncoder = algeaGroundPivotingMotor.getEncoder();
         groundPivotingPIDController = algeaGroundPivotingMotor.getClosedLoopController();
         groundPivotingConfiguration = new SparkMaxConfig();
         configurePivotingMotor();
 
-        algeaGroundRollerMotor = new SparkMax(18, MotorType.kBrushless);
+        algeaGroundRollerMotor = new SparkMax(17, MotorType.kBrushless);
         algeaGroundRollingEncoder = algeaGroundRollerMotor.getEncoder();
         groundRollerPIDController = algeaGroundRollerMotor.getClosedLoopController();
         groundRollerConfiguration = new SparkMaxConfig();
@@ -87,11 +94,11 @@ public class AlgeaGroundSubsystem extends SubsystemBase {
             .idleMode(IdleMode.kBrake)
             .inverted(true)
             .smartCurrentLimit(35);
-            groundPivotingConfiguration.encoder
-            .positionConversionFactor(42/18)
+        groundPivotingConfiguration.encoder
+            .positionConversionFactor(360 / (25 * (42 / 36)))
             .velocityConversionFactor(1);
-            groundPivotingConfiguration.closedLoop
-            .pid(0.03, 0.0, 0.0);
+        groundPivotingConfiguration.closedLoop
+            .pid(0.04, 0.0, 0.004);
 
         algeaGroundPivotingMotor.configure(groundPivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         algeaGroundPivotingEncoder.setPosition(0.0);
@@ -101,7 +108,7 @@ public class AlgeaGroundSubsystem extends SubsystemBase {
         groundRollerConfiguration
             .idleMode(IdleMode.kBrake)
             .inverted(true)
-            .smartCurrentLimit(45);
+            .smartCurrentLimit(55);
         groundRollerConfiguration.encoder
             .positionConversionFactor(1)
             .velocityConversionFactor(1);
@@ -117,10 +124,11 @@ public class AlgeaGroundSubsystem extends SubsystemBase {
     public void periodic() {
         SmartDashboard.putNumber("Ground Pivoting Motor Encoder Position", algeaGroundPivotingEncoder.getPosition());
         SmartDashboard.putNumber("Ground Pivoting Motor Temperature", algeaGroundPivotingMotor.getMotorTemperature());
-        SmartDashboard.putNumber("Ground Target", groundPivotingState.getPosition());
+        SmartDashboard.putNumber("Ground Target", groundPivotingState.getPosition().in(Degrees));
         SmartDashboard.putNumber("Ground Roller Motor Velocity", algeaGroundPivotingEncoder.getVelocity());
         SmartDashboard.putNumber("Ground Roller Motor RPM", algeaGroundPivotingMotor.get());
         SmartDashboard.putNumber("Ground Roller Motor Temperature", algeaGroundPivotingMotor.getMotorTemperature());
+        SmartDashboard.putNumber("Ground Pivot Stall", getRollerStall());
     }
 
     public void setNeutralModes(IdleMode idleMode) {
@@ -140,11 +148,11 @@ public class AlgeaGroundSubsystem extends SubsystemBase {
     }
 
     public void startGroundPivot(double speed) {
-        algeaGroundRollerMotor.set(speed);
+        algeaGroundPivotingMotor.set(speed);
     }
 
     public void stopGroundPivot() {
-        algeaGroundRollerMotor.set(0.0);
+        algeaGroundPivotingMotor.set(0.0);
     }
 
     public void setPivotingState(GroundPivotingState groundPivotingState) {
@@ -155,13 +163,27 @@ public class AlgeaGroundSubsystem extends SubsystemBase {
         return groundPivotingState;
     }
 
+    public double getRollerStall() {
+        return algeaGroundRollerMotor.getOutputCurrent();
+    }
+
+    public boolean isRollerCooking() {
+        double stall = getRollerStall();
+
+        if(stall > 15) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public void runToPosition() {
-        double targetPosition = groundPivotingState.getPosition();
-        groundPivotingPIDController.setReference(targetPosition, ControlType.kPosition, ClosedLoopSlot.kSlot0);
+        Angle targetPosition = groundPivotingState.getPosition();
+        groundPivotingPIDController.setReference(targetPosition.in(Degrees), ControlType.kPosition, ClosedLoopSlot.kSlot0, feedforward.calculate(targetPosition.in(Radians), 0.15));
     }
 
     public boolean atSetpoint() {
-        double targetPosition = groundPivotingState.getPosition();
+        double targetPosition = groundPivotingState.getPosition().in(Degrees);
         return (targetPosition - algeaGroundPivotingEncoder.getPosition() < 2 || targetPosition - algeaGroundPivotingEncoder.getPosition() > -2) ? true : false; 
     }
 }
