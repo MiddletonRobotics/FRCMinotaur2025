@@ -5,7 +5,7 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
-import frc.robot.subsystems.AlgeaElevatorSubsystem.PivotingState;
+import frc.robot.subsystems.DealgeafierSubsystem.PivotingState;
 import frc.robot.utilities.constants.Constants;
 
 import static edu.wpi.first.units.Units.Degrees;

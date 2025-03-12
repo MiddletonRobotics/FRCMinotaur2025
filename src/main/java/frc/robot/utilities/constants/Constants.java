@@ -1,12 +1,18 @@
 package frc.robot.utilities.constants;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+import static edu.wpi.first.units.Units.VoltsPerRadianPerSecond;
 
 import java.util.Map;
 
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.pathplanner.lib.config.PIDConstants;
 
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
@@ -19,10 +25,17 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.AngularVelocityUnit;
 import edu.wpi.first.units.DistanceUnit;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.VoltageUnit;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import frc.robot.utilities.SwerveModuleGearing;
 
 // All of the constants that are accessed by other files, to prevent repetition and allows easy changing
@@ -169,8 +182,40 @@ public class Constants {
         public static final int CAN_ID = 55;
     }
 
-    public static final class AlgeaSpinnerConstants {
-        public static final int CAN_ID = 46;// Choose appropriate CAN ID
+    public static final class DealgeafierConstants {
+        public static final int pivotingMotorID = 19;
+        public static final int rollerMotorID = 20;
+
+        public static final AngularVelocity LimitedVelocity = DegreesPerSecond.of(40);
+        public static final AngularAcceleration LimitedAcceleration = DegreesPerSecondPerSecond.of(30.0);
+
+        public static final Angle MaximumAllowedPositionError = Degrees.of(2.5);
+        public static final AngularVelocity MaximumAllowedVelocityError = DegreesPerSecond.of(2.5);
+
+        public static final Voltage kG = Volts.of(0.0);
+        public static final Voltage kS = Volts.of(0.0);
+        public static final double kV = 1.14;
+
+        public static final double PositionConversionFactor = 360 / (25 * (42 / 18));
+        public static final double VelocityConversionFactor = PositionConversionFactor / 60;
+    }
+
+    public static final class ProcessorConstants {
+        public static final int pivotMotorID = 18;
+        public static final int rollerMotorID = 17;
+
+        public static final AngularVelocity LimitedVelocity = DegreesPerSecond.of(60);
+        public static final AngularAcceleration LimitedAcceleration = DegreesPerSecondPerSecond.of(45.0);
+
+        public static final Angle MaximumAllowedPositionError = Degrees.of(2.0);
+        public static final AngularVelocity MaximumAllowedVelocityError = DegreesPerSecond.of(2.0);
+
+        public static final Voltage kG = Volts.of(0.475);
+        public static final Voltage kS = Volts.of(0.275);
+        public static final double kV = 0.48;
+
+        public static final double PositionConversionFactor = 360 / (25 * (42 / 36));
+        public static final double VelocityConversionFactor = PositionConversionFactor / 60;
     }
 
     public class ElevatorConstants {

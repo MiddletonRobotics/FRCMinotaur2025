@@ -4,15 +4,21 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.subsystems.LimelightSubsystem;
+import frc.robot.utilities.LimelightHelper;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private final RobotContainer m_robotContainer;
+  private Pose2d leftElevatorPose;
+  private Pose2d rightElevatorPose;
 
   public Robot() {
     m_robotContainer = new RobotContainer();
@@ -26,11 +32,17 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run(); 
+
+    leftElevatorPose = LimelightSubsystem.getLeftElevator().getCurrentBotPoseBlue();
+    rightElevatorPose = LimelightSubsystem.getRightElevator().getCurrentBotPoseBlue();
+
+    m_robotContainer.drivetrain.setStateStdDevs(VecBuilder.fill(.7, .7, 9999999));
+    m_robotContainer.drivetrain.addVisionMeasurement(leftElevatorPose, kDefaultPeriod);
+    //m_robotContainer.drivetrain.addVisionMeasurement(rightElevatorPose, kDefaultPeriod);
   }
 
   @Override
   public void disabledInit() {}
-
   @Override
   public void disabledPeriodic() {}
 

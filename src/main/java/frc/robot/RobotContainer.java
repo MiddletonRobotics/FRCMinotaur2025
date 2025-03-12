@@ -10,6 +10,7 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.events.EventTrigger;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -28,14 +29,14 @@ import frc.robot.commands.CoralSpinnerCommands;
 import frc.robot.commands.DealgeafierCommands;
 import frc.robot.commands.ElevatorCommands;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.AlgeaElevatorSubsystem;
-import frc.robot.subsystems.AlgeaGroundSubsystem;
+import frc.robot.subsystems.DealgeafierSubsystem;
+import frc.robot.subsystems.ProcessorSubsystem;
 //import frc.robot.subsystems.AlgeaElevatorSubsystem.RollUntilLimitCommand;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
-import frc.robot.subsystems.AlgeaElevatorSubsystem.PivotingState;
-import frc.robot.subsystems.AlgeaGroundSubsystem.GroundPivotingState;
+import frc.robot.subsystems.DealgeafierSubsystem.PivotingState;
+import frc.robot.subsystems.ProcessorSubsystem.GroundPivotingState;
 import frc.robot.utilities.constants.Constants.ElevatorConstants.ElevatorStates;
 
 public class RobotContainer {
@@ -59,16 +60,16 @@ public class RobotContainer {
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     private CoralSubsystem coralSubsystem = new CoralSubsystem();
-    private final AlgeaElevatorSubsystem algeaElevatorSubsystem = new AlgeaElevatorSubsystem();
+    private final DealgeafierSubsystem dealgeafierSubsystem = new DealgeafierSubsystem();
     private final ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem();
-    private final AlgeaGroundSubsystem algeaGroundSubsystem = new AlgeaGroundSubsystem();
+    private final ProcessorSubsystem processorSubsystem = new ProcessorSubsystem();
 
     public RobotContainer() {
         autonomousChooser = AutoBuilder.buildAutoChooser();
 
-        NamedCommands.registerCommand("Dealgeafier Reef", DealgeafierCommands.runPivotToPosition(algeaElevatorSubsystem, PivotingState.REEF));
-        NamedCommands.registerCommand("Run Dealgeafier", algeaElevatorSubsystem.run(() -> algeaElevatorSubsystem.startRolling(1)));
-        NamedCommands.registerCommand("Stop Dealgeafier", algeaElevatorSubsystem.run(() -> algeaElevatorSubsystem.stopRolling()));
+        new EventTrigger("Dealgeafier Reef").onTrue(DealgeafierCommands.runPivotToPosition(dealgeafierSubsystem, PivotingState.REEF));
+        new EventTrigger("Run Dealgeafier").onTrue(dealgeafierSubsystem.run(() -> dealgeafierSubsystem.startRolling(1)));
+        new EventTrigger("Stop Dealgeafier").onTrue(dealgeafierSubsystem.run(() -> dealgeafierSubsystem.stopRolling()));
 
         SmartDashboard.putData("Autonomous Chooser", autonomousChooser);
 
@@ -78,12 +79,12 @@ public class RobotContainer {
     }
 
     public void onTeleopInit() {
-        algeaElevatorSubsystem.setNeutralModes(IdleMode.kBrake);
-        algeaElevatorSubsystem.stopRolling();
+        dealgeafierSubsystem.setNeutralModes(IdleMode.kBrake);
+        dealgeafierSubsystem.stopRolling();
     }
 
     public void onDisabled() {
-        algeaElevatorSubsystem.setNeutralModes(IdleMode.kCoast);
+        dealgeafierSubsystem.setNeutralModes(IdleMode.kCoast);
     }
 
     private void configureDriverBindings() {
@@ -111,20 +112,20 @@ public class RobotContainer {
     }
 
     public void configureOperatorBindings() {   
-        operatorController.leftBumper().onTrue(DealgeafierCommands.intakeUntilBroken(algeaElevatorSubsystem, 1));
-        operatorController.rightBumper().onTrue(DealgeafierCommands.shootAlgea(algeaElevatorSubsystem, 1));
+        operatorController.leftBumper().onTrue(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem, 1));
+        operatorController.rightBumper().onTrue(DealgeafierCommands.shootAlgea(dealgeafierSubsystem, 1));
 
         operatorController.a().onTrue(CoralSpinnerCommands.funnelIntakingUntilBroken(coralSubsystem, null));
         operatorController.b().onTrue(CoralSpinnerCommands.scoreCoral(coralSubsystem, null));
-        operatorController.x().onTrue(AlgeaGroundCommands.runGroundPivotToPosition(algeaGroundSubsystem, GroundPivotingState.GROUND));
+        operatorController.x().onTrue(AlgeaGroundCommands.runGroundPivotToPosition(processorSubsystem, GroundPivotingState.GROUND));
     }
 
     private void configureManualBindings() {
-        manualController.a().whileTrue(new InstantCommand(() -> algeaGroundSubsystem.startGroundPivot(0.15)));
-        manualController.a().whileFalse(new InstantCommand(() -> algeaGroundSubsystem.stopGroundPivot()));
+        manualController.a().whileTrue(new InstantCommand(() -> processorSubsystem.startGroundPivot(0.15)));
+        manualController.a().whileFalse(new InstantCommand(() -> processorSubsystem.stopGroundPivot()));
 
-        manualController.b().whileTrue(new InstantCommand(() -> algeaGroundSubsystem.startGroundPivot(-0.15)));
-        manualController.b().whileFalse(new InstantCommand(() -> algeaGroundSubsystem.stopGroundPivot()));
+        manualController.b().whileTrue(new InstantCommand(() -> processorSubsystem.startGroundPivot(-0.15)));
+        manualController.b().whileFalse(new InstantCommand(() -> processorSubsystem.stopGroundPivot()));
 
         manualController.x().whileTrue(new InstantCommand(() -> coralSubsystem.spinCoral(-0.7)));
         manualController.x().whileFalse(new InstantCommand(() -> coralSubsystem.stopCoral()));
@@ -138,17 +139,17 @@ public class RobotContainer {
         manualController.povDown().whileTrue(new RunCommand(() -> elevatorSubsystem.runElevatorDown(-0.05)));
         manualController.povDown().onFalse(new InstantCommand(() -> elevatorSubsystem.runElevatorDown(0.0)));
 
-        manualController.leftBumper().whileTrue(new InstantCommand(() -> algeaGroundSubsystem.startRolling(1)));
-        manualController.leftBumper().whileFalse(new InstantCommand(() -> algeaGroundSubsystem.stopRolling()));
+        manualController.leftBumper().whileTrue(new InstantCommand(() -> processorSubsystem.startRolling(1)));
+        manualController.leftBumper().whileFalse(new InstantCommand(() -> processorSubsystem.stopRolling()));
 
-        manualController.rightBumper().whileTrue(new InstantCommand(() -> algeaGroundSubsystem.startRolling(-1)));
-        manualController.rightBumper().whileFalse(new InstantCommand(() -> algeaGroundSubsystem.stopRolling()));
+        manualController.rightBumper().whileTrue(new InstantCommand(() -> processorSubsystem.startRolling(-1)));
+        manualController.rightBumper().whileFalse(new InstantCommand(() -> processorSubsystem.stopRolling()));
 
-        manualController.rightTrigger(0.5).whileTrue(new InstantCommand(() -> algeaElevatorSubsystem.startRolling(1)));
-        manualController.rightTrigger(0.5).whileFalse(new InstantCommand(() -> algeaElevatorSubsystem.stopRolling()));
+        manualController.rightTrigger(0.5).whileTrue(new InstantCommand(() -> dealgeafierSubsystem.startRolling(1)));
+        manualController.rightTrigger(0.5).whileFalse(new InstantCommand(() -> dealgeafierSubsystem.stopRolling()));
 
-        manualController.leftTrigger(0.5).whileTrue(new InstantCommand(() -> algeaElevatorSubsystem.startRolling(-1)));
-        manualController.leftTrigger(0.5).whileFalse(new InstantCommand(() -> algeaElevatorSubsystem.stopRolling()));
+        manualController.leftTrigger(0.5).whileTrue(new InstantCommand(() -> dealgeafierSubsystem.startRolling(-1)));
+        manualController.leftTrigger(0.5).whileFalse(new InstantCommand(() -> dealgeafierSubsystem.stopRolling()));
     }
 
     public Command getAutonomousCommand() {

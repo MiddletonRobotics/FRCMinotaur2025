@@ -10,34 +10,34 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 
-import frc.robot.subsystems.AlgeaGroundSubsystem;
-import frc.robot.subsystems.AlgeaGroundSubsystem.GroundPivotingState;
+import frc.robot.subsystems.ProcessorSubsystem;
+import frc.robot.subsystems.ProcessorSubsystem.GroundPivotingState;
 
 public class AlgeaGroundCommands {
-    public static Command startRollCommand(AlgeaGroundSubsystem algeaGroundSubsystem, DoubleSupplier speed) {
+    public static Command startRollCommand(ProcessorSubsystem algeaGroundSubsystem, DoubleSupplier speed) {
         return algeaGroundSubsystem.run(
             () -> algeaGroundSubsystem.startRolling(speed.getAsDouble())
         );
     }
 
-    public static Command startRollCommand(AlgeaGroundSubsystem algeaGroundSubsystem, double speed) {
+    public static Command startRollCommand(ProcessorSubsystem algeaGroundSubsystem, double speed) {
         return startRollCommand(algeaGroundSubsystem, () -> speed);
 
     }
 
     //Manual Pivot
-    public static Command startPivotCommand(AlgeaGroundSubsystem algeaGroundSubsystem, DoubleSupplier speed) {
+    public static Command startPivotCommand(ProcessorSubsystem algeaGroundSubsystem, DoubleSupplier speed) {
         return algeaGroundSubsystem.run(
             () -> algeaGroundSubsystem.startGroundPivot(speed.getAsDouble())
         );
     }
 
-    public static Command startPivotCommand(AlgeaGroundSubsystem algeaGroundSubsystem, double speed) {
+    public static Command startPivotCommand(ProcessorSubsystem algeaGroundSubsystem, double speed) {
         return startRollCommand(algeaGroundSubsystem, () -> speed);
 
     }
 
-    public static Command runGroundPivotToPosition(AlgeaGroundSubsystem algeaGroundSubsystem, GroundPivotingState groundPivotingState) {
+    public static Command runGroundPivotToPosition(ProcessorSubsystem algeaGroundSubsystem, GroundPivotingState groundPivotingState) {
         return new SequentialCommandGroup(
             new PrintCommand("Running the Algae Pivot to: " + groundPivotingState),
             new InstantCommand(() -> algeaGroundSubsystem.setPivotingState(groundPivotingState)).alongWith(new InstantCommand(() -> algeaGroundSubsystem.startRolling(-1))),
