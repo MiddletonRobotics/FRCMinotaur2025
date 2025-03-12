@@ -82,7 +82,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
         configureRollerMotor();
 
         pidController = new ProfiledPIDController(
-            0.1,
+            0.001,
             0.0,
             0.0,
             new TrapezoidProfile.Constraints(
@@ -133,7 +133,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Dealgeafier Pivot Temp.", algeaElevatorPivotingMotor.getMotorTemperature());
         SmartDashboard.putNumber("Dealgeafier Pivot Target", pivotingState.getPosition().in(Degrees));
         SmartDashboard.putNumber("Dealgeafier Roller Vel.", algeaElevatorRollingEncoder.getVelocity());
-        SmartDashboard.putNumber("Dealgeafier Roller AO", algeaElevatorRollerMotor.get());
+        SmartDashboard.putNumber("Dealgeafier Roller AO", algeaElevatorPivotingMotor.get());
         SmartDashboard.putNumber("Dealgeafier Motor Temp.", algeaElevatorRollerMotor.getMotorTemperature());
         SmartDashboard.putBoolean("Dealgeafier Limit Switch", getLimitSwitch());
         SmartDashboard.putBoolean("At Goal", atSetpoint());

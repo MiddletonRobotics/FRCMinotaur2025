@@ -30,6 +30,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
@@ -61,8 +62,8 @@ public class ProcessorSubsystem extends SubsystemBase {
     );   
 
     public enum GroundPivotingState {
-        STORED(Degrees.of(0.0)),
-        GROUND(Degrees.of(56.0));
+        STORED(Degrees.of(95.0)),
+        GROUND(Degrees.of(151.0));
 
         private final Angle position;
 
@@ -75,9 +76,11 @@ public class ProcessorSubsystem extends SubsystemBase {
         }
     }
 
-    private GroundPivotingState groundPivotingState = GroundPivotingState.STORED;
+    private GroundPivotingState groundPivotingState;
 
     public ProcessorSubsystem() {
+        groundPivotingState = GroundPivotingState.STORED;
+        
         pivotingMotor = new SparkMax(Constants.ProcessorConstants.pivotMotorID, MotorType.kBrushless);
         pivotingEncoder = pivotingMotor.getEncoder();
         pivotingConfiguration = new SparkMaxConfig();
@@ -95,7 +98,8 @@ public class ProcessorSubsystem extends SubsystemBase {
             new TrapezoidProfile.Constraints(
                 Constants.ProcessorConstants.LimitedVelocity.in(RadiansPerSecond),
                 Constants.ProcessorConstants.LimitedAcceleration.in(RadiansPerSecondPerSecond)
-            )
+            ),
+            0.02
         );
 
         pidController.enableContinuousInput(-Math.PI, Math.PI);
@@ -115,7 +119,7 @@ public class ProcessorSubsystem extends SubsystemBase {
             .velocityConversionFactor(Constants.ProcessorConstants.VelocityConversionFactor);
 
         pivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        pivotingEncoder.setPosition(0.0);
+        pivotingEncoder.setPosition(groundPivotingState.getPosition().in(Radians));
     }
 
     public void configureRollerMotor() {
@@ -152,8 +156,8 @@ public class ProcessorSubsystem extends SubsystemBase {
         pivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
-    public double getPivotPosition() {
-        return pivotingEncoder.getPosition();
+    public Angle getPivotPosition() {
+        return Degrees.of(pivotingEncoder.getPosition());
     }
 
     public State getPIDSetpoint() {
@@ -199,8 +203,7 @@ public class ProcessorSubsystem extends SubsystemBase {
     }
 
     public void runToPosition() {
-        Angle targetPosition = groundPivotingState.getPosition();
-        pivotingMotor.set(pidController.calculate(getPivotPosition(), targetPosition.in(Radians)) + feedforward.calculate(targetPosition.in(Radians), (getPIDSetpoint().velocity) / RobotController.getBatteryVoltage()));
+        pivotingMotor.setVoltage(pidController.calculate(getPivotPosition().in(Radians)) + feedforward.calculate(getGroundPivotingState().getPosition().in(Radians), getPIDSetpoint().velocity));
     }
 
     public boolean atSetpoint() {
