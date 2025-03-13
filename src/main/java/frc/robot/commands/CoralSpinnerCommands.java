@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.subsystems.CoralSubsystem;
 
 public class CoralSpinnerCommands {
-    public static Command funnelIntakingUntilBroken(CoralSubsystem coralSubsystem, DoubleSupplier speed) {
+    public static Command funnelIntakingUntilBroken(CoralSubsystem coralSubsystem) {
         return new SequentialCommandGroup(
           new PrintCommand("Automatic Coral Intaking"),  
           new RunCommand(() -> coralSubsystem.spinCoral(-0.8), coralSubsystem).until(() -> coralSubsystem.firstBeamBroken()),
@@ -24,7 +24,7 @@ public class CoralSpinnerCommands {
         );
     }
 
-    public static Command scoreCoral(CoralSubsystem coralSubsystem, DoubleSupplier speed) {
+    public static Command scoreCoral(CoralSubsystem coralSubsystem) {
       return new SequentialCommandGroup(
         new PrintCommand("Automatic Coral Scoring"), 
         new InstantCommand(() -> coralSubsystem.spinCoral(-0.5)),

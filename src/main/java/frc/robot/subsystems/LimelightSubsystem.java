@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
+import frc.robot.generated.TunerConstants;
 import frc.robot.utilities.LimelightHelper;
 import frc.robot.utilities.LimelightHelper.PoseEstimate;
 import frc.robot.utilities.constants.FieldConstants;
@@ -17,6 +17,7 @@ import frc.robot.utilities.constants.FieldConstants;
 public class LimelightSubsystem extends SubsystemBase {
     private static Limelight leftElevator = new Limelight("left-elevator");
     private static Limelight rightElevator = new Limelight("right-elevator");
+    private CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     public LimelightSubsystem() {}
 
@@ -24,6 +25,9 @@ public class LimelightSubsystem extends SubsystemBase {
     public void periodic() {
         leftElevator.update();
         rightElevator.update();
+
+        Pose2d pose = leftElevator.getCurrentBotPoseBlue();
+        drivetrain.addVisionMeasurement(pose, 0);
     }
 
     public static Limelight getLeftElevator() {
