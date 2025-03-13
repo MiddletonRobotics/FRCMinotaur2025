@@ -186,8 +186,8 @@ public class Constants {
         public static final int pivotingMotorID = 19;
         public static final int rollerMotorID = 20;
 
-        public static final AngularVelocity LimitedVelocity = DegreesPerSecond.of(40);
-        public static final AngularAcceleration LimitedAcceleration = DegreesPerSecondPerSecond.of(30.0);
+        public static final AngularVelocity LimitedVelocity = DegreesPerSecond.of(80);
+        public static final AngularAcceleration LimitedAcceleration = DegreesPerSecondPerSecond.of(70.0);
 
         public static final Angle MaximumAllowedPositionError = Degrees.of(2.5);
         public static final AngularVelocity MaximumAllowedVelocityError = DegreesPerSecond.of(2.5);

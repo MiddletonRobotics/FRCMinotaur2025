@@ -117,7 +117,8 @@ public class RobotContainer {
 
         operatorController.a().onTrue(CoralSpinnerCommands.funnelIntakingUntilBroken(coralSubsystem, null));
         operatorController.b().onTrue(CoralSpinnerCommands.scoreCoral(coralSubsystem, null));
-        operatorController.x().onTrue(AlgeaGroundCommands.runGroundPivotToPosition(processorSubsystem, GroundPivotingState.GROUND));
+        operatorController.x().onTrue(AlgeaGroundCommands.intakeAlgea(processorSubsystem, GroundPivotingState.GROUND));
+        operatorController.y().onTrue(AlgeaGroundCommands.spitOutBall(processorSubsystem));
     }
 
     private void configureManualBindings() {
@@ -139,11 +140,11 @@ public class RobotContainer {
         manualController.povDown().whileTrue(new RunCommand(() -> elevatorSubsystem.runElevatorDown(-0.05)));
         manualController.povDown().onFalse(new InstantCommand(() -> elevatorSubsystem.runElevatorDown(0.0)));
 
-        manualController.leftBumper().whileTrue(new InstantCommand(() -> processorSubsystem.startRolling(1)));
-        manualController.leftBumper().whileFalse(new InstantCommand(() -> processorSubsystem.stopRolling()));
+        manualController.leftBumper().whileTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(1)));
+        manualController.leftBumper().whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
 
-        manualController.rightBumper().whileTrue(new InstantCommand(() -> processorSubsystem.startRolling(-1)));
-        manualController.rightBumper().whileFalse(new InstantCommand(() -> processorSubsystem.stopRolling()));
+        manualController.rightBumper().whileTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(-1)));
+        manualController.rightBumper().whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
 
         manualController.rightTrigger(0.5).whileTrue(new InstantCommand(() -> dealgeafierSubsystem.startRolling(1)));
         manualController.rightTrigger(0.5).whileFalse(new InstantCommand(() -> dealgeafierSubsystem.stopRolling()));
