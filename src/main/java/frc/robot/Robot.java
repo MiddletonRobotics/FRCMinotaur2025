@@ -17,8 +17,8 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private final RobotContainer m_robotContainer;
-  private Pose2d leftElevatorPose;
-  private Pose2d rightElevatorPose;
+  //private Pose2d leftElevatorPose;
+  //private Pose2d rightElevatorPose;
 
   public Robot() {
     m_robotContainer = new RobotContainer();
@@ -33,11 +33,11 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run(); 
 
-    leftElevatorPose = LimelightSubsystem.getLeftElevator().getCurrentBotPoseBlue();
-    rightElevatorPose = LimelightSubsystem.getRightElevator().getCurrentBotPoseBlue();
+    //leftElevatorPose = LimelightSubsystem.getLeftElevator().getCurrentBotPoseBlue();
+    //rightElevatorPose = LimelightSubsystem.getRightElevator().getCurrentBotPoseBlue();
 
-    m_robotContainer.drivetrain.setStateStdDevs(VecBuilder.fill(.7, .7, 9999999));
-    m_robotContainer.drivetrain.addVisionMeasurement(leftElevatorPose, kDefaultPeriod);
+    //m_robotContainer.drivetrain.setStateStdDevs(VecBuilder.fill(.7, .7, 9999999));
+    //m_robotContainer.drivetrain.addVisionMeasurement(leftElevatorPose, kDefaultPeriod);
     //m_robotContainer.drivetrain.addVisionMeasurement(rightElevatorPose, kDefaultPeriod);
   }
 

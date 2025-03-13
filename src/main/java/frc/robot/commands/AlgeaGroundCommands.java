@@ -41,8 +41,7 @@ public class AlgeaGroundCommands {
         return new SequentialCommandGroup(
             new PrintCommand("Running the Algae Pivot to: " + groundPivotingState),
             new InstantCommand(() -> algeaGroundSubsystem.setPivotingState(groundPivotingState)).alongWith(new InstantCommand(() -> algeaGroundSubsystem.startRolling(-1))),
-            new RunCommand(() -> algeaGroundSubsystem.runToPosition(), algeaGroundSubsystem),
-            new WaitUntilCommand(() -> algeaGroundSubsystem.isRollerCooking())
+            new RunCommand(() -> algeaGroundSubsystem.runToPosition(), algeaGroundSubsystem).until(() -> algeaGroundSubsystem.atSetpoint())
         );
     }
 }

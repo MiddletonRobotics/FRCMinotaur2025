@@ -129,14 +129,14 @@ public class DealgeafierSubsystem extends SubsystemBase {
     }
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Dealgeafier Pivot Position", algeaElevatorPivotingEncoder.getPosition());
-        SmartDashboard.putNumber("Dealgeafier Pivot Temp.", algeaElevatorPivotingMotor.getMotorTemperature());
-        SmartDashboard.putNumber("Dealgeafier Pivot Target", pivotingState.getPosition().in(Degrees));
-        SmartDashboard.putNumber("Dealgeafier Roller Vel.", algeaElevatorRollingEncoder.getVelocity());
-        SmartDashboard.putNumber("Dealgeafier Roller AO", algeaElevatorPivotingMotor.get());
-        SmartDashboard.putNumber("Dealgeafier Motor Temp.", algeaElevatorRollerMotor.getMotorTemperature());
+        //SmartDashboard.putNumber("Dealgeafier Pivot Position", algeaElevatorPivotingEncoder.getPosition());
+        //SmartDashboard.putNumber("Dealgeafier Pivot Temp.", algeaElevatorPivotingMotor.getMotorTemperature());
+        //SmartDashboard.putNumber("Dealgeafier Pivot Target", pivotingState.getPosition().in(Degrees));
+        //SmartDashboard.putNumber("Dealgeafier Roller Vel.", algeaElevatorRollingEncoder.getVelocity());
+        //SmartDashboard.putNumber("Dealgeafier Roller AO", algeaElevatorPivotingMotor.get());
+        //SmartDashboard.putNumber("Dealgeafier Motor Temp.", algeaElevatorRollerMotor.getMotorTemperature());
         SmartDashboard.putBoolean("Dealgeafier Limit Switch", getLimitSwitch());
-        SmartDashboard.putBoolean("At Goal", atSetpoint());
+        //SmartDashboard.putBoolean("At Goal", atSetpoint());
     }
 
     public void setNeutralModes(IdleMode idleMode) {

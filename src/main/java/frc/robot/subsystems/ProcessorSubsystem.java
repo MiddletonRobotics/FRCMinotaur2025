@@ -76,15 +76,14 @@ public class ProcessorSubsystem extends SubsystemBase {
         }
     }
 
-    private GroundPivotingState groundPivotingState;
+    private GroundPivotingState groundPivotingState = GroundPivotingState.STORED;
 
     public ProcessorSubsystem() {
-        groundPivotingState = GroundPivotingState.STORED;
-        
         pivotingMotor = new SparkMax(Constants.ProcessorConstants.pivotMotorID, MotorType.kBrushless);
         pivotingEncoder = pivotingMotor.getEncoder();
         pivotingConfiguration = new SparkMaxConfig();
         configurePivotingMotor();
+        pivotingEncoder.setPosition(groundPivotingState.getPosition().in(Radians));
 
         rollerMotor = new SparkMax(Constants.ProcessorConstants.rollerMotorID, MotorType.kBrushless);
         rollingEncoder = rollerMotor.getEncoder();
@@ -102,7 +101,7 @@ public class ProcessorSubsystem extends SubsystemBase {
             0.02
         );
 
-        pidController.enableContinuousInput(-Math.PI, Math.PI);
+        pidController.enableContinuousInput(0, 2 * Math.PI);
         pidController.setTolerance(
             Constants.ProcessorConstants.MaximumAllowedPositionError.in(Radians), 
             Constants.ProcessorConstants.MaximumAllowedVelocityError.in(RadiansPerSecond)
@@ -119,7 +118,6 @@ public class ProcessorSubsystem extends SubsystemBase {
             .velocityConversionFactor(Constants.ProcessorConstants.VelocityConversionFactor);
 
         pivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        pivotingEncoder.setPosition(groundPivotingState.getPosition().in(Radians));
     }
 
     public void configureRollerMotor() {
@@ -139,12 +137,13 @@ public class ProcessorSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Processor Pivot Position", pivotingEncoder.getPosition());
-        SmartDashboard.putNumber("Processor Pivot Motor Temp.", pivotingMotor.getMotorTemperature());
-        SmartDashboard.putNumber("Processor Pivot Target", groundPivotingState.getPosition().in(Degrees));
-        SmartDashboard.putNumber("Processor Roller Velocity", pivotingEncoder.getVelocity());
+        SmartDashboard.putNumber("Processor Pivot Position", getPivotPosition());
+        //SmartDashboard.putNumber("Processor Pivot Motor Temp.", pivotingMotor.getMotorTemperature());
+        SmartDashboard.putNumber("Processor Pivot Target", groundPivotingState.getPosition().in(Radians));
+        SmartDashboard.putString("Processor State" + getGroundPivotingState() , "h");
+        //SmartDashboard.putNumber("Processor Roller Velocity", pivotingEncoder.getVelocity());
         SmartDashboard.putNumber("Processor Roller AO", pivotingMotor.get());
-        SmartDashboard.putNumber("Processor Roller Temp.", pivotingMotor.getMotorTemperature());
+        //SmartDashboard.putNumber("Processor Roller Temp.", pivotingMotor.getMotorTemperature());
         SmartDashboard.putNumber("Processor Pivot Stall", getRollerStall());
     }
 
@@ -156,8 +155,8 @@ public class ProcessorSubsystem extends SubsystemBase {
         pivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
-    public Angle getPivotPosition() {
-        return Degrees.of(pivotingEncoder.getPosition());
+    public double getPivotPosition() {
+        return pivotingEncoder.getPosition();
     }
 
     public State getPIDSetpoint() {
@@ -182,6 +181,7 @@ public class ProcessorSubsystem extends SubsystemBase {
 
     public void setPivotingState(GroundPivotingState groundPivotingState) {
         this.groundPivotingState = groundPivotingState;
+        pidController.setGoal(this.groundPivotingState.getPosition().in(Radians));
     }
 
     public GroundPivotingState getGroundPivotingState() {
@@ -203,7 +203,9 @@ public class ProcessorSubsystem extends SubsystemBase {
     }
 
     public void runToPosition() {
-        pivotingMotor.setVoltage(pidController.calculate(getPivotPosition().in(Radians)) + feedforward.calculate(getGroundPivotingState().getPosition().in(Radians), getPIDSetpoint().velocity));
+        double pidOutput = pidController.calculate(getPivotPosition(), groundPivotingState.getPosition().in(Radians));
+        double ffOut = feedforward.calculate(getPIDSetpoint().position, getPIDSetpoint().velocity);
+        pivotingMotor.setVoltage(pidOutput + ffOut);
     }
 
     public boolean atSetpoint() {
