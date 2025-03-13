@@ -1,0 +1,95 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "CoralPrepare"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "CoralAutoRightPath1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "sequential",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "ScoreCoral"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "CoralTransfer"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "CoralAutoRightPath2"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "CoralPrepare"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "CoralAutoRightPath3"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "sequential",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "ScoreCoral"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "CoralTransfer"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
