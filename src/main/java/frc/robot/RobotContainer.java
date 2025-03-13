@@ -25,7 +25,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.AlgeaGroundCommands;
-import frc.robot.commands.CoralSpinnerCommands;
+import frc.robot.commands.CoralCommands;
 import frc.robot.commands.DealgeafierCommands;
 import frc.robot.commands.ElevatorCommands;
 import frc.robot.generated.TunerConstants;
@@ -67,7 +67,7 @@ public class RobotContainer {
     public RobotContainer() {
         autonomousChooser = AutoBuilder.buildAutoChooser();
 
-        new EventTrigger("Dealgeafier Reef").onTrue(DealgeafierCommands.runPivotToPosition(dealgeafierSubsystem, PivotingState.REEF));
+        new EventTrigger("Dealgeafier Reef").onTrue(DealgeafierCommands.runPivotToReef(dealgeafierSubsystem));
         new EventTrigger("Run Dealgeafier").onTrue(dealgeafierSubsystem.run(() -> dealgeafierSubsystem.startRolling(1)));
         new EventTrigger("Stop Dealgeafier").onTrue(dealgeafierSubsystem.run(() -> dealgeafierSubsystem.stopRolling()));
 
@@ -112,11 +112,11 @@ public class RobotContainer {
     }
 
     public void configureOperatorBindings() {   
-        operatorController.leftBumper().onTrue(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem, 1));
-        operatorController.rightBumper().onTrue(DealgeafierCommands.shootAlgea(dealgeafierSubsystem, 1));
+        operatorController.leftBumper().onTrue(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem));
+        operatorController.rightBumper().onTrue(DealgeafierCommands.shootAlgea(dealgeafierSubsystem));
 
-        operatorController.a().onTrue(CoralSpinnerCommands.funnelIntakingUntilBroken(coralSubsystem, null));
-        operatorController.b().onTrue(CoralSpinnerCommands.scoreCoral(coralSubsystem, null));
+        operatorController.a().onTrue(CoralCommands.funnelIntakingUntilBroken(coralSubsystem));
+        operatorController.b().onTrue(CoralCommands.scoreCoral(coralSubsystem));
         operatorController.x().onTrue(AlgeaGroundCommands.intakeAlgea(processorSubsystem, GroundPivotingState.GROUND));
         operatorController.y().onTrue(AlgeaGroundCommands.spitOutBall(processorSubsystem));
     }

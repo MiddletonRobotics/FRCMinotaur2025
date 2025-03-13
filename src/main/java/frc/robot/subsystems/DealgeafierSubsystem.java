@@ -14,6 +14,7 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -33,15 +34,15 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utilities.constants.Constants;
 
 public class DealgeafierSubsystem extends SubsystemBase {
-    private SparkMax algeaElevatorPivotingMotor;
-    private SparkMax algeaElevatorRollerMotor;
+    private SparkMax pivotingMotor;
+    private SparkMax rollerMotor;
 
     private SparkMaxConfig pivotingConfiguration;
     private SparkMaxConfig rollerConfiguration;
 
-    private RelativeEncoder algeaElevatorPivotingEncoder;
-    private RelativeEncoder algeaElevatorRollingEncoder;
-    private ProfiledPIDController pidController;
+    private RelativeEncoder pivotingEncoder;
+    private RelativeEncoder rollingEncoder;
+    private SparkClosedLoopController pivotingPIDController;
 
     private ArmFeedforward feedforward = new ArmFeedforward(
         Constants.DealgeafierConstants.kS.in(Volts),
@@ -71,31 +72,16 @@ public class DealgeafierSubsystem extends SubsystemBase {
     public PivotingState pivotingState = PivotingState.STORED;
 
     public DealgeafierSubsystem() {
-        algeaElevatorPivotingMotor = new SparkMax(Constants.DealgeafierConstants.pivotingMotorID, MotorType.kBrushless);
-        algeaElevatorPivotingEncoder = algeaElevatorPivotingMotor.getEncoder();
+        pivotingMotor = new SparkMax(Constants.DealgeafierConstants.pivotingMotorID, MotorType.kBrushless);
+        pivotingEncoder = pivotingMotor.getEncoder();
         pivotingConfiguration = new SparkMaxConfig();
+        pivotingPIDController = pivotingMotor.getClosedLoopController();
         configurePivotingMotor();
 
-        algeaElevatorRollerMotor = new SparkMax(Constants.DealgeafierConstants.rollerMotorID, MotorType.kBrushless);
-        algeaElevatorRollingEncoder = algeaElevatorRollerMotor.getEncoder();
+        rollerMotor = new SparkMax(Constants.DealgeafierConstants.rollerMotorID, MotorType.kBrushless);
+        rollingEncoder = rollerMotor.getEncoder();
         rollerConfiguration = new SparkMaxConfig();
         configureRollerMotor();
-
-        pidController = new ProfiledPIDController(
-            0.001,
-            0.0,
-            0.0,
-            new TrapezoidProfile.Constraints(
-                Constants.DealgeafierConstants.LimitedVelocity.in(RadiansPerSecond),
-                Constants.DealgeafierConstants.LimitedAcceleration.in(RadiansPerSecondPerSecond)
-            )
-        );
-
-        pidController.enableContinuousInput(0, 2 * Math.PI);
-        pidController.setTolerance(
-            Constants.DealgeafierConstants.MaximumAllowedPositionError.in(Radians), 
-            Constants.DealgeafierConstants.MaximumAllowedVelocityError.in(RadiansPerSecond)
-        );
 
         algeaLimitSwitch = new DigitalInput(0); // Initialize limit switch on DIO port 0
     }
@@ -108,9 +94,11 @@ public class DealgeafierSubsystem extends SubsystemBase {
         pivotingConfiguration.encoder
             .positionConversionFactor(Constants.DealgeafierConstants.PositionConversionFactor)
             .velocityConversionFactor(Constants.DealgeafierConstants.VelocityConversionFactor);
+        pivotingConfiguration.closedLoop
+            .pid(0.1, 0.0, 0.0);
 
-        algeaElevatorPivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        algeaElevatorPivotingEncoder.setPosition(0.0);
+        pivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        pivotingEncoder.setPosition(pivotingState.getPosition().in(Degrees));
     }
 
     public void configureRollerMotor() {
@@ -124,47 +112,39 @@ public class DealgeafierSubsystem extends SubsystemBase {
         rollerConfiguration.closedLoop
             .pid(0.01, 0.0, 0.0);
 
-        algeaElevatorRollerMotor.configure(rollerConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        algeaElevatorRollingEncoder.setPosition(0.0);
+        rollerMotor.configure(rollerConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        rollingEncoder.setPosition(0.0);
     }
     @Override
     public void periodic() {
-        //SmartDashboard.putNumber("Dealgeafier Pivot Position", algeaElevatorPivotingEncoder.getPosition());
-        //SmartDashboard.putNumber("Dealgeafier Pivot Temp.", algeaElevatorPivotingMotor.getMotorTemperature());
-        //SmartDashboard.putNumber("Dealgeafier Pivot Target", pivotingState.getPosition().in(Degrees));
-        //SmartDashboard.putNumber("Dealgeafier Roller Vel.", algeaElevatorRollingEncoder.getVelocity());
-        //SmartDashboard.putNumber("Dealgeafier Roller AO", algeaElevatorPivotingMotor.get());
-        //SmartDashboard.putNumber("Dealgeafier Motor Temp.", algeaElevatorRollerMotor.getMotorTemperature());
+        SmartDashboard.putNumber("Dealgeafier Pivot Position", pivotingEncoder.getPosition());
+        SmartDashboard.putNumber("Dealgeafier Pivot Temp.", pivotingMotor.getMotorTemperature());
+        SmartDashboard.putNumber("Dealgeafier Pivot Target", pivotingState.getPosition().in(Degrees));
+        SmartDashboard.putNumber("Dealgeafier Roller Vel.", rollingEncoder.getVelocity());
+        SmartDashboard.putNumber("Dealgeafier Roller AO", pivotingMotor.get());
+        SmartDashboard.putNumber("Dealgeafier Motor Temp.", rollerMotor.getMotorTemperature());
         SmartDashboard.putBoolean("Dealgeafier Limit Switch", getLimitSwitch());
-        //SmartDashboard.putBoolean("At Goal", atSetpoint());
+        SmartDashboard.putBoolean("At Goal", atGoal());
     }
 
     public void setNeutralModes(IdleMode idleMode) {
         rollerConfiguration.idleMode(idleMode);
         pivotingConfiguration.idleMode(idleMode);
 
-        algeaElevatorRollerMotor.configure(rollerConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        algeaElevatorPivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    }
-
-    public double getPivotPosition() {
-        return algeaElevatorPivotingEncoder.getPosition();
+        rollerMotor.configure(rollerConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        pivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     public boolean getLimitSwitch() {
         return !algeaLimitSwitch.get();
     }
 
-    public State getPIDSetpoint() {
-        return pidController.getSetpoint();
-    }
-
     public void startRolling(double speed) {
-        algeaElevatorRollerMotor.set(speed);
+        rollerMotor.set(speed);
     }
 
     public void stopRolling() {
-        algeaElevatorRollerMotor.set(-0.1);
+        rollerMotor.set(-0.1);
     }
 
     public void setPivotingState(PivotingState pivotingState) {
@@ -177,10 +157,11 @@ public class DealgeafierSubsystem extends SubsystemBase {
 
     public void runToPosition() {
         Angle targetPosition = pivotingState.getPosition();
-        algeaElevatorPivotingMotor.set(pidController.calculate(getPivotPosition(), targetPosition.in(Radians)) + feedforward.calculate(targetPosition.in(Radians), getPIDSetpoint().velocity / RobotController.getBatteryVoltage()));
+        pivotingPIDController.setReference(targetPosition.in(Radians), ControlType.kPosition, ClosedLoopSlot.kSlot0, feedforward.calculate(pivotingEncoder.getPosition(), 0.15), ArbFFUnits.kVoltage);
     }
 
-    public boolean atSetpoint() {
-        return pidController.atGoal();
+    public boolean atGoal() {
+        Angle targetPosition = getPivotingState().getPosition();
+        return (targetPosition.in(Radians) - pivotingEncoder.getPosition() < 0.1 && targetPosition.in(Radians) - pivotingEncoder.getPosition() > -0.1);
     }
 }

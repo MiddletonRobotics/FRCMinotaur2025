@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.subsystems.CoralSubsystem;
 
-public class CoralSpinnerCommands {
+public class CoralCommands {
     public static Command funnelIntakingUntilBroken(CoralSubsystem coralSubsystem) {
         return new SequentialCommandGroup(
           new PrintCommand("Automatic Coral Intaking"),  
