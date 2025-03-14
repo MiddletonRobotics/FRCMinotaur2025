@@ -19,8 +19,11 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -32,7 +35,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-
+import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 import frc.robot.utilities.LimelightHelper;
 
@@ -59,6 +62,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
+
+    private static boolean useMegaTag2 = true; // set to false to use MegaTag1
+    private static boolean doRejectUpdate = false;
+    private static String limelightUsed;
+    private static LimelightHelper.PoseEstimate LLposeEstimate;
+    //Get average tag areas (percentage of image), Choose the limelight with the highest average tag area
+    private static double limelightFrontAvgTagArea = 0;
+    private static double limelightBackAvgTagArea = 0;
 
     private Limelight leftElevator = new Limelight("leftElevator");
     private Limelight rightElevator = new Limelight("rightElevator");
@@ -328,18 +339,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     @Override
     public void periodic() {
-        String chooseLimelight = limelightSubsystem.chooseLimelight();
-        LimelightHelper.PoseEstimate poseEstimate = LimelightHelper.getBotPoseEstimate_wpiBlue(chooseLimelight);
-
-        if (poseEstimate != null && poseEstimate.tagCount > 0) {
-            this.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
-            field.setRobotPose(poseEstimate.pose);
-
-            SmartDashboard.putNumber("Limelight Pose X", poseEstimate.pose.getX());
-            SmartDashboard.putNumber("Limelight Pose Y", poseEstimate.pose.getY());
-            SmartDashboard.putNumber("Limelight Pose Rotation", poseEstimate.pose.getRotation().getDegrees());
-        }
-
         /*
         * Periodically try to apply the operator perspective.
         * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
@@ -358,7 +357,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             });
         }
 
-        SmartDashboard.putData(field);
+        updateOdometry();
+        get_manual_LL_Estimate();
+        SmartDashboard.putData("Field",field);
+
+        Pose2d currentPose = getState().Pose;
+        field.setRobotPose(currentPose); // Fused pose I think
+        Double[] fusedPose = {currentPose.getX(), currentPose.getY(), currentPose.getRotation().getRadians()};
+        SmartDashboard.putNumberArray("Fused PoseDBL", fusedPose);
+
+        /*
         SmartDashboard.putData("Swerve Drive", new Sendable() {
             @Override
             public void initSendable(SendableBuilder builder) {
@@ -379,5 +387,129 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 builder.addDoubleProperty("Robot Angle", () -> getState().Pose.getRotation().getRadians(), null);
             }
         });
+        */
+    }
+
+    public void resetToVision(){
+        choose_LL();
+        
+        LLposeEstimate = get_manual_LL_Estimate();
+        if (LLposeEstimate != null) {
+            resetPose(LLposeEstimate.pose);
+        }
+    }
+
+    /**
+     * Polls the limelights for a pose estimate and uses the pose estimator Kalman filter to fuse the best Limelight pose estimate
+     * with the odometry pose estimate
+     */
+    private void updateOdometry() {
+        choose_LL();
+
+        LLposeEstimate = get_manual_LL_Estimate();
+        if (LLposeEstimate != null) {
+            addVisionMeasurement(LLposeEstimate.pose, LLposeEstimate.timestampSeconds);
+        }
+    }
+
+    /**
+     * Uses the autobuilder and PathPlanner's navigation grid to pathfind to a pose in real time
+     * 
+     * @param pose Pose to pathfind to
+     * @param endVelocity Velocity at pose
+     */
+    public Command path_find_to(Pose2d pose, LinearVelocity endVelocity){
+        return AutoBuilder.pathfindToPose(pose, TunerConstants.oTF_Constraints, endVelocity);
+    }
+
+    /**
+     * @param useMegaTag2 Boolean to use mt2 or mt1
+     * @return Valid pose estimate or null
+     */
+    private LimelightHelper.PoseEstimate get_LL_Estimate(boolean useMegaTag2){
+        doRejectUpdate = false;
+        LimelightHelper.PoseEstimate poseEstimate = new LimelightHelper.PoseEstimate();
+
+        if (useMegaTag2 == false) {
+            poseEstimate = LimelightHelper.getBotPoseEstimate_wpiBlue(limelightUsed);
+
+            if (poseEstimate == null){
+                doRejectUpdate = true;
+            }
+            else{
+                if (poseEstimate.tagCount == 1 && poseEstimate.rawFiducials.length == 1) {
+                    if (poseEstimate.rawFiducials[0].ambiguity > .7) {
+                        doRejectUpdate = true;
+                    }
+                    if (poseEstimate.rawFiducials[0].distToCamera > 3) {
+                        doRejectUpdate = true;
+                    }
+                    }
+                    if (poseEstimate.tagCount == 0) {
+                    doRejectUpdate = true;
+                    }
+            }
+        } else if (useMegaTag2 == true) {
+            LimelightHelper.SetRobotOrientation("limelight-front", getState().Pose.getRotation().getDegrees(),
+            0, 0, 0, 0, 0);
+            LimelightHelper.SetRobotOrientation("limelight-back", getState().Pose.getRotation().getDegrees(),
+            0, 0, 0, 0, 0);
+            poseEstimate = LimelightHelper.getBotPoseEstimate_wpiBlue_MegaTag2(limelightUsed);
+
+            if (poseEstimate == null) {
+                doRejectUpdate = true;
+            } else {
+                if (Math.abs(getPigeon2().getAngularVelocityZWorld().getValueAsDouble()) > 720) // if our angular velocity is greater than 720 degrees per second,
+                                                        // ignore vision updates. Might need to reduce to ~180
+                {
+                    doRejectUpdate = true;
+                }
+                if (poseEstimate.tagCount == 0) {
+                    doRejectUpdate = true;
+                }
+            }
+        }
+
+        if (doRejectUpdate){
+            return null;
+        }
+        else{
+            SmartDashboard.putString("LL Pose", poseEstimate.pose.toString());
+            return poseEstimate;
+        }
+    }
+
+    private static void choose_LL(){
+        limelightFrontAvgTagArea = NetworkTableInstance.getDefault().getTable("limelight-front").getEntry("botpose").getDoubleArray(new double[11])[10];
+        limelightBackAvgTagArea = NetworkTableInstance.getDefault().getTable("limelight-back").getEntry("botpose").getDoubleArray(new double[11])[10];
+        SmartDashboard.putNumber("Front Limelight Tag Area", limelightFrontAvgTagArea);
+        SmartDashboard.putNumber("Back Limelight Tag Area", limelightBackAvgTagArea);    
+
+        if(limelightFrontAvgTagArea > 
+            limelightBackAvgTagArea){
+                limelightUsed = "limelight-front";
+            }else{
+                limelightUsed = "limelight-back";
+        }
+        
+        SmartDashboard.putString("Limelight Used", limelightUsed);
+    }
+
+    private LimelightHelper.PoseEstimate get_manual_LL_Estimate(){
+        choose_LL();
+        LimelightHelper.PoseEstimate poseEstimate = new LimelightHelper.PoseEstimate();
+        
+        double[] botPose = LimelightHelper.getBotPose(limelightUsed);
+        SmartDashboard.putNumberArray("Botpose", botPose);
+        if (botPose.length != 0){
+            if (botPose[0] == 0){
+                return null;
+            }
+            poseEstimate.pose = new Pose2d(new Translation2d(botPose[0] + 8.7736 ,botPose[1] + 4.0257), new Rotation2d(Math.toRadians(botPose[5])));
+        }
+
+        Double[] pose = {poseEstimate.pose.getX(), poseEstimate.pose.getY(), poseEstimate.pose.getRotation().getRadians()};
+        SmartDashboard.putNumberArray("Manual Pose", pose);
+        return poseEstimate;
     }
 }

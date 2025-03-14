@@ -11,6 +11,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.utilities.LimelightHelper;
 import frc.robot.utilities.constants.FieldConstants;
 
 public class Limelight {
@@ -190,6 +191,10 @@ public class Limelight {
 
     public void setPriorityID(Number id) {
         priorityID.setNumber(id);
+    }
+
+    public void setLimelightPosition(String tableKey, double forward, double lateral, double height, double roll, double pitch, double yaw) {
+        LimelightHelper.setCameraPose_RobotSpace(tableKey, forward, lateral, height, roll, pitch, yaw);
     }
 
     public void handleRawPose(double[] rawPose, double[] processedPose) {

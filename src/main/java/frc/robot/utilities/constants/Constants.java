@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Feet;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
@@ -169,19 +170,6 @@ public class Constants {
         public static final PIDConstants RotationalPID = new PIDConstants(10.0, 5.0, 0.0);
     }
 
-
-    public static final class AlgeaProcessorConstants {
-        public static final int rollerID = 17;
-        public static final int pivotingID = 18;
-    }
-    public static final class CoralSpinnerConstants {
-        //public static final int CAN_ID = 21;// Choose appropriate CAN ID
-    }
-     
-    public static final class CoralPivotConstants {
-        public static final int CAN_ID = 55;
-    }
-
     public static final class DealgeafierConstants {
         public static final int pivotingMotorID = 19;
         public static final int rollerMotorID = 20;
@@ -210,8 +198,8 @@ public class Constants {
         public static final Angle MaximumAllowedPositionError = Degrees.of(3.0);
         public static final AngularVelocity MaximumAllowedVelocityError = DegreesPerSecond.of(3.0);
 
-        public static final Voltage kG = Volts.of(0.475);
-        public static final Voltage kS = Volts.of(0.275);
+        public static final Voltage kG = Volts.of(0.478);
+        public static final Voltage kS = Volts.of(0.35);
         public static final double kV = 0.48;
 
         public static final double PositionConversionFactor = (360 / (25 * (42 / 36)) * Math.PI) / 180;
@@ -239,11 +227,11 @@ public class Constants {
         public static final double ElevatorVelocityConversionFactor = ElevatorPositionConversionFactor / 60;
 
         /* Elevator PID Characterization Values */
-        public static final double ElevatorProfileKp = 0.01;
+        public static final double ElevatorProfileKp = 0.1;
         public static final double ElevatorProfileKi = 0.00;
         public static final double ElevatorProfileKd = 0.00;
 
-        public static final double ElevatorSparkKp = 0.03;
+        public static final double ElevatorSparkKp = 0.1;
         public static final double ElevatorSparkKi = 0.01;
         public static final double ElevatorSparkKd = 0.00;
 
@@ -253,14 +241,18 @@ public class Constants {
         public static final double ElevatorFeedforwardkV = 7.23;
         public static final double ElevatorFeedforwardkA = 0.05;
 
-        public static final LinearVelocity LimitedMaxVelocity = MetersPerSecond.of(4.139);
-        public static final LinearAcceleration LimitedMacAcceleration = MetersPerSecondPerSecond.of(3.988);
+        public static final LinearVelocity LimitedMaxVelocity = MetersPerSecond.of(1);
+        public static final LinearAcceleration LimitedMacAcceleration = MetersPerSecondPerSecond.of(1.25);
 
         public static class ElevatorHeights {
-            public static final double l1Height = Units.inchesToMeters(18);
-            public static final double l2Height = Units.inchesToMeters(31.875 - 28.5 + 14.428 - 4.9 + 0.6 + 3);
-            public static final double l3Height = Units.inchesToMeters(47.625 - 28.5 + 14.428 - 4.9 + 0.6 + 3);
-            public static final double l4Height = Units.inchesToMeters(72 - 28.5 + 14.428 - 4.9 + 0.6 + 3);
+            public static final double l1Height = 2.0465;
+            public static final double l2Height = 4.9203;
+            public static final double l3Height = 9.5794;
+            public static final double l4Height = 11.00;
+            public static final double barge = Units.inchesToMeters(0);
+            public static final double l2Dealgeafier = Units.inchesToMeters(0);
+            public static final double l3Dealgeafier = Units.inchesToMeters(0);
+            public static final double stow = Units.inchesToMeters(0);
         }
 
         public enum ElevatorStates {
@@ -269,7 +261,9 @@ public class Constants {
             L2,
             L3,
             L4,
-            MAX,
+            BARGE,
+            DEALGEAFIER_L2,
+            DEALGEAFIER_L3,
             STOW
         }
     }
@@ -284,13 +278,13 @@ public class Constants {
         public static final double kD = 0;
         public static final double kFF = 0;
         // MAXMOTION CONSTANTS TODO: TUNE
-        public static final double kMAXMotionP = 0;
+        public static final double kMAXMotionP = 0.1;
         public static final double kMAXMotionI = 0;
         public static final double kMAXMotionD = 0;
         public static final double kMAXMotionFF = 0;
-        public static final double kMAXMotionMaxAcceleration = 0;
-        public static final double kMAXMotionMaxVelocity = 0;
-        public static final double kMAXMotionAllowedError = 0;
+        public static final double kMAXMotionMaxAcceleration = 1.25;
+        public static final double kMAXMotionMaxVelocity = 1;
+        public static final double kMAXMotionAllowedError = 0.01;
         // TOLERANCE FOR PID ERROR
         public static final double kTolerance = 1.0; // TODO: TUNE
         // LIMIT VALUES
@@ -309,30 +303,19 @@ public class Constants {
     }
 
     public class LimelightConstants {
+        public static final Distance leftLimelightForward = Inches.of(7.415);
+        public static final Distance leftLimelightLateral = Inches.of(11.613);
+        public static final Distance leftLimelightHeight = Inches.of(5.872);
+        public static final Angle leftLimelightRoll = Degrees.of(0);
+        public static final Angle leftLimelightPitch = Degrees.of(20.0);
+        public static final Angle leftLimelightYaw = Degrees.of(330.0);
 
-        
-        public static final double sourceZoneAprilTagHeight = 53.38;
-        public static final double speakerAprilTagHeight = 57.13;
-        public static final double ampZoneAprilTagHeight = 53.38;
-        public static final double stageAprilTagHeight = 52.00;
-        public static final Map<Integer, Double> tagPipelinesHeights = Map.ofEntries(
-            Map.entry(1, sourceZoneAprilTagHeight),
-            Map.entry(2, sourceZoneAprilTagHeight),
-            Map.entry(3, speakerAprilTagHeight),
-            Map.entry(4, speakerAprilTagHeight),
-            Map.entry(5, ampZoneAprilTagHeight),
-            Map.entry(6, ampZoneAprilTagHeight),
-            Map.entry(7, speakerAprilTagHeight),
-            Map.entry(8, speakerAprilTagHeight),
-            Map.entry(9, sourceZoneAprilTagHeight),
-            Map.entry(10, sourceZoneAprilTagHeight),
-            Map.entry(11, stageAprilTagHeight),
-            Map.entry(12, stageAprilTagHeight),
-            Map.entry(13, stageAprilTagHeight),
-            Map.entry(14, stageAprilTagHeight),
-            Map.entry(15, stageAprilTagHeight),
-            Map.entry(16, stageAprilTagHeight)
-        );
+        public static final Distance rightLimelightForward = Inches.of(7.214);
+        public static final Distance rightLimelightLateral = Inches.of(11.320);
+        public static final Distance rightLimelightHeight = Inches.of(5.721);
+        public static final Angle rightLimelightRoll = Degrees.of(0);
+        public static final Angle rightLimelightPitch = Degrees.of(20.0);
+        public static final Angle rightLimelightYaw = Degrees.of(30.0);
     }
 
     public static final class DriverConstants {

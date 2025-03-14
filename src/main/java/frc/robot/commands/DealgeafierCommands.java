@@ -43,14 +43,4 @@ public class DealgeafierCommands {
             new RunCommand(() -> dealgeaElevatorSubsystem.runToPosition(), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.atGoal())
         );
     }
-
-    public static Command intakeFromReef(DealgeafierSubsystem dealgeafierSubsystem) {
-        return new SequentialCommandGroup(
-            new PrintCommand("Running Auto Intaking from: " + PivotingState.REEF),
-            new InstantCommand(() -> dealgeafierSubsystem.startRolling(-1)),
-            runPivotToReef(dealgeafierSubsystem),
-            intakeUntilBroken(dealgeafierSubsystem),
-            runPivotToStored(dealgeafierSubsystem)
-        );
-    }
 }

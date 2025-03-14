@@ -99,9 +99,9 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private void configureLeftGearbox() {
         leftElevatorConfiguration
-            .inverted(Constants.ElevatorConstants.leftElevatorInverted)
+            .inverted(false)
             .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(80)
+            .smartCurrentLimit(60)
             .voltageCompensation(Constants.ElevatorConstants.ElevatorVoltageCompensation);
         leftElevatorConfiguration.encoder
             .positionConversionFactor(Constants.ElevatorConstants.ElevatorPositionConversionFactor)
@@ -111,20 +111,13 @@ public class ElevatorSubsystem extends SubsystemBase {
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder);
 
         leftElevatorGearbox.configure(leftElevatorConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        leftElevatorEncoder.setPosition(0.0);
     }
 
     private void configureRightGearbox() {
         rightElevatorConfiguration
-            .inverted(false)
-            .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(80)
-            .voltageCompensation(Constants.ElevatorConstants.ElevatorVoltageCompensation);
-        rightElevatorConfiguration.encoder
-            .positionConversionFactor(Constants.ElevatorConstants.ElevatorPositionConversionFactor)
-            .velocityConversionFactor(Constants.ElevatorConstants.ElevatorVelocityConversionFactor);
-        rightElevatorConfiguration.closedLoop
-            .pid(Constants.ElevatorConstants.ElevatorSparkKp, 0.0, Constants.ElevatorConstants.ElevatorSparkKd)
-            .feedbackSensor(FeedbackSensor.kPrimaryEncoder);
+            .apply(leftElevatorConfiguration)
+            .follow(16, true);
 
         rightElevatorGearbox.configure(rightElevatorConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
@@ -137,9 +130,6 @@ public class ElevatorSubsystem extends SubsystemBase {
         double leftPosition = leftElevatorEncoder.getPosition();
         double rightPosition = rightElevatorEncoder.getPosition();
 
-        leftPosition = wrapping.apply(leftPosition);
-        rightPosition = wrapping.apply(rightPosition);
-
         return (leftPosition + rightPosition) / 2;
     }
 
@@ -149,11 +139,33 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     public void runElevatorUp(double speed) {
         leftElevatorGearbox.set(speed);
-        rightElevatorGearbox.set(speed);
     }
+
     public void runElevatorDown(double speed) {
         leftElevatorGearbox.set(speed);
-        rightElevatorGearbox.set(speed);
+    }
+
+    public void runIntegratedController() {
+        switch (state) {
+            case L1:
+                elevatorPIDController.setReference(Constants.ElevatorConstants.ElevatorHeights.l1Height, ControlType.kPosition);
+            case L2:
+                elevatorPIDController.setReference(Constants.ElevatorConstants.ElevatorHeights.l2Height, ControlType.kPosition);
+            case L3:
+                elevatorPIDController.setReference(Constants.ElevatorConstants.ElevatorHeights.l3Height, ControlType.kPosition);
+            case L4:
+                elevatorPIDController.setReference(Constants.ElevatorConstants.ElevatorHeights.l4Height, ControlType.kPosition);
+            case BARGE:
+                elevatorPIDController.setReference(Constants.ElevatorConstants.ElevatorHeights.barge, ControlType.kPosition);
+            case DEALGEAFIER_L2:
+                elevatorPIDController.setReference(Constants.ElevatorConstants.ElevatorHeights.l2Dealgeafier, ControlType.kPosition);
+            case DEALGEAFIER_L3:
+            elevatorPIDController.setReference(Constants.ElevatorConstants.ElevatorHeights.l3Dealgeafier, ControlType.kPosition);
+            case STOW:
+                elevatorPIDController.setReference(Constants.ElevatorConstants.ElevatorHeights.stow, ControlType.kPosition);
+            default:
+                elevatorPIDController.setReference(0, ControlType.kPosition);
+        }
     }
 
     /** returns true when the state is reached */
@@ -167,10 +179,14 @@ public class ElevatorSubsystem extends SubsystemBase {
                 return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.ElevatorHeights.l3Height);
             case L4:
                 return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.ElevatorHeights.l4Height);
-            case MAX:
-                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.MaximumHeightMeters.in(Meters));
+            case BARGE:
+                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.ElevatorHeights.barge);
+            case DEALGEAFIER_L2:
+                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.ElevatorHeights.l2Dealgeafier);
+            case DEALGEAFIER_L3:
+                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.ElevatorHeights.l3Dealgeafier);
             case STOW:
-                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.BaseHeight.in(Meters));
+                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.ElevatorHeights.stow);
             default:
                 return false;
         }
@@ -194,11 +210,17 @@ public class ElevatorSubsystem extends SubsystemBase {
             case L4:
                 setGoal(Constants.ElevatorConstants.ElevatorHeights.l4Height);
                 break;
-            case MAX:
-                setGoal(Constants.ElevatorConstants.MaximumHeightMeters.in(Meters));
+            case BARGE:
+                setGoal(Constants.ElevatorConstants.ElevatorHeights.barge);
+                break;
+            case DEALGEAFIER_L2:
+                setGoal(Constants.ElevatorConstants.ElevatorHeights.l2Dealgeafier);
+                break;
+            case DEALGEAFIER_L3:
+                setGoal(Constants.ElevatorConstants.ElevatorHeights.l3Dealgeafier);
                 break;
             case STOW:
-                setGoal(Constants.ElevatorConstants.BaseHeight.in(Meters));
+                setGoal(Constants.ElevatorConstants.ElevatorHeights.stow);
                 break;
             default:
                 setGoal(0);
@@ -239,18 +261,8 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
      private void logData() {
-        Logger.recordOutput("Elevator/Current Command", this.getCurrentCommand() == null ? "None" : this.getCurrentCommand().getName());
-        Logger.recordOutput("Elevator/Position", getPositionMeters());
-        Logger.recordOutput("Elevator/Velocity", getVelocityRadiansPerSecond());
-        //Logger.recordOutput("subsystems/elevator/acceleration", data.accelerationMetersPerSecondSquared);
-        //Logger.recordOutput("subsystems/elevator/input volts", ((data.leftAppliedVolts + data.rightAppliedVolts) / 2.0));
-        Logger.recordOutput("Elevator/Left Applied Output", leftElevatorGearbox.getAppliedOutput());
-        Logger.recordOutput("Elevator/Left Applied Output", rightElevatorGearbox.getAppliedOutput());
-        Logger.recordOutput("Elevator/Left Output Current", leftElevatorGearbox.getOutputCurrent());
-        Logger.recordOutput("Elevator/Right Output Current", rightElevatorGearbox.getOutputCurrent());
-        Logger.recordOutput("Elevator/Left Motor Tempurature", leftElevatorGearbox.getMotorTemperature());
-        Logger.recordOutput("Elevator/Right Motor Tempurature", rightElevatorGearbox.getMotorTemperature());
-        
+        SmartDashboard.putString("Elevator State: ", getState().toString());
+        SmartDashboard.putNumber("Elevator Encoder Pos", leftElevatorEncoder.getPosition());
     }
 
     public void stop() {

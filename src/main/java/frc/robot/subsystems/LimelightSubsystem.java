@@ -1,5 +1,9 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Meter;
+import static edu.wpi.first.units.Units.Meters;
+
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -14,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.generated.TunerConstants;
 import frc.robot.utilities.LimelightHelper;
 import frc.robot.utilities.LimelightHelper.PoseEstimate;
+import frc.robot.utilities.constants.Constants;
 import frc.robot.utilities.constants.FieldConstants;
 
 public class LimelightSubsystem extends SubsystemBase {
@@ -25,7 +30,25 @@ public class LimelightSubsystem extends SubsystemBase {
         leftElevator = new Limelight("left-elevator");
         rightElevator = new Limelight("right-elevator");
 
-        //leftElevator.set
+        leftElevator.setLimelightPosition(
+            "left-elevator", 
+            Constants.LimelightConstants.leftLimelightForward.in(Meters), 
+            Constants.LimelightConstants.leftLimelightLateral.in(Meters), 
+            Constants.LimelightConstants.leftLimelightHeight.in(Meters), 
+            Constants.LimelightConstants.leftLimelightRoll.in(Degrees), 
+            Constants.LimelightConstants.leftLimelightPitch.in(Degrees), 
+            Constants.LimelightConstants.leftLimelightYaw.in(Degrees)
+        );
+
+        rightElevator.setLimelightPosition(
+            "left-elevator", 
+            Constants.LimelightConstants.rightLimelightForward.in(Meters), 
+            Constants.LimelightConstants.rightLimelightLateral.in(Meters), 
+            Constants.LimelightConstants.rightLimelightHeight.in(Meters), 
+            Constants.LimelightConstants.rightLimelightRoll.in(Degrees), 
+            Constants.LimelightConstants.rightLimelightPitch.in(Degrees), 
+            Constants.LimelightConstants.rightLimelightYaw.in(Degrees)
+        );
     }
 
     @Override
@@ -42,7 +65,7 @@ public class LimelightSubsystem extends SubsystemBase {
         return rightElevator;
     }
 
-    public String chooseLimelight(){
+    public String chooseLimelight() {
         double limelightLeftAvgTagArea = NetworkTableInstance.getDefault().getTable("left-elevator").getEntry("botpose").getDoubleArray(new double[11])[10];
         double limelightRightAvgTagArea = NetworkTableInstance.getDefault().getTable("right-elevator").getEntry("botpose").getDoubleArray(new double[11])[10];
         
@@ -57,5 +80,13 @@ public class LimelightSubsystem extends SubsystemBase {
         
         SmartDashboard.putString("Limelight Used", limelightUsed);
         return limelightUsed;
+    }
+
+    public void setRobotPosition(String tableKey, double yaw, double yawRate, double pitch, double pitchRate, double roll, double rollRate) {
+        LimelightHelper.SetRobotOrientation(tableKey, yaw, yawRate, pitch, pitchRate, roll, rollRate);
+    }
+
+    public void setRobotPosition(String tableKey, double yaw) {
+        LimelightHelper.SetRobotOrientation(tableKey, yaw, 0.0, 0.0, 0.0, 0.0, 0.0);
     }
 }

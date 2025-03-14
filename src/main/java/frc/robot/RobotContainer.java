@@ -10,6 +10,7 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.events.EventTrigger;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
@@ -20,6 +21,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -51,6 +53,8 @@ public class RobotContainer {
             .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
+    private ElevatorStates elevatorStates = ElevatorStates.STOP;
+
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
@@ -73,6 +77,7 @@ public class RobotContainer {
 
         NamedCommands.registerCommand("ScoreAlgae", DealgeafierCommands.shootAlgea(dealgeafierSubsystem));
         NamedCommands.registerCommand("ScoreCoral", CoralCommands.scoreCoral(coralSubsystem));
+        NamedCommands.registerCommand("PrepareCoral", ElevatorCommands.runElevatorToPosition(elevatorSubsystem, ElevatorStates.L4));
 
         autonomousChooser = AutoBuilder.buildAutoChooser();
 
@@ -82,6 +87,8 @@ public class RobotContainer {
         configureDriverBindings();
         configureOperatorBindings();
         configureManualBindings();
+
+        PathfindingCommand.warmupCommand().schedule();
     }
 
     public void onTeleopInit() {
@@ -115,9 +122,12 @@ public class RobotContainer {
         driverController.start().and(driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
         driverController.leftTrigger(0.5).onTrue(CoralCommands.funnelIntakingUntilBroken(coralSubsystem));
-        driverController.rightTrigger(0.5).onTrue(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem));
         driverController.leftBumper().onTrue(CoralCommands.scoreCoral(coralSubsystem));
+        driverController.rightTrigger(0.5).onTrue(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem));
         driverController.rightBumper().onTrue(DealgeafierCommands.shootAlgea(dealgeafierSubsystem));
+
+        driverController.x().onTrue(ElevatorCommands.runElevatorToPosition(elevatorSubsystem, elevatorStates));
+        driverController.y().onTrue(DealgeafierCommands.runPivotToReef(dealgeafierSubsystem));
 
         // reset the field-centric heading on left bumper press
         driverController.povUp().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
@@ -127,6 +137,15 @@ public class RobotContainer {
     public void configureOperatorBindings() {   
         operatorController.a().onTrue(AlgeaGroundCommands.intakeAlgea(processorSubsystem, GroundPivotingState.GROUND));
         operatorController.b().onTrue(AlgeaGroundCommands.spitOutBall(processorSubsystem));
+
+        operatorController.leftBumper().onTrue(new InstantCommand(() -> elevatorStates = ElevatorStates.L1));
+        operatorController.leftTrigger(0.5).onTrue(new InstantCommand(() -> elevatorStates = ElevatorStates.L2));
+        operatorController.rightBumper().onTrue(new InstantCommand(() -> elevatorStates = ElevatorStates.L3));
+        operatorController.rightTrigger(0.5).onTrue(new InstantCommand(() -> elevatorStates = ElevatorStates.L4));
+        operatorController.povLeft().onTrue(new InstantCommand(() -> elevatorStates = ElevatorStates.DEALGEAFIER_L2));
+        operatorController.povRight().onTrue(new InstantCommand(() -> elevatorStates = ElevatorStates.DEALGEAFIER_L3));
+        operatorController.povUp().onTrue(new InstantCommand(() -> elevatorStates = ElevatorStates.BARGE));
+        operatorController.x().onTrue(new InstantCommand(() -> elevatorStates = ElevatorStates.STOW));
     }
 
     private void configureManualBindings() {
@@ -142,10 +161,10 @@ public class RobotContainer {
         manualController.y().whileTrue(new InstantCommand(() -> coralSubsystem.spinCoral(0.4)));
         manualController.y().whileFalse(new InstantCommand(() -> coralSubsystem.stopCoral()));
 
-        manualController.povUp().whileTrue(new RunCommand(() -> elevatorSubsystem.runElevatorUp(0.4)));
+        manualController.povUp().whileTrue(new RunCommand(() -> elevatorSubsystem.runElevatorUp(-0.6)));
         manualController.povUp().onFalse(new InstantCommand(() -> elevatorSubsystem.runElevatorUp(0.0)));
 
-        manualController.povDown().whileTrue(new RunCommand(() -> elevatorSubsystem.runElevatorDown(-0.05)));
+        manualController.povDown().whileTrue(new RunCommand(() -> elevatorSubsystem.runElevatorDown(0.05)));
         manualController.povDown().onFalse(new InstantCommand(() -> elevatorSubsystem.runElevatorDown(0.0)));
 
         manualController.leftBumper().whileTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(1)));
