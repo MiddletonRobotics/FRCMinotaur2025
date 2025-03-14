@@ -16,12 +16,17 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -29,6 +34,7 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.utilities.LimelightHelper;
 
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
@@ -53,6 +59,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
+
+    private Limelight leftElevator = new Limelight("leftElevator");
+    private Limelight rightElevator = new Limelight("rightElevator");
+    private LimelightSubsystem limelightSubsystem = new LimelightSubsystem();
+
+    private Field2d field;
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -135,6 +147,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             startSimThread();
         }
         configureAutoBuilder();
+
+        field = new Field2d();
+        field.setRobotPose(getState().Pose);
     }
 
     /**
@@ -160,6 +175,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             startSimThread();
         }
         configureAutoBuilder();
+
+        field = new Field2d();
+        field.setRobotPose(getState().Pose);
     }
 
     /**
@@ -193,6 +211,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             startSimThread();
         }
         configureAutoBuilder();
+
+        field = new Field2d();
+        field.setRobotPose(getState().Pose);
     }
 
     private void configureAutoBuilder() {
@@ -256,27 +277,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return m_sysIdRoutineToApply.dynamic(direction);
     }
 
-    @Override
-    public void periodic() {
-        /*
-         * Periodically try to apply the operator perspective.
-         * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
-         * This allows us to correct the perspective in case the robot code restarts mid-match.
-         * Otherwise, only check and apply the operator perspective if the DS is disabled.
-         * This ensures driving behavior doesn't change until an explicit disable event occurs during testing.
-         */
-        if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
-            DriverStation.getAlliance().ifPresent(allianceColor -> {
-                setOperatorPerspectiveForward(
-                    allianceColor == Alliance.Red
-                        ? kRedAlliancePerspectiveRotation
-                        : kBlueAlliancePerspectiveRotation
-                );
-                m_hasAppliedOperatorPerspective = true;
-            });
-        }
-    }
-
     private void startSimThread() {
         m_lastSimTime = Utils.getCurrentTimeSeconds();
 
@@ -324,5 +324,60 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         Matrix<N3, N1> visionMeasurementStdDevs
     ) {
         super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
+    }
+
+    @Override
+    public void periodic() {
+        String chooseLimelight = limelightSubsystem.chooseLimelight();
+        LimelightHelper.PoseEstimate poseEstimate = LimelightHelper.getBotPoseEstimate_wpiBlue(chooseLimelight);
+
+        if (poseEstimate != null && poseEstimate.tagCount > 0) {
+            this.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
+            field.setRobotPose(poseEstimate.pose);
+
+            SmartDashboard.putNumber("Limelight Pose X", poseEstimate.pose.getX());
+            SmartDashboard.putNumber("Limelight Pose Y", poseEstimate.pose.getY());
+            SmartDashboard.putNumber("Limelight Pose Rotation", poseEstimate.pose.getRotation().getDegrees());
+        }
+
+        /*
+        * Periodically try to apply the operator perspective.
+        * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
+        * This allows us to correct the perspective in case the robot code restarts mid-match.
+        * Otherwise, only check and apply the operator perspective if the DS is disabled.
+        * This ensures driving behavior doesn't change until an explicit disable event occurs during testing.
+        */
+        if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
+            DriverStation.getAlliance().ifPresent(allianceColor -> {
+                setOperatorPerspectiveForward(
+                    allianceColor == Alliance.Red
+                        ? kRedAlliancePerspectiveRotation
+                        : kBlueAlliancePerspectiveRotation
+                );
+                m_hasAppliedOperatorPerspective = true;
+            });
+        }
+
+        SmartDashboard.putData(field);
+        SmartDashboard.putData("Swerve Drive", new Sendable() {
+            @Override
+            public void initSendable(SendableBuilder builder) {
+                builder.setSmartDashboardType("SwerveDrive");
+    
+                builder.addDoubleProperty("Front Left Angle", () -> getModule(0).getTargetState().angle.getRadians(), null);
+                builder.addDoubleProperty("Front Left Velocity", () -> getModule(0).getTargetState().speedMetersPerSecond, null);
+            
+                builder.addDoubleProperty("Front Right Angle", () -> getModule(1).getTargetState().angle.getRadians(), null);
+                builder.addDoubleProperty("Front Right Velocity", () -> getModule(1).getTargetState().speedMetersPerSecond, null);
+            
+                builder.addDoubleProperty("Back Left Angle", () -> getModule(2).getTargetState().angle.getRadians(), null);
+                builder.addDoubleProperty("Back Left Velocity", () -> getModule(2).getTargetState().speedMetersPerSecond, null);
+            
+                builder.addDoubleProperty("Back Right Angle", () -> getModule(3).getTargetState().angle.getRadians(), null);
+                builder.addDoubleProperty("Back Right Velocity", () -> getModule(3).getTargetState().speedMetersPerSecond, null);
+            
+                builder.addDoubleProperty("Robot Angle", () -> getState().Pose.getRotation().getRadians(), null);
+            }
+        });
     }
 }

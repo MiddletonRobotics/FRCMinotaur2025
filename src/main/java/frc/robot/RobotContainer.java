@@ -14,6 +14,9 @@ import com.pathplanner.lib.events.EventTrigger;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -65,13 +68,16 @@ public class RobotContainer {
     private final ProcessorSubsystem processorSubsystem = new ProcessorSubsystem();
 
     public RobotContainer() {
+        //new EventTrigger("ScoreAlgae").onTrue(DealgeafierCommands.shootAlgea(dealgeafierSubsystem));
+        //new EventTrigger("ScoreCoral").onTrue(CoralCommands.scoreCoral(coralSubsystem));
+
+        NamedCommands.registerCommand("ScoreAlgae", DealgeafierCommands.shootAlgea(dealgeafierSubsystem));
+        NamedCommands.registerCommand("ScoreCoral", CoralCommands.scoreCoral(coralSubsystem));
+
         autonomousChooser = AutoBuilder.buildAutoChooser();
 
-        new EventTrigger("Dealgeafier Reef").onTrue(DealgeafierCommands.runPivotToReef(dealgeafierSubsystem));
-        new EventTrigger("Run Dealgeafier").onTrue(dealgeafierSubsystem.run(() -> dealgeafierSubsystem.startRolling(1)));
-        new EventTrigger("Stop Dealgeafier").onTrue(dealgeafierSubsystem.run(() -> dealgeafierSubsystem.stopRolling()));
-
         SmartDashboard.putData("Autonomous Chooser", autonomousChooser);
+        SmartDashboard.putNumber(" Battery Voltage", RobotController.getBatteryVoltage());
 
         configureDriverBindings();
         configureOperatorBindings();
@@ -80,11 +86,13 @@ public class RobotContainer {
 
     public void onTeleopInit() {
         dealgeafierSubsystem.setNeutralModes(IdleMode.kBrake);
+        processorSubsystem.setNeutralModes(IdleMode.kBrake);
         dealgeafierSubsystem.stopRolling();
     }
 
     public void onDisabled() {
         dealgeafierSubsystem.setNeutralModes(IdleMode.kCoast);
+        processorSubsystem.setNeutralModes(IdleMode.kCoast);
     }
 
     private void configureDriverBindings() {
@@ -106,19 +114,19 @@ public class RobotContainer {
         driverController.start().and(driverController.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
         driverController.start().and(driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
+        driverController.leftTrigger(0.5).onTrue(CoralCommands.funnelIntakingUntilBroken(coralSubsystem));
+        driverController.rightTrigger(0.5).onTrue(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem));
+        driverController.leftBumper().onTrue(CoralCommands.scoreCoral(coralSubsystem));
+        driverController.rightBumper().onTrue(DealgeafierCommands.shootAlgea(dealgeafierSubsystem));
+
         // reset the field-centric heading on left bumper press
-        driverController.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        driverController.povUp().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
     public void configureOperatorBindings() {   
-        operatorController.leftBumper().onTrue(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem));
-        operatorController.rightBumper().onTrue(DealgeafierCommands.shootAlgea(dealgeafierSubsystem));
-
-        operatorController.a().onTrue(CoralCommands.funnelIntakingUntilBroken(coralSubsystem));
-        operatorController.b().onTrue(CoralCommands.scoreCoral(coralSubsystem));
-        operatorController.x().onTrue(AlgeaGroundCommands.intakeAlgea(processorSubsystem, GroundPivotingState.GROUND));
-        operatorController.y().onTrue(AlgeaGroundCommands.spitOutBall(processorSubsystem));
+        operatorController.a().onTrue(AlgeaGroundCommands.intakeAlgea(processorSubsystem, GroundPivotingState.GROUND));
+        operatorController.b().onTrue(AlgeaGroundCommands.spitOutBall(processorSubsystem));
     }
 
     private void configureManualBindings() {

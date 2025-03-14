@@ -24,8 +24,10 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -43,6 +45,10 @@ public class DealgeafierSubsystem extends SubsystemBase {
     private RelativeEncoder pivotingEncoder;
     private RelativeEncoder rollingEncoder;
     private SparkClosedLoopController pivotingPIDController;
+
+    private Alert pivotDisconnected;
+    private Alert rollerDisconnected;
+    private Alert deviceBrownedOut;
 
     private ArmFeedforward feedforward = new ArmFeedforward(
         Constants.DealgeafierConstants.kS.in(Volts),
@@ -82,6 +88,10 @@ public class DealgeafierSubsystem extends SubsystemBase {
         rollingEncoder = rollerMotor.getEncoder();
         rollerConfiguration = new SparkMaxConfig();
         configureRollerMotor();
+
+        pivotDisconnected = new Alert("Dealgeafier Pivot CAN Issue", AlertType.kError);
+        rollerDisconnected = new Alert("Dealgeafier Roller CAN Issue", AlertType.kError);
+        deviceBrownedOut = new Alert("Dealgeafier Hardware Browned Out", AlertType.kError);
 
         algeaLimitSwitch = new DigitalInput(0); // Initialize limit switch on DIO port 0
     }
@@ -124,7 +134,12 @@ public class DealgeafierSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Dealgeafier Roller AO", pivotingMotor.get());
         SmartDashboard.putNumber("Dealgeafier Motor Temp.", rollerMotor.getMotorTemperature());
         SmartDashboard.putBoolean("Dealgeafier Limit Switch", getLimitSwitch());
+        SmartDashboard.putNumber("Dealgeafier Pivot Error", calculateError());
         SmartDashboard.putBoolean("At Goal", atGoal());
+
+        pivotDisconnected.set(pivotingMotor.getFaults().can);
+        rollerDisconnected.set(rollerMotor.getFaults().can);
+        deviceBrownedOut.set(isBrownedOut());
     }
 
     public void setNeutralModes(IdleMode idleMode) {
@@ -133,6 +148,11 @@ public class DealgeafierSubsystem extends SubsystemBase {
 
         rollerMotor.configure(rollerConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         pivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    }
+
+    public double calculateError() {
+        Angle targetPosition = getPivotingState().getPosition();
+        return targetPosition.in(Radians) - pivotingEncoder.getPosition();
     }
 
     public boolean getLimitSwitch() {
@@ -163,5 +183,9 @@ public class DealgeafierSubsystem extends SubsystemBase {
     public boolean atGoal() {
         Angle targetPosition = getPivotingState().getPosition();
         return (targetPosition.in(Radians) - pivotingEncoder.getPosition() < 0.1 && targetPosition.in(Radians) - pivotingEncoder.getPosition() > -0.1);
+    }
+
+    public boolean isBrownedOut() {
+        return pivotingMotor.getStickyWarnings().brownout || rollerMotor.getStickyWarnings().brownout;
     }
 }

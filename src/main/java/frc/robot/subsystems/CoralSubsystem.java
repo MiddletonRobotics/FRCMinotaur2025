@@ -45,8 +45,6 @@ import frc.robot.utilities.UtilityFunctions;
 
 public class CoralSubsystem extends SubsystemBase {
 
-
-
     private SparkMax coralSpinnerMotor;
 
     private SparkMaxConfig pivotingConfiguration;
@@ -72,8 +70,8 @@ public class CoralSubsystem extends SubsystemBase {
 
         firstBeamBreak = new DigitalInput(1);
         secondBeamBreak = new DigitalInput(2);
-
     }
+    
     public void configureCoralSpinner() {
         CoralSpinnerConfiguration
             .idleMode(IdleMode.kBrake)

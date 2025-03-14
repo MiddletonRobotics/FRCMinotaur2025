@@ -18,9 +18,7 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private final RobotContainer m_robotContainer;
-  private Pose2d leftElevatorPose;
-  private Pose2d rightElevatorPose;
-
+  
   public Robot() {
     m_robotContainer = new RobotContainer();
   }
@@ -32,22 +30,12 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotPeriodic() {
-    CommandScheduler.getInstance().run(); 
-
-    leftElevatorPose = LimelightSubsystem.getLeftElevator().getCurrentBotPoseBlue();
-    rightElevatorPose = LimelightSubsystem.getRightElevator().getCurrentBotPoseBlue();
-
-    m_robotContainer.drivetrain.addVisionMeasurement(leftElevatorPose, kDefaultPeriod);
-    m_robotContainer.drivetrain.addVisionMeasurement(rightElevatorPose, kDefaultPeriod);
-
-    SmartDashboard.putNumber("Robot Pose X", m_robotContainer.drivetrain.getState().Pose.getX());
-    SmartDashboard.putNumber("Robot Pose Y", m_robotContainer.drivetrain.getState().Pose.getY());
-    SmartDashboard.putNumber("Robot Pose Rotation", m_robotContainer.drivetrain.getState().Pose.getRotation().getDegrees());
+    CommandScheduler.getInstance().run();
   }
 
   @Override
   public void disabledInit() {}
-  
+
   @Override
   public void disabledPeriodic() {}
 
@@ -79,7 +67,9 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    m_robotContainer.drivetrain.periodic();
+  }
 
   @Override
   public void teleopExit() {}

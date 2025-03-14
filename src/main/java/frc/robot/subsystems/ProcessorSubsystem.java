@@ -39,6 +39,8 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
@@ -63,6 +65,10 @@ public class ProcessorSubsystem extends SubsystemBase {
     private RelativeEncoder rollingEncoder;
     private SparkClosedLoopController pivotPIDController;
     private ProfiledPIDController pidController;
+
+    private Alert pivotDisconnected;
+    private Alert rollerDisconnected;
+    private Alert deviceBrownedOut;
 
     private TrapezoidProfile profile;
     private TrapezoidProfile.Constraints motionConstraints;
@@ -109,6 +115,10 @@ public class ProcessorSubsystem extends SubsystemBase {
         rollingEncoder = rollerMotor.getEncoder();
         rollerConfiguration = new SparkMaxConfig();
         configureRollerMotor();
+
+        pivotDisconnected = new Alert("Processor Pivot CAN Issue", AlertType.kError);
+        rollerDisconnected = new Alert("Processor Roller CAN Issue", AlertType.kError);
+        deviceBrownedOut = new Alert("Dealgeafier Hardware Browned Out", AlertType.kError);
 
         motionConstraints = new TrapezoidProfile.Constraints(
             Constants.ProcessorConstants.LimitedVelocity.in(RadiansPerSecond),
@@ -173,6 +183,7 @@ public class ProcessorSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Processor Roller Temp.", pivotingMotor.getMotorTemperature());
         SmartDashboard.putNumber("Processor Roller Stall", rollerMotor.getOutputCurrent());
         SmartDashboard.putBoolean("Processor Roller Cooking", isRollerCooking());
+        SmartDashboard.putNumber("Processor Pivot Error", calculateError());
         SmartDashboard.putBoolean("Processor At Goal", atGoal());
 
         if(running) {
@@ -181,6 +192,10 @@ public class ProcessorSubsystem extends SubsystemBase {
             double feedback = pidController.calculate(currentAngle.position, desiredState);
             pivotingMotor.setVoltage(ff + feedback);
         }
+
+        pivotDisconnected.set(pivotingMotor.getFaults().can);
+        rollerDisconnected.set(rollerMotor.getFaults().can);
+        deviceBrownedOut.set(isBrownedOut());
     }
 
     public void updateInputs() {
@@ -218,10 +233,7 @@ public class ProcessorSubsystem extends SubsystemBase {
 
     public void setNeutralModes(IdleMode idleMode) {
         rollerConfiguration.idleMode(idleMode);
-        pivotingConfiguration.idleMode(idleMode);
-
         rollerMotor.configure(rollerConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        pivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     public void setGoal(GroundPivotingState groundPivotingState) {
@@ -246,6 +258,11 @@ public class ProcessorSubsystem extends SubsystemBase {
     public boolean atGoal() {
         Angle targetPosition = getGroundPivotingState().getPosition();
         return (targetPosition.in(Radians) - pivotingEncoder.getPosition() < 0.1 && targetPosition.in(Radians) - pivotingEncoder.getPosition() > -0.1);
+    }
+
+    public double calculateError() {
+        Angle targetPosition = getGroundPivotingState().getPosition();
+        return targetPosition.in(Radians) - pivotingEncoder.getPosition();
     }
 
     public void rollFlywheel(double speed) {
@@ -280,5 +297,9 @@ public class ProcessorSubsystem extends SubsystemBase {
         } else {
             return false;
         }
+    }
+
+    public boolean isBrownedOut() {
+        return pivotingMotor.getStickyWarnings().brownout || rollerMotor.getStickyWarnings().brownout;
     }
 }
