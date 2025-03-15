@@ -61,10 +61,11 @@ public class DealgeafierSubsystem extends SubsystemBase {
     private DigitalInput algeaLimitSwitch;
 
     public enum PivotingState {
+        START(Degrees.of(-19.5)),
         STORED(Degrees.of(0.0)),
-        BARGE(Degrees.of(0.0)),
-        REEF(Degrees.of(0.0)),
-        GROUND(Degrees.of(0.0));
+        BARGE(Degrees.of(25.0)),
+        REEF(Degrees.of(100.0)),
+        GROUND(Degrees.of(150.0));
 
         private final Angle position;
 
@@ -77,7 +78,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
         }
     }
 
-    public PivotingState pivotingState = PivotingState.STORED;
+    public PivotingState pivotingState = PivotingState.START;
 
     public DealgeafierSubsystem() {
         pivotingMotor = new SparkMax(Constants.DealgeafierConstants.pivotingMotorID, MotorType.kBrushless);
@@ -107,7 +108,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
             .positionConversionFactor(Constants.DealgeafierConstants.PositionConversionFactor)
             .velocityConversionFactor(Constants.DealgeafierConstants.VelocityConversionFactor);
         pivotingConfiguration.closedLoop
-            .pid(0.1, 0.0, 0.0);
+            .pid(0.25, 0.0, 0.0);
 
         pivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         pivotingEncoder.setPosition(pivotingState.getPosition().in(Degrees));
@@ -135,7 +136,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Dealgeafier Roller Vel.", rollingEncoder.getVelocity());
         SmartDashboard.putNumber("Dealgeafier Roller AO", pivotingMotor.get());
         SmartDashboard.putNumber("Dealgeafier Motor Temp.", rollerMotor.getMotorTemperature());
-        SmartDashboard.putBoolean("Dealgeafier Limit Switch", getLimitSwitch());
+        SmartDashboard.putBoolean("Dealgeafier Limit- Switch", getLimitSwitch());
         SmartDashboard.putNumber("Dealgeafier Pivot Error", calculateError());
         SmartDashboard.putBoolean("At Goal", atGoal());
 
@@ -167,6 +168,14 @@ public class DealgeafierSubsystem extends SubsystemBase {
 
     public void stopRolling() {
         rollerMotor.set(-0.1);
+    }
+
+    public void startPivot(double speed) {
+        pivotingMotor.set(speed);
+    }
+
+    public void stopPivot() {
+        pivotingMotor.set(0.0);
     }
 
     public void setPivotingState(PivotingState pivotingState) {

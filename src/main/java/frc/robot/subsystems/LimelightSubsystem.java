@@ -66,16 +66,16 @@ public class LimelightSubsystem extends SubsystemBase {
     }
 
     public String chooseLimelight() {
-        double limelightLeftAvgTagArea = NetworkTableInstance.getDefault().getTable("left-elevator").getEntry("botpose").getDoubleArray(new double[11])[10];
-        double limelightRightAvgTagArea = NetworkTableInstance.getDefault().getTable("right-elevator").getEntry("botpose").getDoubleArray(new double[11])[10];
+        double limelightLeftAvgTagArea = NetworkTableInstance.getDefault().getTable("limelight-left").getEntry("botpose").getDoubleArray(new double[11])[10];
+        double limelightRightAvgTagArea = NetworkTableInstance.getDefault().getTable("limelight-right").getEntry("botpose").getDoubleArray(new double[11])[10];
         
         SmartDashboard.putNumber("Left Limelight Tag Area", limelightLeftAvgTagArea);
         SmartDashboard.putNumber("Right Limelight Tag Area", limelightRightAvgTagArea);    
 
         if(limelightLeftAvgTagArea > limelightRightAvgTagArea){
-            limelightUsed = "left-elevator";
+            limelightUsed = "limelight-left";
         } else{
-            limelightUsed = "right-elevator";
+            limelightUsed = "limelight-right";
         }
         
         SmartDashboard.putString("Limelight Used", limelightUsed);

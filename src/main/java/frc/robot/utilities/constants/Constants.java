@@ -198,8 +198,8 @@ public class Constants {
         public static final Angle MaximumAllowedPositionError = Degrees.of(3.0);
         public static final AngularVelocity MaximumAllowedVelocityError = DegreesPerSecond.of(3.0);
 
-        public static final Voltage kG = Volts.of(0.478);
-        public static final Voltage kS = Volts.of(0.35);
+        public static final Voltage kG = Volts.of(0.2675);
+        public static final Voltage kS = Volts.of(0.13);
         public static final double kV = 0.48;
 
         public static final double PositionConversionFactor = (360 / (25 * (42 / 36)) * Math.PI) / 180;
@@ -256,50 +256,26 @@ public class Constants {
         }
 
         public enum ElevatorStates {
-            STOP,
-            L1,
-            L2,
-            L3,
-            L4,
-            BARGE,
-            DEALGEAFIER_L2,
-            DEALGEAFIER_L3,
-            STOW
-        }
-    }
+            STOP(0),
+            L1(2.0465),
+            L2(4.9203),
+            L3(9.5794),
+            L4(11.00),
+            BARGE(11.00),
+            DEALGEAFIER_L2(6),
+            DEALGEAFIER_L3(8),
+            STOW(0);
 
-    public static class ElevatorConstants2 {
-        // MOTOR CAN BUS IDS
-        public static final int kLeaderID = 46;
-        public static final int kFollowerID = 45;
-        // RAW PID CONSTANTS TODO: TUNE
-        public static final double kP = .1;
-        public static final double kI = 0;
-        public static final double kD = 0;
-        public static final double kFF = 0;
-        // MAXMOTION CONSTANTS TODO: TUNE
-        public static final double kMAXMotionP = 0.1;
-        public static final double kMAXMotionI = 0;
-        public static final double kMAXMotionD = 0;
-        public static final double kMAXMotionFF = 0;
-        public static final double kMAXMotionMaxAcceleration = 1.25;
-        public static final double kMAXMotionMaxVelocity = 1;
-        public static final double kMAXMotionAllowedError = 0.01;
-        // TOLERANCE FOR PID ERROR
-        public static final double kTolerance = 1.0; // TODO: TUNE
-        // LIMIT VALUES
-        public static final double kMinimumRotationLimit = -5; // TODO: SET
-        public static final double kMaximumRotationLimit = 100; // TODO: SET
-        public static final double kMinimumOutputLimit = -.8;
-        public static final double kMaximumOutputLimit = .8;
-        // INVERSIONS
-        public static final boolean kInverted = false;
-        public static final boolean kFollowerInverted = true;
-        // CURRENT LIMITS TODO: TUNE
-        public static final int kStallLimit = 40;
-        public static final int kFreeLimit = 40;
-        // IDLE MODE
-        public static final IdleMode kIdleMode = IdleMode.kBrake;
+            private final double position;
+
+            private ElevatorStates(double position) {
+                this.position = position;
+            }
+
+            public double getPosition() {
+                return this.position;
+            }
+        }
     }
 
     public class LimelightConstants {

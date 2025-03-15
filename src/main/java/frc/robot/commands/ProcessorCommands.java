@@ -15,7 +15,7 @@ import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.subsystems.ProcessorSubsystem;
 import frc.robot.subsystems.ProcessorSubsystem.GroundPivotingState;
 
-public class AlgeaGroundCommands {
+public class ProcessorCommands {
     public static Command startRollCommand(ProcessorSubsystem algeaGroundSubsystem, DoubleSupplier speed) {
         return algeaGroundSubsystem.run(
             () -> algeaGroundSubsystem.rollFlywheel(speed.getAsDouble())

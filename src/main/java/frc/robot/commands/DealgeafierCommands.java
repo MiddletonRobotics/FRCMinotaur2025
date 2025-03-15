@@ -39,7 +39,7 @@ public class DealgeafierCommands {
     public static Command runPivotToStored(DealgeafierSubsystem dealgeaElevatorSubsystem) {
         return new SequentialCommandGroup(
             new PrintCommand("Running the Algae Pivot to: " + PivotingState.STORED),
-            new InstantCommand(() -> dealgeaElevatorSubsystem.setPivotingState(PivotingState.STORED)),
+            new InstantCommand(() -> dealgeaElevatorSubsystem.setPivotingState(PivotingState.STORED)).alongWith(new InstantCommand(() -> dealgeaElevatorSubsystem.stopRolling())),
             new RunCommand(() -> dealgeaElevatorSubsystem.runToPosition(), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.atGoal())
         );
     }

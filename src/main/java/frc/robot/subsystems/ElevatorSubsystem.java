@@ -25,6 +25,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -39,6 +40,7 @@ import frc.robot.utilities.constants.Constants;
 import frc.robot.utilities.constants.Constants.ElevatorConstants;
 import frc.robot.utilities.constants.Constants.ElevatorConstants.ElevatorStates;
 import frc.robot.utilities.ShuffleData;
+import frc.robot.utilities.TrapezoidController;
 import frc.robot.utilities.UtilityFunctions;
 
 
@@ -56,29 +58,32 @@ public class ElevatorSubsystem extends SubsystemBase {
     private DigitalInput topLimitSwitch;
     private DigitalInput bottomLimitSwitch;
 
-    private TrapezoidProfile.Constraints elevatorConstraints;
-    private ProfiledPIDController profile;
+    private PIDController pidController;
+    private TrapezoidController trapezoidController;
     private ElevatorFeedforward feedforward;
 
     private SparkMax rightElevatorGearbox, leftElevatorGearbox;
     private RelativeEncoder rightElevatorEncoder, leftElevatorEncoder;
-    private SparkClosedLoopController elevatorPIDController;
+    private SparkClosedLoopController leftElevatorPID, rightElevatorPID;
     private SparkMaxConfig rightElevatorConfiguration, leftElevatorConfiguration;
 
     private Function<Double, Double> wrapping = (input) -> input;
     private BiFunction<Double, Double, Boolean> deadband = (input, setpoint) -> false;
+    private ElevatorStates elevatorState;
+    private double pidVal, FFVal, outputVoltage;
 
     public ElevatorSubsystem() {
         System.out.println("[Initialization] Creating ElevatorSubsystem");
 
         leftElevatorGearbox = new SparkMax(Constants.ElevatorConstants.leftElevatorID, MotorType.kBrushless);
         leftElevatorEncoder = leftElevatorGearbox.getEncoder();
-        elevatorPIDController = leftElevatorGearbox.getClosedLoopController();
+        leftElevatorPID = leftElevatorGearbox.getClosedLoopController();
         leftElevatorConfiguration = new SparkMaxConfig();
         configureLeftGearbox();
 
         rightElevatorGearbox = new SparkMax(Constants.ElevatorConstants.rightElevatorID, MotorType.kBrushless);
         rightElevatorEncoder = rightElevatorGearbox.getEncoder();
+        rightElevatorPID = rightElevatorGearbox.getClosedLoopController();
         rightElevatorConfiguration = new SparkMaxConfig();
         configureRightGearbox();
 
@@ -89,19 +94,19 @@ public class ElevatorSubsystem extends SubsystemBase {
             Constants.ElevatorConstants.ElevatorFeedforwardkA
         );
 
-        elevatorConstraints = new TrapezoidProfile.Constraints(
-            Constants.ElevatorConstants.LimitedMaxVelocity.in(MetersPerSecond), 
-            Constants.ElevatorConstants.LimitedMacAcceleration.in(MetersPerSecondPerSecond)
-        );
+        pidController = new PIDController(Constants.ElevatorConstants.ElevatorProfileKp, 0.0, Constants.ElevatorConstants.ElevatorProfileKd);
+        pidController.enableContinuousInput(0, 12);
+        pidController.setTolerance(0.1);
 
-        profile = new ProfiledPIDController(Constants.ElevatorConstants.ElevatorProfileKp, 0.0, Constants.ElevatorConstants.ElevatorProfileKd, elevatorConstraints);
+        trapezoidController = new TrapezoidController(0.0, 0.05, .1, 3.5, 3, 7.5, 0.4); 
+        setElevatorState(ElevatorStates.STOW);
     }
 
     private void configureLeftGearbox() {
         leftElevatorConfiguration
             .inverted(false)
             .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(60)
+            .smartCurrentLimit(50)
             .voltageCompensation(Constants.ElevatorConstants.ElevatorVoltageCompensation);
         leftElevatorConfiguration.encoder
             .positionConversionFactor(Constants.ElevatorConstants.ElevatorPositionConversionFactor)
@@ -112,6 +117,14 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         leftElevatorGearbox.configure(leftElevatorConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         leftElevatorEncoder.setPosition(0.0);
+    }
+
+    @Override
+    public void periodic() {
+        pidVal = pidController.calculate(getPositionMeters(), getElevatorState().getPosition());
+        FFVal = feedforward.calculate(0.15);
+
+        outputVoltage = pidVal + FFVal;
     }
 
     private void configureRightGearbox() {
@@ -133,8 +146,33 @@ public class ElevatorSubsystem extends SubsystemBase {
         return (leftPosition + rightPosition) / 2;
     }
 
+    public boolean atSetpoint() {
+        return pidController.atSetpoint();
+    }
+
+    public boolean integratedPIDatSetpoint() {
+        return Math.abs(getElevatorState().getPosition() - getPositionMeters()) < 0.2;
+    }
+
     public double getVelocityRadiansPerSecond() {
         return (leftElevatorEncoder.getVelocity() + rightElevatorEncoder.getVelocity()) / 2;
+    }
+
+    public ElevatorStates getElevatorState() {
+        return elevatorState;
+    }
+
+    public void setElevatorState(ElevatorStates elevatorState) {
+        this.elevatorState = elevatorState;
+    }
+
+    public void runElevatorToPosition() {
+        leftElevatorGearbox.setVoltage(outputVoltage);
+    }
+
+    public void runElevatorIntegratedPID() {
+        leftElevatorPID.setReference(getElevatorState().getPosition(), ControlType.kPosition, ClosedLoopSlot.kSlot0);
+        rightElevatorPID.setReference(getElevatorState().getPosition(), ControlType.kPosition, ClosedLoopSlot.kSlot0);
     }
 
     public void runElevatorUp(double speed) {
@@ -145,136 +183,8 @@ public class ElevatorSubsystem extends SubsystemBase {
         leftElevatorGearbox.set(speed);
     }
 
-    public void runIntegratedController() {
-        switch (state) {
-            case L1:
-                elevatorPIDController.setReference(Constants.ElevatorConstants.ElevatorHeights.l1Height, ControlType.kPosition);
-            case L2:
-                elevatorPIDController.setReference(Constants.ElevatorConstants.ElevatorHeights.l2Height, ControlType.kPosition);
-            case L3:
-                elevatorPIDController.setReference(Constants.ElevatorConstants.ElevatorHeights.l3Height, ControlType.kPosition);
-            case L4:
-                elevatorPIDController.setReference(Constants.ElevatorConstants.ElevatorHeights.l4Height, ControlType.kPosition);
-            case BARGE:
-                elevatorPIDController.setReference(Constants.ElevatorConstants.ElevatorHeights.barge, ControlType.kPosition);
-            case DEALGEAFIER_L2:
-                elevatorPIDController.setReference(Constants.ElevatorConstants.ElevatorHeights.l2Dealgeafier, ControlType.kPosition);
-            case DEALGEAFIER_L3:
-            elevatorPIDController.setReference(Constants.ElevatorConstants.ElevatorHeights.l3Dealgeafier, ControlType.kPosition);
-            case STOW:
-                elevatorPIDController.setReference(Constants.ElevatorConstants.ElevatorHeights.stow, ControlType.kPosition);
-            default:
-                elevatorPIDController.setReference(0, ControlType.kPosition);
-        }
-    }
-
-    /** returns true when the state is reached */
-    public boolean atSetpointState() {
-        switch (state) {
-            case L1:
-                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.ElevatorHeights.l1Height);
-            case L2:
-                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.ElevatorHeights.l2Height);
-            case L3:
-                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.ElevatorHeights.l3Height);
-            case L4:
-                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.ElevatorHeights.l4Height);
-            case BARGE:
-                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.ElevatorHeights.barge);
-            case DEALGEAFIER_L2:
-                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.ElevatorHeights.l2Dealgeafier);
-            case DEALGEAFIER_L3:
-                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.ElevatorHeights.l3Dealgeafier);
-            case STOW:
-                return UtilityFunctions.withinMargin(0.01, getPositionMeters(), Constants.ElevatorConstants.ElevatorHeights.stow);
-            default:
-                return false;
-        }
-    }
-
-    public void setState(ElevatorStates state) {
-        this.state = state;
-        switch (state) {
-            case STOP:
-                stop();
-                break;
-            case L1:
-                setGoal(Constants.ElevatorConstants.ElevatorHeights.l1Height);
-                break;
-            case L2:
-                setGoal(Constants.ElevatorConstants.ElevatorHeights.l2Height);
-                break;
-            case L3:
-                setGoal(Constants.ElevatorConstants.ElevatorHeights.l3Height);
-                break;
-            case L4:
-                setGoal(Constants.ElevatorConstants.ElevatorHeights.l4Height);
-                break;
-            case BARGE:
-                setGoal(Constants.ElevatorConstants.ElevatorHeights.barge);
-                break;
-            case DEALGEAFIER_L2:
-                setGoal(Constants.ElevatorConstants.ElevatorHeights.l2Dealgeafier);
-                break;
-            case DEALGEAFIER_L3:
-                setGoal(Constants.ElevatorConstants.ElevatorHeights.l3Dealgeafier);
-                break;
-            case STOW:
-                setGoal(Constants.ElevatorConstants.ElevatorHeights.stow);
-                break;
-            default:
-                setGoal(0);
-                break;
-        }
-    }
-
-    public void setGoal(double height) {
-        profile.setGoal(height);
-    }
-
-    public void setVoltage(double volts) {
-        double inputVolts = MathUtil.applyDeadband(volts, 0.05);
-        inputVolts = MathUtil.clamp(volts, -12.0, 12.0);
-        leftElevatorGearbox.setVoltage(inputVolts);
-        rightElevatorGearbox.setVoltage(inputVolts);
-    }
-
-    private void runState() {
-        switch (state) {
-            case STOP:
-                stop();
-                break;
-            default:
-                moveToGoal();
-                break;
-        }
-    }
-
-    private void moveToGoal() {
-        State firstState = profile.getSetpoint();
-        profile.calculate(getPositionMeters());
-
-        State nextState = profile.getSetpoint();
-        double ffVoltage = feedforward.calculate(firstState.velocity, nextState.velocity);
-
-        elevatorPIDController.setReference(firstState.position, ControlType.kPosition, ClosedLoopSlot.kSlot3, ffVoltage);
-    }
-
-     private void logData() {
-        SmartDashboard.putString("Elevator State: ", getState().toString());
-        SmartDashboard.putNumber("Elevator Encoder Pos", leftElevatorEncoder.getPosition());
-    }
-
     public void stop() {
         leftElevatorGearbox.setVoltage(0.0);
         rightElevatorGearbox.setVoltage(0.0);
-    }
-
-    @Override
-    public void periodic() {
-        runState();
-        logData();
-
-        SmartDashboard.putNumber("Elevator Encoder", getPositionMeters());
     }
 }
