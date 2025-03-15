@@ -5,41 +5,9 @@
     "data": {
       "commands": [
         {
-          "type": "parallel",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "CoralPrepare"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "CoralAutoRightPath1"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "sequential",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "ScoreCoral"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "CoralTransfer"
-                }
-              }
-            ]
+            "pathName": "CoralAutoRightPath1"
           }
         },
         {
@@ -49,41 +17,9 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "CoralPrepare"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "CoralAutoRightPath3"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "sequential",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "ScoreCoral"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "CoralTransfer"
-                }
-              }
-            ]
+            "pathName": "CoralAutoRightPath3"
           }
         },
         {
@@ -93,41 +29,9 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "CoralPrepare"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "CoralAutoRightPath5"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "sequential",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "ScoreCoral"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "CoralTransfer"
-                }
-              }
-            ]
+            "pathName": "CoralAutoRightPath5"
           }
         }
       ]

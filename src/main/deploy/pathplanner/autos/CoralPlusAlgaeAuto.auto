@@ -9,15 +9,15 @@
           "data": {
             "commands": [
               {
-                "type": "path",
-                "data": {
-                  "pathName": "CoralAutoLeftPath1"
-                }
-              },
-              {
                 "type": "named",
                 "data": {
                   "name": "PrepareL4"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "CoralPlusAlgaePath1"
                 }
               }
             ]
@@ -34,15 +34,15 @@
           "data": {
             "commands": [
               {
-                "type": "named",
+                "type": "path",
                 "data": {
-                  "name": "StowElevator"
+                  "pathName": "CoralPlusAlgaePath2"
                 }
               },
               {
-                "type": "path",
+                "type": "named",
                 "data": {
-                  "pathName": "CoralAutoLeftPath2"
+                  "name": "PrepareDealgification"
                 }
               }
             ]
@@ -51,7 +51,7 @@
         {
           "type": "named",
           "data": {
-            "name": "IndexCoral"
+            "name": "IntakeAlgae"
           }
         },
         {
@@ -61,13 +61,13 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "CoralAutoLeftPath3"
+                  "pathName": "CoralPlusAlgaePath3"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "PrepareL4"
+                  "name": "AlgaePrepare"
                 }
               }
             ]
@@ -76,57 +76,7 @@
         {
           "type": "named",
           "data": {
-            "name": "ScoreCoral"
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "StowElevator"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "CoralAutoLeftPath4"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "IndexCoral"
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "CoralAutoLeftPath5"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "PrepareL4"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "ScoreCoral"
+            "name": "ScoreAlgae"
           }
         },
         {

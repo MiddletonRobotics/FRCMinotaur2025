@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.2,
-        "y": 7.5
+        "x": 8.1,
+        "y": 7.55
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.305825533634856,
-        "y": 7.11930749180771
+        "x": 7.205825533634902,
+        "y": 7.16930749180771
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 5.55,
-        "y": 5.5
+        "x": 5.4,
+        "y": 5.3
       },
       "prevControl": {
-        "x": 5.990504315180955,
-        "y": 6.300877544873336
+        "x": 5.840504315180955,
+        "y": 6.1008775448733354
       },
       "nextControl": null,
       "isLocked": false,
@@ -31,7 +31,20 @@
   "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "PrepareL4",
+      "waypointRelativePos": 0.49922289456233443,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
+      "name": "ScoreAlgae",
+      "waypointRelativePos": 1.0,
+      "endWaypointRelativePos": null,
+      "command": null
+    }
+  ],
   "globalConstraints": {
     "maxVelocity": 5.029,
     "maxAcceleration": 4.0,

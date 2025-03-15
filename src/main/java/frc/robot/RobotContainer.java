@@ -108,6 +108,8 @@ public class RobotContainer {
         processorSubsystem.setNeutralModes(IdleMode.kCoast);
     }
 
+    /*
+
     public void configureDriverBindings() {
         drivetrain.setDefaultCommand(
             drivetrain.applyRequest(() ->
@@ -150,28 +152,20 @@ public class RobotContainer {
         operatorController.b().onTrue(ProcessorCommands.spitOutBall(processorSubsystem));
     }
 
-    /*
+     */
 
     private void configureDriverBindings() {
         // Note that X is defined as forward according to WPILib convention, and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(limiter.calculate(-driverController.getLeftY() * MaxSpeed)) // Drive forward with negative Y (forward)
-                    .withVelocityY(limiter.calculate(-driverController.getLeftX() * MaxSpeed)) // Drive left with negative X (left)
-                    .withRotationalRate(limiter.calculate(-driverController.getRightX() * MaxAngularRate)) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(-driverController.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(-driverController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(-driverController.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
 
         driverController.a().whileTrue(drivetrain.applyRequest(() -> brake));
         driverController.b().whileTrue(drivetrain.applyRequest(() -> point.withModuleDirection(new Rotation2d(-driverController.getLeftY(), -driverController.getLeftX()))));
-
-        drivetrain.setDefaultCommand(
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX(limiter.calculate(-manualController.getLeftY() * MaxSpeed)) // Drive forward with negative Y (forward)
-                    .withVelocityY(limiter.calculate(-manualController.getLeftX() * MaxSpeed)) // Drive left with negative X (left)
-                    .withRotationalRate(limiter.calculate(-manualController.getRightX() * MaxAngularRate)) // Drive counterclockwise with negative X (left)
-            )
-        );
 
         driverController.x().whileTrue(new InstantCommand(() -> coralSubsystem.spinCoral(-1)));
         driverController.x().whileFalse(new InstantCommand(() -> coralSubsystem.stopCoral()));
@@ -199,10 +193,6 @@ public class RobotContainer {
 
         driverController.povRight().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         drivetrain.registerTelemetry(logger::telemeterize);
-
-        // reset the field-centric heading on left bumper press
-        driverController.povUp().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-        drivetrain.registerTelemetry(logger::telemeterize);
     }
 
     public void configureOperatorBindings() {   
@@ -219,7 +209,6 @@ public class RobotContainer {
         operatorController.povLeft().onFalse(new InstantCommand(() -> dealgeafierSubsystem.stopPivot()));
     }
 
-    */
 
     public Command getAutonomousCommand() {
         return autonomousChooser.getSelected();

@@ -11,7 +11,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "CoralPrepare"
+                  "name": "PrepareL4"
                 }
               },
               {
@@ -36,7 +36,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "CoralTransfer"
+                  "name": "IndexCoral"
                 }
               }
             ]
@@ -55,7 +55,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "CoralPrepare"
+                  "name": "PrepareL4"
                 }
               },
               {
@@ -80,7 +80,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "CoralTransfer"
+                  "name": "IndexCoral"
                 }
               }
             ]
