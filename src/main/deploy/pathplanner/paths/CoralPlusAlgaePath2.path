@@ -31,7 +31,30 @@
   "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "AlgaePrepare",
+      "waypointRelativePos": 0.5018038828903647,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "AlgaePrepare"
+        }
+      }
+    },
+    {
+      "name": "PrepareDealgification",
+      "waypointRelativePos": 1.0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "PrepareDealgification"
+        }
+      }
+    }
+  ],
   "globalConstraints": {
     "maxVelocity": 5.029,
     "maxAcceleration": 4.0,

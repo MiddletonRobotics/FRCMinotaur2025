@@ -15,6 +15,13 @@ public class ElevatorCommands {
         );
     }
 
+    public static Command runElevatorwithIntegratedController(ElevatorSubsystem elevatorSubsystem, ElevatorStates elevatorStates) {
+        return new SequentialCommandGroup(
+            new InstantCommand(() -> elevatorSubsystem.setElevatorState(elevatorStates)),
+            new RunCommand(() -> elevatorSubsystem.runElevatorIntegratedPID()).until(() -> elevatorSubsystem.atSetpoint())
+        );
+    }
+
     public static Command autoPrepareL4(ElevatorSubsystem elevatorSubsystem) {
         return new SequentialCommandGroup(
             new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.L4)),

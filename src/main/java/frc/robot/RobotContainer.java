@@ -32,10 +32,10 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.ProcessorCommands;
-import frc.robot.autonomous.PrepareDealgeafication;
 import frc.robot.commands.CoralCommands;
 import frc.robot.commands.DealgeafierCommands;
 import frc.robot.commands.ElevatorCommands;
+import frc.robot.commands.PrepareDealgeafication;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.DealgeafierSubsystem;
 import frc.robot.subsystems.ProcessorSubsystem;
@@ -53,7 +53,7 @@ public class RobotContainer {
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+            .withDeadband(MaxSpeed * 0.15).withRotationalDeadband(MaxAngularRate * 0.15) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
     private ElevatorStates elevatorStates = ElevatorStates.STOP;
@@ -113,9 +113,9 @@ public class RobotContainer {
     public void configureDriverBindings() {
         drivetrain.setDefaultCommand(
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(limiter.calculate(-driverController.getLeftY() * MaxSpeed)) // Drive forward with negative Y (forward)
-                    .withVelocityY(limiter.calculate(-driverController.getLeftX() * MaxSpeed)) // Drive left with negative X (left)
-                    .withRotationalRate(limiter.calculate(-driverController.getRightX() * MaxAngularRate)) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(-driverController.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(-driverController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(-driverController.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
 
@@ -152,7 +152,7 @@ public class RobotContainer {
         operatorController.b().onTrue(ProcessorCommands.spitOutBall(processorSubsystem));
     }
 
-     */
+    */
 
     private void configureDriverBindings() {
         // Note that X is defined as forward according to WPILib convention, and Y is defined as to the left according to WPILib convention.
@@ -173,11 +173,11 @@ public class RobotContainer {
         driverController.y().whileTrue(new InstantCommand(() -> coralSubsystem.spinCoral(0.4)));
         driverController.y().whileFalse(new InstantCommand(() -> coralSubsystem.stopCoral()));
 
-        driverController.povUp().whileTrue(new RunCommand(() -> elevatorSubsystem.runElevatorUp(-0.5)));
-        driverController.povUp().onFalse(new InstantCommand(() -> elevatorSubsystem.runElevatorUp(0.0)));
+        driverController.leftTrigger(0.5).whileTrue(new RunCommand(() -> elevatorSubsystem.runElevatorUp(-0.75)));
+        driverController.leftTrigger(0.5).onFalse(new InstantCommand(() -> elevatorSubsystem.runElevatorUp(0.0)));
 
-        driverController.povDown().whileTrue(new RunCommand(() -> elevatorSubsystem.runElevatorDown(0.05)));
-        driverController.povDown().onFalse(new InstantCommand(() -> elevatorSubsystem.runElevatorDown(0.0)));
+        driverController.rightTrigger(0.5).whileTrue(new RunCommand(() -> elevatorSubsystem.runElevatorDown(0.3)));
+        driverController.rightTrigger(0.5).onFalse(new InstantCommand(() -> elevatorSubsystem.runElevatorDown(0.0)));
 
         driverController.leftBumper().whileTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(1)));
         driverController.leftBumper().whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
@@ -185,19 +185,13 @@ public class RobotContainer {
         driverController.rightBumper().whileTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(-1)));
         driverController.rightBumper().whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
 
-        driverController.rightTrigger(0.5).whileTrue(new InstantCommand(() -> dealgeafierSubsystem.startRolling(1)));
-        driverController.rightTrigger(0.5).whileFalse(new InstantCommand(() -> dealgeafierSubsystem.stopRolling()));
-
-        driverController.leftTrigger(0.5).whileTrue(new InstantCommand(() -> dealgeafierSubsystem.startRolling(-1)));
-        driverController.leftTrigger(0.5).whileFalse(new InstantCommand(() -> dealgeafierSubsystem.stopRolling()));
-
-        driverController.povRight().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        driverController.povUp().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
     public void configureOperatorBindings() {   
-        operatorController.y().whileTrue(new RunCommand(() -> processorSubsystem.startGroundPivot(0.3)));
-        operatorController.y().whileTrue(new RunCommand(() -> processorSubsystem.startGroundPivot(0.3)));
+        operatorController.y().whileTrue(new InstantCommand(() -> processorSubsystem.startGroundPivot(0.2)));
+        operatorController.y().whileFalse(new InstantCommand(() -> processorSubsystem.startGroundPivot(0.0)));
 
         operatorController.x().whileTrue(new InstantCommand(() -> processorSubsystem.startGroundPivot(-0.125)));
         operatorController.x().whileFalse(new InstantCommand(() -> processorSubsystem.stopGroundPivot()));
@@ -207,8 +201,13 @@ public class RobotContainer {
 
         operatorController.povLeft().whileTrue(new RunCommand(() -> dealgeafierSubsystem.startPivot(0.23)));
         operatorController.povLeft().onFalse(new InstantCommand(() -> dealgeafierSubsystem.stopPivot()));
-    }
 
+        operatorController.rightTrigger(0.5).whileTrue(new InstantCommand(() -> dealgeafierSubsystem.startRolling(1)));
+        operatorController.rightTrigger(0.5).whileFalse(new InstantCommand(() -> dealgeafierSubsystem.stopRolling()));
+
+        operatorController.leftTrigger(0.5).whileTrue(new InstantCommand(() -> dealgeafierSubsystem.startRolling(-1)));
+        operatorController.leftTrigger(0.5).whileFalse(new InstantCommand(() -> dealgeafierSubsystem.stopRolling()));
+    }
 
     public Command getAutonomousCommand() {
         return autonomousChooser.getSelected();

@@ -95,8 +95,8 @@ public class ElevatorSubsystem extends SubsystemBase {
         );
 
         pidController = new PIDController(Constants.ElevatorConstants.ElevatorProfileKp, 0.0, Constants.ElevatorConstants.ElevatorProfileKd);
-        pidController.enableContinuousInput(0, 12);
-        pidController.setTolerance(0.1);
+        pidController.enableContinuousInput(0, 1.5);
+        pidController.setTolerance(0.02);
 
         trapezoidController = new TrapezoidController(0.0, 0.05, .1, 3.5, 3, 7.5, 0.4); 
         setElevatorState(ElevatorStates.STOW);
@@ -104,9 +104,9 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private void configureLeftGearbox() {
         leftElevatorConfiguration
-            .inverted(false)
+            .inverted(false) // change back to true for PID
             .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(50)
+            .smartCurrentLimit(60)
             .voltageCompensation(Constants.ElevatorConstants.ElevatorVoltageCompensation);
         leftElevatorConfiguration.encoder
             .positionConversionFactor(Constants.ElevatorConstants.ElevatorPositionConversionFactor)
@@ -125,6 +125,11 @@ public class ElevatorSubsystem extends SubsystemBase {
         FFVal = feedforward.calculate(0.15);
 
         outputVoltage = pidVal + FFVal;
+
+        SmartDashboard.putNumber("Elevator Position", getPositionMeters());
+        SmartDashboard.putNumber("Elevator T Position", getElevatorState().getPosition());
+        SmartDashboard.putNumber("Elevator Error Pos", pidController.getError());
+        SmartDashboard.putBoolean("At Position EEE", atSetpoint());
     }
 
     private void configureRightGearbox() {
@@ -172,7 +177,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     public void runElevatorIntegratedPID() {
         leftElevatorPID.setReference(getElevatorState().getPosition(), ControlType.kPosition, ClosedLoopSlot.kSlot0);
-        rightElevatorPID.setReference(getElevatorState().getPosition(), ControlType.kPosition, ClosedLoopSlot.kSlot0);
     }
 
     public void runElevatorUp(double speed) {

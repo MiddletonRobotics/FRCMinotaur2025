@@ -5,84 +5,39 @@
     "data": {
       "commands": [
         {
-          "type": "parallel",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "PrepareL4"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "CoralPlusAlgaePath1"
-                }
-              }
-            ]
+            "pathName": "CoralPlusAlgaePath1"
           }
         },
         {
-          "type": "named",
+          "type": "wait",
           "data": {
-            "name": "ScoreCoral"
+            "waitTime": 0.5
           }
         },
         {
-          "type": "parallel",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "CoralPlusAlgaePath2"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "PrepareDealgification"
-                }
-              }
-            ]
+            "pathName": "CoralPlusAlgaePath2"
           }
         },
         {
-          "type": "named",
+          "type": "wait",
           "data": {
-            "name": "IntakeAlgae"
+            "waitTime": 0.5
           }
         },
         {
-          "type": "parallel",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "CoralPlusAlgaePath3"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "AlgaePrepare"
-                }
-              }
-            ]
+            "pathName": "CoralPlusAlgaePath3"
           }
         },
         {
-          "type": "named",
+          "type": "wait",
           "data": {
-            "name": "ScoreAlgae"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "StowElevator"
+            "waitTime": 0.5
           }
         }
       ]

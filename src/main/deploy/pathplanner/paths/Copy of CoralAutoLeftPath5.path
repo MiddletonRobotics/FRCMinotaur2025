@@ -36,41 +36,7 @@
   ],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [
-    {
-      "name": "PrepareL4",
-      "waypointRelativePos": 0.50390625,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "PrepareL4"
-        }
-      }
-    },
-    {
-      "name": "ScoreCoral",
-      "waypointRelativePos": 0.99,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "ScoreCoral"
-        }
-      }
-    },
-    {
-      "name": "StowElevator",
-      "waypointRelativePos": 1.0,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "StowElevator"
-        }
-      }
-    }
-  ],
+  "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 5.029,
     "maxAcceleration": 4.0,

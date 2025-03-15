@@ -1,4 +1,4 @@
-package frc.robot.autonomous;
+package frc.robot.commands;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -36,7 +36,7 @@ public class DriveToPose extends Command {
   @Override
   public void execute() {
     Translation2d translationValue = new Translation2d(driveController.calculate(drivetrain.getState().Pose.getX(), targetPose.getX()), driveController.calculate(drivetrain.getState().Pose.getY(), targetPose.getY()));
-    drivetrain.applyRequest(() -> driveChassisSpeeds.withSpeeds(new ChassisSpeeds(translationValue.getX(), translationValue.getY(), targetPose.getRotation().getDegrees())));
+    drivetrain.setControl(driveChassisSpeeds.withSpeeds(new ChassisSpeeds(translationValue.getX(), translationValue.getY(), targetPose.getRotation().getDegrees())));
   }
 
   // Called once the command ends or is interrupted.

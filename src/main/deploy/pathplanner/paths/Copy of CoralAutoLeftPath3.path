@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.351349479344864,
-        "y": 2.247006197404386
+        "x": 1.6083452181568876,
+        "y": 1.1434600524316265
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.9,
-        "y": 2.6
+        "x": 3.6,
+        "y": 2.8
       },
       "prevControl": {
-        "x": 3.686531652248681,
-        "y": 2.4698798074535633
+        "x": 2.6884573724072056,
+        "y": 2.1377243108624437
       },
       "nextControl": null,
       "isLocked": false,
@@ -30,47 +30,13 @@
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.5,
+      "waypointRelativePos": 0.647228271880065,
       "rotationDegrees": 59.99999999999999
     }
   ],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [
-    {
-      "name": "PrepareL4",
-      "waypointRelativePos": 0.50390625,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "PrepareL4"
-        }
-      }
-    },
-    {
-      "name": "ScoreCoral",
-      "waypointRelativePos": 0.99,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "ScoreCoral"
-        }
-      }
-    },
-    {
-      "name": "StowElevator",
-      "waypointRelativePos": 1.0,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "StowElevator"
-        }
-      }
-    }
-  ],
+  "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 5.029,
     "maxAcceleration": 4.0,

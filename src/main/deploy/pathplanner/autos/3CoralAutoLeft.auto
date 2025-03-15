@@ -5,134 +5,63 @@
     "data": {
       "commands": [
         {
-          "type": "parallel",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "CoralAutoLeftPath1"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "PrepareL4"
-                }
-              }
-            ]
+            "pathName": "CoralAutoLeftPath1"
           }
         },
         {
-          "type": "named",
+          "type": "wait",
           "data": {
-            "name": "ScoreCoral"
+            "waitTime": 0.5
           }
         },
         {
-          "type": "parallel",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "StowElevator"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "CoralAutoLeftPath2"
-                }
-              }
-            ]
+            "pathName": "CoralAutoLeftPath2"
           }
         },
         {
-          "type": "named",
+          "type": "wait",
           "data": {
-            "name": "IndexCoral"
+            "waitTime": 0.25
           }
         },
         {
-          "type": "parallel",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "CoralAutoLeftPath3"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "PrepareL4"
-                }
-              }
-            ]
+            "pathName": "CoralAutoLeftPath3"
           }
         },
         {
-          "type": "named",
+          "type": "wait",
           "data": {
-            "name": "ScoreCoral"
+            "waitTime": 0.5
           }
         },
         {
-          "type": "parallel",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "StowElevator"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "CoralAutoLeftPath4"
-                }
-              }
-            ]
+            "pathName": "CoralAutoLeftPath4"
           }
         },
         {
-          "type": "named",
+          "type": "wait",
           "data": {
-            "name": "IndexCoral"
+            "waitTime": 0.25
           }
         },
         {
-          "type": "parallel",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "CoralAutoLeftPath5"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "PrepareL4"
-                }
-              }
-            ]
+            "pathName": "CoralAutoLeftPath5"
           }
         },
         {
-          "type": "named",
+          "type": "wait",
           "data": {
-            "name": "ScoreCoral"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "StowElevator"
+            "waitTime": 0.5
           }
         }
       ]

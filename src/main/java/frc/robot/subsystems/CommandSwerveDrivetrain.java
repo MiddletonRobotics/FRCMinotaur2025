@@ -72,11 +72,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private static String limelightUsed;
     private static LimelightHelper.PoseEstimate LLposeEstimate;
     //Get average tag areas (percentage of image), Choose the limelight with the highest average tag area
-    private static double limelightFrontAvgTagArea = 0;
-    private static double limelightBackAvgTagArea = 0;
+    private static double limelightLeftAvgTagArea = 0;
+    private static double limelightRightAvgTagArea = 0;
 
-    private Limelight leftElevator = new Limelight("leftElevator");
-    private Limelight rightElevator = new Limelight("rightElevator");
+    private Limelight leftElevator = new Limelight("limelight-left");
+    private Limelight rightElevator = new Limelight("limelight-right");
     private LimelightSubsystem limelightSubsystem = new LimelightSubsystem();
 
     private Field2d field;
@@ -453,9 +453,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                     }
             }
         } else if (useMegaTag2 == true) {
-            LimelightHelper.SetRobotOrientation("limelight-front", getState().Pose.getRotation().getDegrees(),
+            LimelightHelper.SetRobotOrientation("limelight-left", getState().Pose.getRotation().getDegrees(),
             0, 0, 0, 0, 0);
-            LimelightHelper.SetRobotOrientation("limelight-back", getState().Pose.getRotation().getDegrees(),
+            LimelightHelper.SetRobotOrientation("limelight-right", getState().Pose.getRotation().getDegrees(),
             0, 0, 0, 0, 0);
             poseEstimate = LimelightHelper.getBotPoseEstimate_wpiBlue_MegaTag2(limelightUsed);
 
@@ -483,16 +483,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
 
     private static void choose_LL(){
-        limelightFrontAvgTagArea = NetworkTableInstance.getDefault().getTable("limelight-front").getEntry("botpose").getDoubleArray(new double[11])[10];
-        limelightBackAvgTagArea = NetworkTableInstance.getDefault().getTable("limelight-back").getEntry("botpose").getDoubleArray(new double[11])[10];
-        SmartDashboard.putNumber("Front Limelight Tag Area", limelightFrontAvgTagArea);
-        SmartDashboard.putNumber("Back Limelight Tag Area", limelightBackAvgTagArea);    
+        limelightLeftAvgTagArea = NetworkTableInstance.getDefault().getTable("limelight-left").getEntry("botpose").getDoubleArray(new double[11])[10];
+        limelightRightAvgTagArea = NetworkTableInstance.getDefault().getTable("limelight-right").getEntry("botpose").getDoubleArray(new double[11])[10];
+        SmartDashboard.putNumber("Left Limelight Tag Area", limelightLeftAvgTagArea);
+        SmartDashboard.putNumber("Righy Limelight Tag Area", limelightRightAvgTagArea);    
 
-        if(limelightFrontAvgTagArea > 
-            limelightBackAvgTagArea){
-                limelightUsed = "limelight-front";
+        if(limelightLeftAvgTagArea > 
+        limelightRightAvgTagArea){
+                limelightUsed = "limelight-left";
             }else{
-                limelightUsed = "limelight-back";
+                limelightUsed = "limelight-right";
         }
         
         SmartDashboard.putString("Limelight Used", limelightUsed);

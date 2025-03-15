@@ -33,16 +33,26 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "ScoreCoral",
+      "name": "StowElevator",
       "waypointRelativePos": 0,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "StowElevator"
+        }
+      }
     },
     {
       "name": "IndexCoral",
       "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "IndexCoral"
+        }
+      }
     }
   ],
   "globalConstraints": {

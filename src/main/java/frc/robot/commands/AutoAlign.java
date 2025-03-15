@@ -1,4 +1,4 @@
-package frc.robot.autonomous;
+package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.Degrees;
 
@@ -51,9 +51,9 @@ public class AutoAlign extends Command {
 
     double xValue = LimelightHelper.getTV(choosenLimelight) ? -yController.calculate(LimelightHelper.getTY(choosenLimelight), targetY) : 0;
     double yValue = LimelightHelper.getTV(choosenLimelight) ? xController.calculate(LimelightHelper.getTX(choosenLimelight), 0.0) : 0;
-    double rotationValue = rotationController.calculate(drivetrain.getPigeon2().getYaw().getValue().in(Degrees), targetAngle.getDegrees());
+    double rotationValue = rotationController.calculate(drivetrain.getState().Pose.getRotation().getRadians(), targetAngle.getRadians());
 
-    drivetrain.applyRequest(() -> driveChassisSpeeds.withSpeeds(new ChassisSpeeds(xValue, yValue, rotationValue)));
+    drivetrain.setControl(driveChassisSpeeds.withSpeeds(new ChassisSpeeds(xValue, yValue, rotationValue)));
   }
 
   // Called once the command ends or is interrupted.

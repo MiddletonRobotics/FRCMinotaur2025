@@ -223,7 +223,7 @@ public class Constants {
 
         public static final double ElevatorGearRatio = (60.0 / 10.0);
         public static final double SprocketPitchDiameter = Units.inchesToMeters(((16.0 * 0.25) / Math.PI));
-        public static final double ElevatorPositionConversionFactor = SprocketPitchDiameter * Math.PI * ElevatorGearRatio;
+        public static final double ElevatorPositionConversionFactor = ((SprocketPitchDiameter * Math.PI) / ElevatorGearRatio) * 3;
         public static final double ElevatorVelocityConversionFactor = ElevatorPositionConversionFactor / 60;
 
         /* Elevator PID Characterization Values */
@@ -236,8 +236,8 @@ public class Constants {
         public static final double ElevatorSparkKd = 0.00;
 
         /* Elevator Motor Characterization Values */
-        public static final double ElevatorFeedforwardkS = 0.0;
-        public static final double ElevatorFeedforwardkG = 2.2977;
+        public static final double ElevatorFeedforwardkS = 0.8;
+        public static final double ElevatorFeedforwardkG = 1.3;
         public static final double ElevatorFeedforwardkV = 7.23;
         public static final double ElevatorFeedforwardkA = 0.05;
 
@@ -245,13 +245,13 @@ public class Constants {
         public static final LinearAcceleration LimitedMacAcceleration = MetersPerSecondPerSecond.of(1.25);
 
         public static class ElevatorHeights {
-            public static final double l1Height = 2.0465;
-            public static final double l2Height = 4.9203;
-            public static final double l3Height = 9.5794;
-            public static final double l4Height = 11.00;
-            public static final double barge = Units.inchesToMeters(0);
-            public static final double l2Dealgeafier = Units.inchesToMeters(0);
-            public static final double l3Dealgeafier = Units.inchesToMeters(0);
+            public static final double l1Height = 0.201990;
+            public static final double l2Height = 0.448130;
+            public static final double l3Height = 0.833966;
+            public static final double l4Height = 1.460489;
+            public static final double barge = 1.460489;
+            public static final double l2Dealgeafier = 0.371324;
+            public static final double l3Dealgeafier = 0.764419;
             public static final double stow = Units.inchesToMeters(0);
         }
 
