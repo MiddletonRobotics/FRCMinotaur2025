@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.792771305267467,
-        "y": 5.500572291211791
+        "x": 6.650007309726596,
+        "y": 5.0
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 5.35,
-        "y": 5.5
+        "x": 6.5,
+        "y": 5.0
       },
       "prevControl": {
-        "x": 5.5488323894650655,
-        "y": 6.071212728575327
+        "x": 7.624143550369029,
+        "y": 5.0
       },
       "nextControl": null,
       "isLocked": false,
@@ -31,7 +31,19 @@
   "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "StowElevator",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "StowElevator"
+        }
+      }
+    }
+  ],
   "globalConstraints": {
     "maxVelocity": 5.029,
     "maxAcceleration": 4.0,
@@ -42,7 +54,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -119.99999999999999
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": null,

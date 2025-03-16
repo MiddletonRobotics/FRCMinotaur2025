@@ -104,7 +104,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private void configureLeftGearbox() {
         leftElevatorConfiguration
-            .inverted(false) // change back to true for PID
+            .inverted(true) // change back to true for PID
             .idleMode(IdleMode.kBrake)
             .smartCurrentLimit(60)
             .voltageCompensation(Constants.ElevatorConstants.ElevatorVoltageCompensation);
@@ -119,6 +119,14 @@ public class ElevatorSubsystem extends SubsystemBase {
         leftElevatorEncoder.setPosition(0.0);
     }
 
+    private void configureRightGearbox() {
+        rightElevatorConfiguration
+            .apply(leftElevatorConfiguration)
+            .follow(16, true);
+
+        rightElevatorGearbox.configure(rightElevatorConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    }
+
     @Override
     public void periodic() {
         pidVal = pidController.calculate(getPositionMeters(), getElevatorState().getPosition());
@@ -130,14 +138,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Elevator T Position", getElevatorState().getPosition());
         SmartDashboard.putNumber("Elevator Error Pos", pidController.getError());
         SmartDashboard.putBoolean("At Position EEE", atSetpoint());
-    }
-
-    private void configureRightGearbox() {
-        rightElevatorConfiguration
-            .apply(leftElevatorConfiguration)
-            .follow(16, true);
-
-        rightElevatorGearbox.configure(rightElevatorConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        SmartDashboard.putString("Elevator State", elevatorState.toString());
     }
 
     public ElevatorStates getState() {
@@ -176,7 +177,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void runElevatorIntegratedPID() {
-        leftElevatorPID.setReference(getElevatorState().getPosition(), ControlType.kPosition, ClosedLoopSlot.kSlot0);
+        leftElevatorPID.setReference(getElevatorState().getPosition(), ControlType.kPosition, ClosedLoopSlot.kSlot0, feedforward.calculate(0.15));
     }
 
     public void runElevatorUp(double speed) {

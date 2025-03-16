@@ -231,7 +231,7 @@ public class Constants {
         public static final double ElevatorProfileKi = 0.00;
         public static final double ElevatorProfileKd = 0.00;
 
-        public static final double ElevatorSparkKp = 0.1;
+        public static final double ElevatorSparkKp = 0.2;
         public static final double ElevatorSparkKi = 0.01;
         public static final double ElevatorSparkKd = 0.00;
 
@@ -244,26 +244,15 @@ public class Constants {
         public static final LinearVelocity LimitedMaxVelocity = MetersPerSecond.of(1);
         public static final LinearAcceleration LimitedMacAcceleration = MetersPerSecondPerSecond.of(1.25);
 
-        public static class ElevatorHeights {
-            public static final double l1Height = 0.201990;
-            public static final double l2Height = 0.448130;
-            public static final double l3Height = 0.833966;
-            public static final double l4Height = 1.460489;
-            public static final double barge = 1.460489;
-            public static final double l2Dealgeafier = 0.371324;
-            public static final double l3Dealgeafier = 0.764419;
-            public static final double stow = Units.inchesToMeters(0);
-        }
-
         public enum ElevatorStates {
             STOP(0),
-            L1(2.0465),
-            L2(4.9203),
-            L3(9.5794),
-            L4(11.00),
-            BARGE(11.00),
-            DEALGEAFIER_L2(6),
-            DEALGEAFIER_L3(8),
+            L1(0.201990),
+            L2(0.448130),
+            L3(0.833966),
+            L4(1.460489),
+            BARGE(1.460489),
+            DEALGEAFIER_L2(0.371324),
+            DEALGEAFIER_L3(0.764419),
             STOW(0);
 
             private final double position;

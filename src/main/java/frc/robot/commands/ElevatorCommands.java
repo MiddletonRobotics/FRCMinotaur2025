@@ -15,9 +15,8 @@ public class ElevatorCommands {
         );
     }
 
-    public static Command runElevatorwithIntegratedController(ElevatorSubsystem elevatorSubsystem, ElevatorStates elevatorStates) {
+    public static Command runElevatorwithIntegratedController(ElevatorSubsystem elevatorSubsystem) {
         return new SequentialCommandGroup(
-            new InstantCommand(() -> elevatorSubsystem.setElevatorState(elevatorStates)),
             new RunCommand(() -> elevatorSubsystem.runElevatorIntegratedPID()).until(() -> elevatorSubsystem.atSetpoint())
         );
     }
@@ -25,21 +24,28 @@ public class ElevatorCommands {
     public static Command autoPrepareL4(ElevatorSubsystem elevatorSubsystem) {
         return new SequentialCommandGroup(
             new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.L4)),
-            new RunCommand(() -> elevatorSubsystem.runElevatorToPosition()).until(() -> elevatorSubsystem.atSetpoint())
+            new RunCommand(() -> elevatorSubsystem.runElevatorIntegratedPID()).until(() -> elevatorSubsystem.atSetpoint())
         );
     }
 
     public static Command autoPrepareL3(ElevatorSubsystem elevatorSubsystem) {
         return new SequentialCommandGroup(
             new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.L3)),
-            new RunCommand(() -> elevatorSubsystem.runElevatorToPosition()).until(() -> elevatorSubsystem.atSetpoint())
+            new RunCommand(() -> elevatorSubsystem.runElevatorIntegratedPID()).until(() -> elevatorSubsystem.atSetpoint())
+        );
+    }
+
+    public static Command autoPrepareL1(ElevatorSubsystem elevatorSubsystem) {
+        return new SequentialCommandGroup(
+            new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.L1)),
+            new RunCommand(() -> elevatorSubsystem.runElevatorIntegratedPID()).until(() -> elevatorSubsystem.atSetpoint())
         );
     }
 
     public static Command autoStowElevator(ElevatorSubsystem elevatorSubsystem) {
         return new SequentialCommandGroup(
             new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.STOW)),
-            new RunCommand(() -> elevatorSubsystem.runElevatorToPosition()).until(() -> elevatorSubsystem.atSetpoint())
+            new RunCommand(() -> elevatorSubsystem.runElevatorIntegratedPID()).until(() -> elevatorSubsystem.atSetpoint())
         );
     }
 }

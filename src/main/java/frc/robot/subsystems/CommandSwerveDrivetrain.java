@@ -361,7 +361,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
 
         updateOdometry();
-        get_manual_LL_Estimate();
+        get_LL_Estimate(true);
+        if(LLposeEstimate != null) {
+            addVisionMeasurement(LLposeEstimate.pose, 0.02);
+        }
         SmartDashboard.putData("Field",field);
 
         Pose2d currentPose = getState().Pose;
@@ -478,6 +481,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
         else{
             SmartDashboard.putString("LL Pose", poseEstimate.pose.toString());
+            LLposeEstimate = poseEstimate;
             return poseEstimate;
         }
     }

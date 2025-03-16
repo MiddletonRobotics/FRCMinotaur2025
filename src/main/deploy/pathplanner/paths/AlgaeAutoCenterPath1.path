@@ -42,21 +42,44 @@
         "nominalVoltage": 12.0,
         "unlimited": false
       }
+    },
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 0.5,
+      "maxWaypointRelativePos": 1.0,
+      "constraints": {
+        "maxVelocity": 0.5,
+        "maxAcceleration": 0.5,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
     }
   ],
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "AlgaeRetract",
-      "waypointRelativePos": 0,
+      "name": "PrepareDealgification",
+      "waypointRelativePos": 0.5997285311671086,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "PrepareDealgification"
+        }
+      }
     },
     {
-      "name": "",
-      "waypointRelativePos": 0,
+      "name": "ScoreCoral",
+      "waypointRelativePos": 0.9516744031830241,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "ScoreCoral"
+        }
+      }
     }
   ],
   "globalConstraints": {

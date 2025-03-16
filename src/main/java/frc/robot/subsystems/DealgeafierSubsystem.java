@@ -61,11 +61,11 @@ public class DealgeafierSubsystem extends SubsystemBase {
     private DigitalInput algeaLimitSwitch;
 
     public enum PivotingState {
-        START(Degrees.of(-19.5)),
-        STORED(Degrees.of(0.0)),
-        BARGE(Degrees.of(25.0)),
-        REEF(Degrees.of(100.0)),
-        GROUND(Degrees.of(150.0));
+        START(Degrees.of(78.5)),
+        STORED(Degrees.of(90.0)),
+        BARGE(Degrees.of(115.0)),
+        REEF(Degrees.of(190.0)),
+        GROUND(Degrees.of(240.0));
 
         private final Angle position;
 
@@ -96,7 +96,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
         rollerDisconnected = new Alert("Dealgeafier Roller CAN Issue", AlertType.kError);
         deviceBrownedOut = new Alert("Dealgeafier Hardware Browned Out", AlertType.kError);
 
-        algeaLimitSwitch = new DigitalInput(0); // Initialize limit switch on DIO port 0
+        algeaLimitSwitch = new DigitalInput(3); // Initialize limit switch on DIO port 0
     }
 
     public void configurePivotingMotor() {

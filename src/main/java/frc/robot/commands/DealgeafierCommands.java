@@ -28,10 +28,35 @@ public class DealgeafierCommands {
         ).withName("Auto Algea Shooting");
     }
 
+    public static Command shootAlgeaSensorless(DealgeafierSubsystem dealgeaElevatorSubsystem) {
+        return new SequentialCommandGroup(
+            new PrintCommand("Running the Auto Algae Shooting"),
+            new RunCommand(() -> dealgeaElevatorSubsystem.startRolling(1), dealgeaElevatorSubsystem).raceWith(new WaitCommand(0.5)),
+            new WaitCommand(0.1),
+            new InstantCommand(() -> dealgeaElevatorSubsystem.stopRolling())
+        ).withName("Auto Algea Shooting");
+    }
+
     public static Command runPivotToReef(DealgeafierSubsystem dealgeaElevatorSubsystem) {
         return new SequentialCommandGroup(
             new PrintCommand("Running the Algae Pivot to: " + PivotingState.REEF),
             new InstantCommand(() -> dealgeaElevatorSubsystem.setPivotingState(PivotingState.REEF)),
+            new RunCommand(() -> dealgeaElevatorSubsystem.runToPosition(), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.atGoal())
+        );
+    }
+
+    public static Command runPivotToBarge(DealgeafierSubsystem dealgeaElevatorSubsystem) {
+        return new SequentialCommandGroup(
+            new PrintCommand("Running the Algae Pivot to: " + PivotingState.BARGE),
+            new InstantCommand(() -> dealgeaElevatorSubsystem.setPivotingState(PivotingState.BARGE)),
+            new RunCommand(() -> dealgeaElevatorSubsystem.runToPosition(), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.atGoal())
+        );
+    }
+
+    public static Command runPivotToStart(DealgeafierSubsystem dealgeaElevatorSubsystem) {
+        return new SequentialCommandGroup(
+            new PrintCommand("Running the Algae Pivot to: " + PivotingState.START),
+            new InstantCommand(() -> dealgeaElevatorSubsystem.setPivotingState(PivotingState.START)),
             new RunCommand(() -> dealgeaElevatorSubsystem.runToPosition(), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.atGoal())
         );
     }
