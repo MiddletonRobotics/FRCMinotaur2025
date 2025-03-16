@@ -56,8 +56,6 @@ public class RobotContainer {
             .withDeadband(MaxSpeed * 0.15).withRotationalDeadband(MaxAngularRate * 0.15) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
-    private ElevatorStates elevatorStates = ElevatorStates.STOP;
-
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
@@ -162,9 +160,9 @@ public class RobotContainer {
         // Note that X is defined as forward according to WPILib convention, and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(limiter.calculate(-driverController.getLeftY() * MaxSpeed)) // Drive forward with negative Y (forward)
-                    .withVelocityY(limiter.calculate(-driverController.getLeftX() * MaxSpeed)) // Drive left with negative X (left)
-                    .withRotationalRate(limiter.calculate(-driverController.getRightX() * MaxAngularRate)) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(-driverController.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(-driverController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(-driverController.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
 
@@ -177,7 +175,7 @@ public class RobotContainer {
         driverController.y().whileTrue(new InstantCommand(() -> coralSubsystem.spinCoral(0.4)));
         driverController.y().whileFalse(new InstantCommand(() -> coralSubsystem.stopCoral()));
 
-        driverController.leftTrigger(0.5).whileTrue(new RunCommand(() -> elevatorSubsystem.runElevatorUp(-0.75)));
+        driverController.leftTrigger(0.5).whileTrue(new RunCommand(() -> elevatorSubsystem.runElevatorUp(-0.77)));
         driverController.leftTrigger(0.5).onFalse(new InstantCommand(() -> elevatorSubsystem.runElevatorUp(0.0)));
 
         driverController.rightTrigger(0.5).whileTrue(new RunCommand(() -> elevatorSubsystem.runElevatorDown(0.3)));
@@ -221,14 +219,14 @@ public class RobotContainer {
 
         manualController.povDown().onTrue(ElevatorCommands.runElevatorwithIntegratedController(elevatorSubsystem));
 
-        operatorController.leftBumper().onTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.L1)));
-        operatorController.leftTrigger(0.5).onTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.L2)));
-        operatorController.rightBumper().onTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.L3)));
-        operatorController.rightTrigger(0.5).onTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.L4)));
-        operatorController.povLeft().onTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.BARGE)));
-        operatorController.povRight().onTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.DEALGEAFIER_L2)));
-        operatorController.povUp().onTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.DEALGEAFIER_L3)));
-        operatorController.leftStick().onTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.STOW)));
+        operatorController.leftBumper().whileTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.L1)));
+        operatorController.leftTrigger(0.5).whileTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.L2)));
+        operatorController.rightBumper().whileTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.L3)));
+        operatorController.rightTrigger(0.5).whileTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.L4)));
+        operatorController.povLeft().whileTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.BARGE)));
+        operatorController.povRight().whileTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.DEALGEAFIER_L2)));
+        operatorController.povUp().whileTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.DEALGEAFIER_L3)));
+        operatorController.leftStick().whileTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.STOW)));
     }
 
     public Command getAutonomousCommand() {

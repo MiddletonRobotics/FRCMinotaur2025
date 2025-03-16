@@ -69,7 +69,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private Function<Double, Double> wrapping = (input) -> input;
     private BiFunction<Double, Double, Boolean> deadband = (input, setpoint) -> false;
-    private ElevatorStates elevatorState;
+    private ElevatorStates elevatorState = ElevatorStates.STOW;
     private double pidVal, FFVal, outputVoltage;
 
     public ElevatorSubsystem() {
@@ -99,14 +99,13 @@ public class ElevatorSubsystem extends SubsystemBase {
         pidController.setTolerance(0.02);
 
         trapezoidController = new TrapezoidController(0.0, 0.05, .1, 3.5, 3, 7.5, 0.4); 
-        setElevatorState(ElevatorStates.STOW);
     }
 
     private void configureLeftGearbox() {
         leftElevatorConfiguration
-            .inverted(true) // change back to true for PID
+            .inverted(false) // change back to true for PID
             .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(60)
+            .smartCurrentLimit(62)
             .voltageCompensation(Constants.ElevatorConstants.ElevatorVoltageCompensation);
         leftElevatorConfiguration.encoder
             .positionConversionFactor(Constants.ElevatorConstants.ElevatorPositionConversionFactor)
@@ -138,7 +137,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Elevator T Position", getElevatorState().getPosition());
         SmartDashboard.putNumber("Elevator Error Pos", pidController.getError());
         SmartDashboard.putBoolean("At Position EEE", atSetpoint());
-        SmartDashboard.putString("Elevator State", elevatorState.toString());
+        SmartDashboard.putString("Elevator State", this.elevatorState.toString());
     }
 
     public ElevatorStates getState() {

@@ -237,7 +237,7 @@ public class Constants {
 
         /* Elevator Motor Characterization Values */
         public static final double ElevatorFeedforwardkS = 0.8;
-        public static final double ElevatorFeedforwardkG = 1.3;
+        public static final double ElevatorFeedforwardkG = 1.1;
         public static final double ElevatorFeedforwardkV = 7.23;
         public static final double ElevatorFeedforwardkA = 0.05;
 
