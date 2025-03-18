@@ -61,7 +61,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
     private DigitalInput algeaLimitSwitch;
 
     public enum PivotingState {
-        START(Degrees.of(78.5)),
+        START(Degrees.of(71.0)),
         STORED(Degrees.of(90.0)),
         BARGE(Degrees.of(115.0)),
         REEF(Degrees.of(190.0)),
@@ -78,7 +78,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
         }
     }
 
-    public PivotingState pivotingState = PivotingState.START;
+    public PivotingState pivotingState = PivotingState.STORED;
 
     public DealgeafierSubsystem() {
         pivotingMotor = new SparkMax(Constants.DealgeafierConstants.pivotingMotorID, MotorType.kBrushless);
@@ -108,10 +108,10 @@ public class DealgeafierSubsystem extends SubsystemBase {
             .positionConversionFactor(Constants.DealgeafierConstants.PositionConversionFactor)
             .velocityConversionFactor(Constants.DealgeafierConstants.VelocityConversionFactor);
         pivotingConfiguration.closedLoop
-            .pid(0.25, 0.0, 0.0);
+            .pid(0.5, 0.0, 0.0);
 
         pivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        pivotingEncoder.setPosition(pivotingState.getPosition().in(Degrees));
+        pivotingEncoder.setPosition(PivotingState.START.getPosition().in(Radians));
     }
 
     public void configureRollerMotor() {
@@ -132,7 +132,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
     public void periodic() {
         SmartDashboard.putNumber("Dealgeafier Pivot Position", pivotingEncoder.getPosition());
         SmartDashboard.putNumber("Dealgeafier Pivot Temp.", pivotingMotor.getMotorTemperature());
-        SmartDashboard.putNumber("Dealgeafier Pivot Target", pivotingState.getPosition().in(Degrees));
+        SmartDashboard.putNumber("Dealgeafier Pivot Target", pivotingState.getPosition().in(Radians));
         SmartDashboard.putNumber("Dealgeafier Roller Vel.", rollingEncoder.getVelocity());
         SmartDashboard.putNumber("Dealgeafier Roller AO", pivotingMotor.get());
         SmartDashboard.putNumber("Dealgeafier Motor Temp.", rollerMotor.getMotorTemperature());

@@ -27,11 +27,11 @@ public class LimelightSubsystem extends SubsystemBase {
     public static String limelightUsed;
 
     public LimelightSubsystem() {
-        leftElevator = new Limelight("left-elevator");
-        rightElevator = new Limelight("right-elevator");
+        leftElevator = new Limelight("limelight-left");
+        rightElevator = new Limelight("limelight-right");
 
         leftElevator.setLimelightPosition(
-            "left-elevator", 
+            "limelight-left", 
             Constants.LimelightConstants.leftLimelightForward.in(Meters), 
             Constants.LimelightConstants.leftLimelightLateral.in(Meters), 
             Constants.LimelightConstants.leftLimelightHeight.in(Meters), 
@@ -41,7 +41,7 @@ public class LimelightSubsystem extends SubsystemBase {
         );
 
         rightElevator.setLimelightPosition(
-            "left-elevator", 
+            "limelight-right", 
             Constants.LimelightConstants.rightLimelightForward.in(Meters), 
             Constants.LimelightConstants.rightLimelightLateral.in(Meters), 
             Constants.LimelightConstants.rightLimelightHeight.in(Meters), 

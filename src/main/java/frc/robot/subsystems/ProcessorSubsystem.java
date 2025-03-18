@@ -27,6 +27,7 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -64,20 +65,10 @@ public class ProcessorSubsystem extends SubsystemBase {
     private RelativeEncoder pivotingEncoder;
     private RelativeEncoder rollingEncoder;
     private SparkClosedLoopController pivotPIDController;
-    private ProfiledPIDController pidController;
 
     private Alert pivotDisconnected;
     private Alert rollerDisconnected;
     private Alert deviceBrownedOut;
-
-    private TrapezoidProfile profile;
-    private TrapezoidProfile.Constraints motionConstraints;
-    private final TrapezoidProfile.State currentAngle = new TrapezoidProfile.State();
-    private final TrapezoidProfile.State goalAngle = new TrapezoidProfile.State();
-
-    private final Timer timer = new Timer();
-    private double currentAngleTime = 0;
-    public boolean running = false;
 
     private ArmFeedforward feedforward = new ArmFeedforward(
         Constants.ProcessorConstants.kS.in(Volts),
@@ -86,7 +77,7 @@ public class ProcessorSubsystem extends SubsystemBase {
     );   
 
     public enum GroundPivotingState {
-        STORED(Degrees.of(95.0)),
+        STORED(Degrees.of(91.6)),
         INTAKEN(Degrees.of(106.0)),
         GROUND(Degrees.of(151.0));
 
@@ -109,7 +100,6 @@ public class ProcessorSubsystem extends SubsystemBase {
         pivotPIDController = pivotingMotor.getClosedLoopController();
         pivotingConfiguration = new SparkMaxConfig();
         configurePivotingMotor();
-        pivotingEncoder.setPosition(groundPivotingState.getPosition().in(Radians));
 
         rollerMotor = new SparkMax(Constants.ProcessorConstants.rollerMotorID, MotorType.kBrushless);
         rollingEncoder = rollerMotor.getEncoder();
@@ -119,27 +109,6 @@ public class ProcessorSubsystem extends SubsystemBase {
         pivotDisconnected = new Alert("Processor Pivot CAN Issue", AlertType.kError);
         rollerDisconnected = new Alert("Processor Roller CAN Issue", AlertType.kError);
         deviceBrownedOut = new Alert("Dealgeafier Hardware Browned Out", AlertType.kError);
-
-        motionConstraints = new TrapezoidProfile.Constraints(
-            Constants.ProcessorConstants.LimitedVelocity.in(RadiansPerSecond),
-            Constants.ProcessorConstants.LimitedAcceleration.in(RadiansPerSecondPerSecond)
-        );
-
-        profile = new TrapezoidProfile(motionConstraints);
-
-        pidController = new ProfiledPIDController(
-            0.3,
-            0.0,
-            0.0,
-            motionConstraints,
-            0.02
-        );
-
-        pidController.enableContinuousInput(0, 2 * Math.PI);
-        pidController.setTolerance(
-            Constants.ProcessorConstants.MaximumAllowedPositionError.in(Radians), 
-            Constants.ProcessorConstants.MaximumAllowedVelocityError.in(RadiansPerSecond)
-        );
     }
 
     public void configurePivotingMotor() {
@@ -151,9 +120,10 @@ public class ProcessorSubsystem extends SubsystemBase {
             .positionConversionFactor(Constants.ProcessorConstants.PositionConversionFactor)
             .velocityConversionFactor(Constants.ProcessorConstants.VelocityConversionFactor);
         pivotingConfiguration.closedLoop
-            .pid(0.28, 0.0, 0.03, ClosedLoopSlot.kSlot0);
+            .pid(0.5, 0.0, 0.04, ClosedLoopSlot.kSlot0);
 
         pivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        pivotingEncoder.setPosition(GroundPivotingState.STORED.getPosition().in(Radians));
     }
 
     public void configureRollerMotor() {
@@ -173,10 +143,7 @@ public class ProcessorSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        updateInputs();
-        //updateInformation();
-
-        SmartDashboard.putNumber("Processor Pivot Position", this.currentAngle.position);
+        SmartDashboard.putNumber("Processor Pivot Position", pivotingEncoder.getPosition());
         SmartDashboard.putNumber("Processor Pivot Motor Temp.", pivotingMotor.getMotorTemperature());
         SmartDashboard.putNumber("Processor Pivot Target", groundPivotingState.getPosition().in(Radians));
         SmartDashboard.putNumber("Processor Roller Velocity", pivotingEncoder.getVelocity());
@@ -186,49 +153,9 @@ public class ProcessorSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Processor Pivot Error", calculateError());
         SmartDashboard.putBoolean("Processor At Goal", atGoal());
 
-        if(running) {
-            TrapezoidProfile.State desiredState = profile.calculate(timer.get(), currentAngle, goalAngle);
-            double ff = feedforward.calculate(desiredState.position, desiredState.velocity);
-            double feedback = pidController.calculate(currentAngle.position, desiredState);
-            pivotingMotor.setVoltage(ff + feedback);
-        }
-
         pivotDisconnected.set(pivotingMotor.getFaults().can);
         rollerDisconnected.set(rollerMotor.getFaults().can);
         deviceBrownedOut.set(isBrownedOut());
-    }
-
-    public void updateInputs() {
-        double newAngle = pivotingEncoder.getPosition();
-        double currentTime = Timer.getFPGATimestamp();
-
-        if (currentAngleTime != 0) {
-            currentAngle.velocity = (newAngle - currentAngle.position) / (currentTime - currentAngleTime);
-        }
-
-        currentAngle.position = newAngle;
-        currentAngleTime = currentTime;
-    }
-
-    public void updateInformation() {
-        ShuffleboardTab processorTab = Shuffleboard.getTab("ProcessorSubsystem");
-        ShuffleboardLayout processorLayout = processorTab.getLayout("Status", BuiltInLayouts.kList).withPosition(0, 0).withSize(2, 5);
-
-        processorLayout.addDouble("Current Position", () -> this.currentAngle.position).withWidget(BuiltInWidgets.kGraph);
-        processorLayout.addDouble("Current Velocity", () -> this.currentAngle.velocity);
-        processorLayout.addDouble("Goal Position", () -> this.goalAngle.position).withWidget(BuiltInWidgets.kGraph);
-        processorLayout.addDouble("Goal Velocity", () -> this.goalAngle.velocity);
-
-        processorLayout.addDouble("Pivot Tempurature", () -> pivotingMotor.getMotorTemperature());
-        processorLayout.addDouble("Roller Tempurature", () -> rollerMotor.getMotorTemperature());
-        processorLayout.addDouble("Roller Stall", () -> rollerMotor.getOutputCurrent());
-
-        ShuffleboardLayout controlLayout = processorTab.getLayout("Control", BuiltInLayouts.kList).withPosition(2, 0).withSize(2, 5);
-        controlLayout.addDouble("Current Position", () -> this.currentAngle.position);
-        
-        GenericEntry processorAngle = controlLayout.add("Processor Angle", 0).getEntry();
-        GenericEntry processorFlywheelSpeed = controlLayout.add("Processor Flywheel Speed", 0).getEntry();
-        controlLayout.add(Commands.defer(() -> Commands.runOnce(() -> this.setGoal(processorAngle.getDouble(0))).until(() -> this.atGoal()), Set.of(this)).withName("Set Angle"));
     }
 
     public void setNeutralModes(IdleMode idleMode) {
@@ -238,26 +165,16 @@ public class ProcessorSubsystem extends SubsystemBase {
 
     public void setGoal(GroundPivotingState groundPivotingState) {
         setPivotingState(groundPivotingState);
-
-        goalAngle.position = this.groundPivotingState.getPosition().in(Radians);
-        timer.reset();
-        timer.start();
     }
-
-    public void setGoal(double position) {
-        goalAngle.position = position;
-        timer.reset();
-        timer.start();
-      }
 
     public void runToPosition() {
         Angle targetPosition = getGroundPivotingState().getPosition();
-        pivotPIDController.setReference(targetPosition.in(Radians), ControlType.kPosition, ClosedLoopSlot.kSlot0, feedforward.calculate(pivotingEncoder.getPosition(), 0.15));
+        pivotPIDController.setReference(targetPosition.in(Radians), ControlType.kPosition, ClosedLoopSlot.kSlot0, feedforward.calculate(pivotingEncoder.getPosition(), 0.15), ArbFFUnits.kVoltage);
     }
 
     public boolean atGoal() {
         Angle targetPosition = getGroundPivotingState().getPosition();
-        return (targetPosition.in(Radians) - pivotingEncoder.getPosition() < 0.1 && targetPosition.in(Radians) - pivotingEncoder.getPosition() > -0.1);
+        return (targetPosition.in(Radians) - pivotingEncoder.getPosition() < 0.05 && targetPosition.in(Radians) - pivotingEncoder.getPosition() > -0.05);
     }
 
     public double calculateError() {

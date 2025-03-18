@@ -28,15 +28,20 @@ public class ProcessorCommands {
     }
 
     //Manual Pivot
-    public static Command startPivotCommand(ProcessorSubsystem algeaGroundSubsystem, DoubleSupplier speed) {
-        return algeaGroundSubsystem.run(
-            () -> algeaGroundSubsystem.startGroundPivot(speed.getAsDouble())
+    public static Command startPivotToGround(ProcessorSubsystem algeaGroundSubsystem) {
+        return new SequentialCommandGroup(
+            new PrintCommand("Running the Intake Algea Command"),
+            new InstantCommand(() -> algeaGroundSubsystem.setGoal(GroundPivotingState.GROUND)),
+            new RunCommand(() -> algeaGroundSubsystem.runToPosition()).until(() -> algeaGroundSubsystem.atGoal())
         );
     }
 
-    public static Command startPivotCommand(ProcessorSubsystem algeaGroundSubsystem, double speed) {
-        return startRollCommand(algeaGroundSubsystem, () -> speed);
-
+    public static Command startPivotToStored(ProcessorSubsystem algeaGroundSubsystem) {
+        return new SequentialCommandGroup(
+            new PrintCommand("Running the Intake Algea Command"),
+            new InstantCommand(() -> algeaGroundSubsystem.setGoal(GroundPivotingState.STORED)),
+            new RunCommand(() -> algeaGroundSubsystem.runToPosition()).until(() -> algeaGroundSubsystem.atGoal())
+        );
     }
 
     public static Command intakeAlgea(ProcessorSubsystem algeaGroundSubsystem, GroundPivotingState groundPivotingState) {

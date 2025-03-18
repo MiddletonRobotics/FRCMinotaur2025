@@ -42,7 +42,7 @@ import frc.robot.utilities.SwerveModuleGearing;
 // All of the constants that are accessed by other files, to prevent repetition and allows easy changing
 
 public class Constants {
-    public static final boolean debug = true;
+    public static final boolean tuningMode = false;
 
     public static final class ModuleConstants {
         public static final class SparkMaxModuleConstants {
@@ -180,11 +180,11 @@ public class Constants {
         public static final Angle MaximumAllowedPositionError = Degrees.of(2.5);
         public static final AngularVelocity MaximumAllowedVelocityError = DegreesPerSecond.of(2.5);
 
-        public static final Voltage kG = Volts.of(0.0);
-        public static final Voltage kS = Volts.of(0.0);
+        public static final Voltage kG = Volts.of(0.25);
+        public static final Voltage kS = Volts.of(0.15);
         public static final double kV = 1.14;
 
-        public static final double PositionConversionFactor = 360 / (25 * (42 / 18));
+        public static final double PositionConversionFactor = (360 / (25 * (42 / 18)) * Math.PI) / 180;
         public static final double VelocityConversionFactor = PositionConversionFactor / 60;
     }
 
@@ -198,8 +198,8 @@ public class Constants {
         public static final Angle MaximumAllowedPositionError = Degrees.of(3.0);
         public static final AngularVelocity MaximumAllowedVelocityError = DegreesPerSecond.of(3.0);
 
-        public static final Voltage kG = Volts.of(0.2675);
-        public static final Voltage kS = Volts.of(0.13);
+        public static final Voltage kG = Volts.of(0.425); // 0.425
+        public static final Voltage kS = Volts.of(0.195); // 0.195
         public static final double kV = 0.48;
 
         public static final double PositionConversionFactor = (360 / (25 * (42 / 36)) * Math.PI) / 180;

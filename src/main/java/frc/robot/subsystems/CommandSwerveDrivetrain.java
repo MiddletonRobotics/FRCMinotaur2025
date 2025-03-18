@@ -75,10 +75,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private static double limelightLeftAvgTagArea = 0;
     private static double limelightRightAvgTagArea = 0;
 
-    private Limelight leftElevator = new Limelight("limelight-left");
-    private Limelight rightElevator = new Limelight("limelight-right");
-    private LimelightSubsystem limelightSubsystem = new LimelightSubsystem();
-
     private Field2d field;
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
@@ -164,7 +160,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         configureAutoBuilder();
 
         field = new Field2d();
-        field.setRobotPose(getState().Pose);
+        SmartDashboard.putData("Field",field);
     }
 
     /**
@@ -192,7 +188,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         configureAutoBuilder();
 
         field = new Field2d();
-        field.setRobotPose(getState().Pose);
+        SmartDashboard.putData("Field",field);
     }
 
     /**
@@ -228,6 +224,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         configureAutoBuilder();
 
         field = new Field2d();
+        SmartDashboard.putData("Field",field);
     }
 
     private void configureAutoBuilder() {
@@ -361,11 +358,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
 
         updateOdometry();
-        get_LL_Estimate(true);
-        if(LLposeEstimate != null) {
-            addVisionMeasurement(LLposeEstimate.pose, 0.02);
-        }
-        SmartDashboard.putData("Field",field);
 
         Pose2d currentPose = getState().Pose;
         field.setRobotPose(currentPose); // Fused pose I think
@@ -412,8 +404,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private void updateOdometry() {
         choose_LL();
 
-        LLposeEstimate = get_manual_LL_Estimate();
+        LLposeEstimate = get_LL_Estimate(true);
         if (LLposeEstimate != null) {
+            SmartDashboard.putNumber("LimelightPoseX", LLposeEstimate.pose.getY());
+            SmartDashboard.putNumber("LimelightPoseY", LLposeEstimate.pose.getX());
+            SmartDashboard.putNumber("LimelightPoseRot", LLposeEstimate.pose.getRotation().getDegrees());
             addVisionMeasurement(LLposeEstimate.pose, LLposeEstimate.timestampSeconds);
         }
     }
@@ -490,7 +485,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         limelightLeftAvgTagArea = NetworkTableInstance.getDefault().getTable("limelight-left").getEntry("botpose").getDoubleArray(new double[11])[10];
         limelightRightAvgTagArea = NetworkTableInstance.getDefault().getTable("limelight-right").getEntry("botpose").getDoubleArray(new double[11])[10];
         SmartDashboard.putNumber("Left Limelight Tag Area", limelightLeftAvgTagArea);
-        SmartDashboard.putNumber("Righy Limelight Tag Area", limelightRightAvgTagArea);    
+        SmartDashboard.putNumber("Right Limelight Tag Area", limelightRightAvgTagArea);    
 
         if(limelightLeftAvgTagArea > 
         limelightRightAvgTagArea){
