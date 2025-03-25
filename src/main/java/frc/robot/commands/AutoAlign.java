@@ -10,7 +10,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.LimelightSubsystem;
 import frc.robot.utilities.LimelightHelper;
 
 public class AutoAlign extends Command {
@@ -18,7 +17,6 @@ public class AutoAlign extends Command {
   CommandSwerveDrivetrain drivetrain;
   Rotation2d targetAngle;
   double targetY;
-  LimelightSubsystem limelightSubsystem;
 
   PIDController xController;
   PIDController yController;
@@ -26,14 +24,13 @@ public class AutoAlign extends Command {
 
   private SwerveRequest.ApplyRobotSpeeds driveChassisSpeeds = new SwerveRequest.ApplyRobotSpeeds();
 
-  public AutoAlign(CommandSwerveDrivetrain drivetrain, Rotation2d targetAngle, double targetY, LimelightSubsystem limelightSubsystem) {
+  public AutoAlign(CommandSwerveDrivetrain drivetrain, Rotation2d targetAngle, double targetY) {
     addRequirements(drivetrain  );
     setName("AutoAlign");
 
     this.drivetrain = drivetrain;
     this.targetAngle = targetAngle;
     this.targetY = targetY;
-    this.limelightSubsystem = limelightSubsystem;
 
     xController = new PIDController(0.1, 0.0, 0.0);
     yController = new PIDController(0.1, 0.0, 0.0);;
@@ -47,7 +44,8 @@ public class AutoAlign extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    String choosenLimelight = limelightSubsystem.chooseLimelight();
+    drivetrain.choose_LL();
+    String choosenLimelight = drivetrain.limelightUsed;
 
     double xValue = LimelightHelper.getTV(choosenLimelight) ? -yController.calculate(LimelightHelper.getTY(choosenLimelight), targetY) : 0;
     double yValue = LimelightHelper.getTV(choosenLimelight) ? xController.calculate(LimelightHelper.getTX(choosenLimelight), 0.0) : 0;

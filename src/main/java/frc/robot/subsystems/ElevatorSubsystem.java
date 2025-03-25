@@ -133,11 +133,11 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         outputVoltage = pidVal + FFVal;
 
-        SmartDashboard.putNumber("Elevator Position", getPositionMeters());
-        SmartDashboard.putNumber("Elevator T Position", getElevatorState().getPosition());
-        SmartDashboard.putNumber("Elevator Error Pos", pidController.getError());
-        SmartDashboard.putBoolean("At Position EEE", atSetpoint());
-        SmartDashboard.putString("Elevator State", this.elevatorState.toString());
+        //SmartDashboard.putNumber("Elevator Position", getPositionMeters());
+        //SmartDashboard.putNumber("Elevator T Position", getElevatorState().getPosition());
+        //SmartDashboard.putNumber("Elevator Error Pos", pidController.getError());
+        //SmartDashboard.putBoolean("At Position EEE", atSetpoint());
+        //SmartDashboard.putString("Elevator State", this.elevatorState.toString());
     }
 
     public ElevatorStates getState() {

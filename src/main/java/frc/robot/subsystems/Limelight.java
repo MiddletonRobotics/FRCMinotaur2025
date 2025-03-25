@@ -1,207 +1,133 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.wpilibj2.command.Commands.waitSeconds;
+
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.DoubleArrayPublisher;
 import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.utilities.RectanglePoseArea;
+import frc.robot.utilities.LimelightHelper.RawFiducial;
 import frc.robot.utilities.LimelightHelper;
-import frc.robot.utilities.constants.FieldConstants;
 
-public class Limelight {
-    private final NetworkTable table;
-  
-    private double targetDetected;
+public class Limelight extends SubsystemBase {
+  CommandSwerveDrivetrain drivetrain;
+  private String ll = "limelight";
+  private Boolean enable = true;
+  private Boolean usingMT2 = false;
+  private Boolean trust = false;
+  private double confidence = 0;
+  private double compareDistance;
+  private Pose2d limelightPoseEstimate;
 
-    private double targetXOffset;
-    private double targetYOffset;
+  private final NetworkTable table = NetworkTableInstance.getDefault().getTable("Pose");
+  private final DoubleArrayPublisher limelightPub = table.getDoubleArrayTopic("llPose").publish();
+  private final RectanglePoseArea fieldBoundary = new RectanglePoseArea(new Translation2d(0, 0), new Translation2d(16.541, 8.211));
 
-    private double[] currentBotPoseBlue = new double[6];
-    private double[] lastBotPoseBlue = new double[6];
-    private double[] currentRobotTargetSpacePose = new double[6];
-    private double[] lastRobotTargetSpacePose = new double[6];
-    private double[] currentTargetCameraSpacePose = new double[6];
-    private double[] lastTargetCameraSpacePose = new double[6];
-
-    private double currentAprilTagID;
-    private double lastAprilTagID;
-
-    private final NetworkTableEntry ledMode;
-    private final NetworkTableEntry cameraMode;
-    private final NetworkTableEntry pipeline;
-    private final NetworkTableEntry priorityID;
-
-    /**
-     * Creates a new Limelight.
-     * 
-     * @param tableKey The key/name assigned to the desired Limglight on NetworkTables.
-     */
-
-    public Limelight(String tableKey) {
-        table = NetworkTableInstance.getDefault().getTable(tableKey);
-
-        ledMode = table.getEntry("ledMode");
-        cameraMode = table.getEntry("cameraMode");
-        pipeline = table.getEntry("pipeline");
-        priorityID = table.getEntry("priorityid");
-    }
-
-    /**
-     * Updates all values received from NetworkTables for this Limelight.
-     */
-    public void update() {
-        targetDetected = table.getEntry("tv").getDouble(0);
-
-        targetXOffset = table.getEntry("tx").getDouble(0);
-        targetYOffset = table.getEntry("ty").getDouble(0);
-
-        currentBotPoseBlue = table.getEntry("botpose_wpiblue").getDoubleArray(new double[6]);
-
-        handleRawPose(currentBotPoseBlue, lastBotPoseBlue);
-        currentRobotTargetSpacePose = table.getEntry("botpose_targetspace").getDoubleArray(new double[6]);
-        handleRawPose(currentRobotTargetSpacePose, lastRobotTargetSpacePose);
-
-        currentTargetCameraSpacePose = table.getEntry("targetpose_cameraspace").getDoubleArray(new double[6]);
-        handleRawPose(currentTargetCameraSpacePose, lastTargetCameraSpacePose);
-
-        currentAprilTagID = table.getEntry("tid").getDouble(0);
-
-        if(currentAprilTagID != 0 && currentAprilTagID != -1) {
-            lastAprilTagID = currentAprilTagID;
-        }
+  /** Creates a new Limelight. */
+  public Limelight(CommandSwerveDrivetrain drivetrain, String ll) {
+    this.drivetrain = drivetrain;
+    this.ll = ll;
+    LimelightHelper.setPipelineIndex(ll, 0);
   }
 
-    /**
-     * @return Whether the Limelight can see any valid targets
-     */
+  @Override
+  public void periodic() {
+    if ((enable || DriverStation.isDisabled()) && !RobotBase.isSimulation()) {
+      // How to test:
+      // Odometry is good on a nice flat surface so when testing on flat assume odometry as ground truth
+      // Log over the last 5? seconds what has been the avg distance between odometry and the LL pose
 
-    public boolean getTargetDetected() {
-        return targetDetected == 1;
-    }
 
-    /**
-     * @return The horizontal offset from the crosshair to the target
-     */
+      // Things to consider testing / excluding:
+      // When spining past some rate we get bad results
+      // Anything past 15ft seems to have too much variance
 
-    public double getXOffset() {
-        return targetXOffset;
-    }
+      confidence = 0; // If we don't update confidence then we don't send the measurement
+      LimelightHelper.SetRobotOrientation(ll, drivetrain.getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
+      LimelightHelper.PoseEstimate limelightMeasurement = LimelightHelper.getBotPoseEstimate_wpiBlue(ll);
+      LimelightHelper.PoseEstimate limelightMeasurementNew = LimelightHelper.getBotPoseEstimate_wpiBlue_MegaTag2(ll);
+      //SmartDashboard.putNumber("NumTags", limelightMeasurement.tagCount);
 
-    /**
-     * @return The vertical offset from the crosshair to the target
-     */
-
-    public double getYOffset() {
-        return targetYOffset;
-    }
-
-    /**
-     * @return The last received non-empty robot pose with the origin at the right-hand side of the blue alliance driverstation
-     *         if any. All-zero pose if none has been received yet.
-     */
-
-    public Pose2d getLastBotPoseBlue() {
-        return new Pose2d(lastBotPoseBlue[0], lastBotPoseBlue[1], Rotation2d.fromDegrees(lastBotPoseBlue[5]));
-    }
-
-    /**
-     * @return The current robot pose with the origin at the right-hand side of the blue alliance driverstation
-     *         being received if any. Null if none is being received.
-     */
-    public Pose2d getCurrentBotPoseBlue() {
-        SmartDashboard.putNumber("Limelight Pose X", currentBotPoseBlue[0]);
-    
-        if(currentBotPoseBlue != new double[6]) {
-            return new Pose2d(currentBotPoseBlue[0], currentBotPoseBlue[1], Rotation2d.fromDegrees(currentBotPoseBlue[5]));
+      if(limelightMeasurement != null) {
+        // No tag found so check no further or pose not within field boundary
+        if(limelightMeasurement.tagCount > 0 && fieldBoundary.isPoseWithinArea(limelightMeasurement.pose)) {
+          // Excluding different measurements that are absolute showstoppers even with full trust 
+          if(limelightMeasurement.avgTagDist < Units.feetToMeters(12)) {
+            confidence = 0.5;
+            usingMT2 = false;
+          } else {
+            // If more than 12 ft away use MegaTag 2 use MT if less than 12
+            limelightMeasurement = limelightMeasurementNew;
+            usingMT2 = false;
+            confidence = 0.7;
+          }
         }
-        else {
-            return null;
-        }
+        addPose(limelightMeasurement, confidence, usingMT2);
+        limelightPoseEstimate = limelightMeasurement.pose;
+      }
     }
+  }
 
-    /**
-     * @return The last received non-empty robot pose with the target as the origin if any.
-     *         All-zero pose if none has been received yet.
-     */
-
-    public Pose3d getRobotTargetSpacePose() {
-        return new Pose3d(lastRobotTargetSpacePose[0], lastRobotTargetSpacePose[1], lastRobotTargetSpacePose[2], new Rotation3d(lastRobotTargetSpacePose[3], lastRobotTargetSpacePose[4], lastRobotTargetSpacePose[5]));
+  private void addPose(LimelightHelper.PoseEstimate limelightMeasurement, double confide, boolean isMetaTag2) {
+    if(confide > 0) {
+      // We are publishing this to view as a ghost to try and help determine when not to use the LL measurements
+      publishToField(limelightMeasurement);
+      SmartDashboard.putBoolean("PoseUpdate", true);
+      SmartDashboard.putNumber("LLConfidence", confide);
+      drivetrain.addVisionMeasurement(
+          limelightMeasurement.pose,
+          limelightMeasurement.timestampSeconds,
+          VecBuilder.fill(confide, confide, 9999999));
+    } else {
+      SmartDashboard.putBoolean("PoseUpdate", false);
+      // We are publishing this to view as a ghost to try and help determine when not to use the LL measurements
+      publishToField(new LimelightHelper.PoseEstimate(new Pose2d(), 0, 0, 0, 0, 0, 0, new RawFiducial[0], isMetaTag2));
     }
+  }
 
-    /**
-     * @return The last received non-empty camera pose with the target as the origin if any.
-     *         All-zero pose if none has been received yet.
-     */
-    
-    public Pose3d getTargetCameraSpacePose() {
-        return new Pose3d(lastTargetCameraSpacePose[0], lastTargetCameraSpacePose[1], lastTargetCameraSpacePose[2], new Rotation3d(lastTargetCameraSpacePose[3], lastTargetCameraSpacePose[4], lastTargetCameraSpacePose[5]));
+  public Pose2d getPoseEstimate() {
+    if (confidence == 0) {
+      return null;
+    } else {
+      return limelightPoseEstimate;
     }
+  }
 
-    /**
-     * @return The ID of the last identified primary in-view AprilTag
-     */
+  private void publishToField(LimelightHelper.PoseEstimate limelightMeasurement) {
+    // If you have a Field2D you can easily push it that way here.
+    limelightPub.set(new double[] {
+      limelightMeasurement.pose.getX(),
+      limelightMeasurement.pose.getY(),
+      limelightMeasurement.pose.getRotation().getDegrees()
+    });
+  }
 
-    public double getAprilTagID() {
-        return lastAprilTagID;
-    }
+  public void useLimelight(boolean enable) {
+    this.enable = enable;
+  }
 
-    /**
-     * Sets the Limelight's LED state.
-     * 
-     * @param mode
-     * 
-     * <p>0: Use the LED mode set in the current pipeline
-     * <p>1: Force off
-     * <p>2: Force blink
-     * <p>3: Force on
-     */
+  public void trustLL(boolean trust) {
+    this.trust = trust;
+  }
 
-    public void setLedMode(Number mode) {
-        ledMode.setNumber(mode);
-    }
-  
-    /**
-     * Sets the Limelight's operation mode.
-     * 
-     * @param mode
-     * 
-     * <p>0: Vision processor
-     * <p>1: Driver camera (Increases exposure, disables vision processing)
-     */
+  public Command blinkLEDS() {
+    return runOnce(() -> LimelightHelper.setLEDMode_ForceBlink(ll))
+        .andThen(waitSeconds(2))
+        .andThen(() -> LimelightHelper.setLEDMode_ForceOff(ll));
+  }
 
-    public void setCameraMode(Number mode) {
-        cameraMode.setNumber(mode);
-    }
-
-    /**
-     * Sets the Limelight's current pipeline.
-     * 
-     * @param pipelineNumber The desired pipeline number (0-9)
-     */
-
-    public void setPipeline(Number pipelineNumber) {
-        pipeline.setNumber(pipelineNumber);
-    }
-
-    public void setPriorityID(Number id) {
-        priorityID.setNumber(id);
-    }
-
-    public void setLimelightPosition(String tableKey, double forward, double lateral, double height, double roll, double pitch, double yaw) {
-        LimelightHelper.setCameraPose_RobotSpace(tableKey, forward, lateral, height, roll, pitch, yaw);
-    }
-
-    public void handleRawPose(double[] rawPose, double[] processedPose) {
-        if (rawPose != new double[6]) {
-            for (int i = 0; i < 6; i++) {
-                processedPose[i] = rawPose[i];
-            }
-        }
-    }
+  public Command ledsOff() {
+    return runOnce(() -> LimelightHelper.setLEDMode_ForceOff(ll));
+  }
 }

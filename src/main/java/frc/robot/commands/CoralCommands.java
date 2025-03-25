@@ -14,12 +14,12 @@ public class CoralCommands {
     public static Command funnelIntakingUntilBroken(CoralSubsystem coralSubsystem) {
         return new SequentialCommandGroup(
           new PrintCommand("Automatic Coral Intaking"),  
-          new RunCommand(() -> coralSubsystem.spinCoral(-0.9), coralSubsystem).until(() -> coralSubsystem.firstBeamBroken()),
+          new RunCommand(() -> coralSubsystem.spinCoral(-1), coralSubsystem).until(() -> coralSubsystem.firstBeamBroken()),
           new RunCommand(() -> coralSubsystem.spinCoral(-0.6), coralSubsystem).until(() -> coralSubsystem.secondBeamBreak()),
           new InstantCommand(() -> coralSubsystem.stopCoral()),
-          new WaitCommand(0.1),
+          new WaitCommand(0.5),
           new InstantCommand(() -> coralSubsystem.spinCoral(-0.155)),
-          new WaitCommand(0.125),
+          new WaitCommand(0.4),
           new InstantCommand(() -> coralSubsystem.stopCoral())
         );
     }

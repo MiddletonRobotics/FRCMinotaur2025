@@ -29,6 +29,7 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -47,6 +48,14 @@ public class DealgeafierSubsystem extends SubsystemBase {
     private RelativeEncoder pivotingEncoder;
     private RelativeEncoder rollingEncoder;
     private SparkClosedLoopController pivotingPIDController;
+
+    private ProfiledPIDController profiledPIDController;
+    private TrapezoidProfile.Constraints constraints;
+    private TrapezoidProfile profile;
+
+    private final TrapezoidProfile.State currentAngle = new TrapezoidProfile.State();
+    private final TrapezoidProfile.State goalAngle = new TrapezoidProfile.State();
+    private final Timer timer = new Timer();
 
     private Alert pivotDisconnected;
     private Alert rollerDisconnected;
@@ -92,6 +101,10 @@ public class DealgeafierSubsystem extends SubsystemBase {
         rollerConfiguration = new SparkMaxConfig();
         configureRollerMotor();
 
+        constraints = new TrapezoidProfile.Constraints(1.25, 0.25);
+        profile = new TrapezoidProfile(constraints);
+        profiledPIDController = new ProfiledPIDController(0.4, 0.0, 0.0, constraints);
+
         pivotDisconnected = new Alert("Dealgeafier Pivot CAN Issue", AlertType.kError);
         rollerDisconnected = new Alert("Dealgeafier Roller CAN Issue", AlertType.kError);
         deviceBrownedOut = new Alert("Dealgeafier Hardware Browned Out", AlertType.kError);
@@ -108,7 +121,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
             .positionConversionFactor(Constants.DealgeafierConstants.PositionConversionFactor)
             .velocityConversionFactor(Constants.DealgeafierConstants.VelocityConversionFactor);
         pivotingConfiguration.closedLoop
-            .pid(0.5, 0.0, 0.0);
+            .pid(0.3, 0.0, 0.0);
 
         pivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         pivotingEncoder.setPosition(PivotingState.START.getPosition().in(Radians));
@@ -138,7 +151,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Dealgeafier Motor Temp.", rollerMotor.getMotorTemperature());
         SmartDashboard.putBoolean("Dealgeafier Limit- Switch", getLimitSwitch());
         SmartDashboard.putNumber("Dealgeafier Pivot Error", calculateError());
-        SmartDashboard.putBoolean("At Goal", atGoal());
+        SmartDashboard.putBoolean("At Goal", atTargetPosition());
 
         pivotDisconnected.set(pivotingMotor.getFaults().can);
         rollerDisconnected.set(rollerMotor.getFaults().can);
@@ -153,13 +166,50 @@ public class DealgeafierSubsystem extends SubsystemBase {
         pivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
+    public boolean getLimitSwitch() {
+        return !algeaLimitSwitch.get();
+    }
+
+    public PivotingState getPivotingState() {
+        return pivotingState;
+    }
+
+    public void setPivotingState(PivotingState pivotingState) {
+        this.pivotingState = pivotingState;
+        goalAngle.position = pivotingState.getPosition().in(Radians);
+        timer.reset();
+        timer.start();
+    }
+
     public double calculateError() {
         Angle targetPosition = getPivotingState().getPosition();
         return targetPosition.in(Radians) - pivotingEncoder.getPosition();
     }
 
-    public boolean getLimitSwitch() {
-        return !algeaLimitSwitch.get();
+    public void runToPosition() {
+        Angle targetPosition = pivotingState.getPosition();
+        pivotingPIDController.setReference(targetPosition.in(Radians), ControlType.kPosition, ClosedLoopSlot.kSlot0, feedforward.calculate(targetPosition.in(Radians), 0.15), ArbFFUnits.kVoltage);
+    }
+
+    public void runToProfiledPosition() {
+        TrapezoidProfile.State desiredState = profile.calculate(timer.get(), currentAngle, goalAngle);
+        double ff = feedforward.calculate(desiredState.position, desiredState.velocity);
+        double feedback = profiledPIDController.calculate(currentAngle.position, desiredState);
+        double voltage = ff + feedback;
+        pivotingMotor.setVoltage(voltage);
+    }
+
+    public boolean atTargetPosition() {
+        Angle targetPosition = getPivotingState().getPosition();
+        return (targetPosition.in(Radians) - pivotingEncoder.getPosition() < 0.1 && targetPosition.in(Radians) - pivotingEncoder.getPosition() > -0.1);
+    }
+
+    public boolean profileAtGoal() {
+        return profiledPIDController.atGoal();
+    }
+
+    public boolean isBrownedOut() {
+        return pivotingMotor.getStickyWarnings().brownout || rollerMotor.getStickyWarnings().brownout;
     }
 
     public void startRolling(double speed) {
@@ -176,27 +226,5 @@ public class DealgeafierSubsystem extends SubsystemBase {
 
     public void stopPivot() {
         pivotingMotor.set(0.0);
-    }
-
-    public void setPivotingState(PivotingState pivotingState) {
-        this.pivotingState = pivotingState;
-    }
-
-    public PivotingState getPivotingState() {
-        return pivotingState;
-    }
-
-    public void runToPosition() {
-        Angle targetPosition = pivotingState.getPosition();
-        pivotingPIDController.setReference(targetPosition.in(Radians), ControlType.kPosition, ClosedLoopSlot.kSlot0, feedforward.calculate(pivotingEncoder.getPosition(), 0.15), ArbFFUnits.kVoltage);
-    }
-
-    public boolean atGoal() {
-        Angle targetPosition = getPivotingState().getPosition();
-        return (targetPosition.in(Radians) - pivotingEncoder.getPosition() < 0.1 && targetPosition.in(Radians) - pivotingEncoder.getPosition() > -0.1);
-    }
-
-    public boolean isBrownedOut() {
-        return pivotingMotor.getStickyWarnings().brownout || rollerMotor.getStickyWarnings().brownout;
     }
 }

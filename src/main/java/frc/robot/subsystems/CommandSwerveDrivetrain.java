@@ -69,7 +69,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     private static boolean useMegaTag2 = true; // set to false to use MegaTag1
     private static boolean doRejectUpdate = false;
-    private static String limelightUsed;
+    public static String limelightUsed;
     private static LimelightHelper.PoseEstimate LLposeEstimate;
     //Get average tag areas (percentage of image), Choose the limelight with the highest average tag area
     private static double limelightLeftAvgTagArea = 0;
@@ -409,6 +409,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             SmartDashboard.putNumber("LimelightPoseX", LLposeEstimate.pose.getY());
             SmartDashboard.putNumber("LimelightPoseY", LLposeEstimate.pose.getX());
             SmartDashboard.putNumber("LimelightPoseRot", LLposeEstimate.pose.getRotation().getDegrees());
+            setStateStdDevs(VecBuilder.fill(0.7 , 0.7, 6).div(LimelightHelper.getTA(limelightUsed)));
             addVisionMeasurement(LLposeEstimate.pose, LLposeEstimate.timestampSeconds);
         }
     }
@@ -481,7 +482,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
     }
 
-    private static void choose_LL(){
+    public void choose_LL(){
         limelightLeftAvgTagArea = NetworkTableInstance.getDefault().getTable("limelight-left").getEntry("botpose").getDoubleArray(new double[11])[10];
         limelightRightAvgTagArea = NetworkTableInstance.getDefault().getTable("limelight-right").getEntry("botpose").getDoubleArray(new double[11])[10];
         SmartDashboard.putNumber("Left Limelight Tag Area", limelightLeftAvgTagArea);

@@ -19,6 +19,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -29,11 +30,13 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.ProcessorCommands;
 import frc.robot.commands.CoralCommands;
 import frc.robot.commands.DealgeafierCommands;
+import frc.robot.commands.Elevator2Commands;
 import frc.robot.commands.ElevatorCommands;
 import frc.robot.commands.PrepareDealgeafication;
 import frc.robot.generated.TunerConstants;
@@ -43,6 +46,8 @@ import frc.robot.subsystems.ProcessorSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.ElevatorSubsystem2;
+import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.DealgeafierSubsystem.PivotingState;
 import frc.robot.subsystems.ProcessorSubsystem.GroundPivotingState;
 import frc.robot.utilities.constants.Constants.ElevatorConstants.ElevatorStates;
@@ -53,17 +58,36 @@ public class RobotContainer {
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.15).withRotationalDeadband(MaxAngularRate * 0.15) // Add a 10% deadband
+            .withDeadband(MaxSpeed * 0.13).withRotationalDeadband(MaxAngularRate * 0.13) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
+
+    public enum DrivingState {
+        ELEVATOR_UP(0),
+        SLOWMODE(0.1213),
+        NORMAL(0.2485);
+
+        private final double position;
+
+        private DrivingState(double position) {
+            this.position = position;
+        }
+
+        public double getPosition() {
+            return this.position;
+        }
+    }
+
+    public DrivingState drivingState = DrivingState.NORMAL;
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
     private final SendableChooser<Command> autonomousChooser;
 
     private int driverControllerPort = 0;
     private int operatorControllerPort = 1;
+
     private final CommandXboxController driverController = new CommandXboxController(driverControllerPort);
     private final CommandXboxController operatorController = new CommandXboxController(operatorControllerPort);
     private final CommandXboxController manualController = new CommandXboxController(2);
@@ -71,21 +95,21 @@ public class RobotContainer {
 
     private CoralSubsystem coralSubsystem = new CoralSubsystem();
     private final DealgeafierSubsystem dealgeafierSubsystem = new DealgeafierSubsystem();
-    private final ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem();
+    private final ElevatorSubsystem2 elevatorSubsystem2 = new ElevatorSubsystem2();
     private final ProcessorSubsystem processorSubsystem = new ProcessorSubsystem();
-
-    private SlewRateLimiter limiterX = new SlewRateLimiter(2);
-    private SlewRateLimiter limiterY = new SlewRateLimiter(2);
-    private SlewRateLimiter limiterRotate = new SlewRateLimiter(2);
+    //private final Limelight leftElevatorLL = new Limelight(drivetrain, "limelight-left");
+    //private final Limelight rightElevatorLL = new Limelight(drivetrain, "limelight-right");
 
     public RobotContainer() {
-        NamedCommands.registerCommand("StowElevator", ElevatorCommands.autoStowElevator(elevatorSubsystem));
-        NamedCommands.registerCommand("PrepareL4", ElevatorCommands.autoPrepareL4(elevatorSubsystem));
-        NamedCommands.registerCommand("PrepareL3", ElevatorCommands.autoPrepareL3(elevatorSubsystem));
-        NamedCommands.registerCommand("PrepareL1", ElevatorCommands.autoPrepareL1(elevatorSubsystem));
+        NamedCommands.registerCommand("StowElevator", Elevator2Commands.runElevatorToStow(elevatorSubsystem2));
+        NamedCommands.registerCommand("PrepareBarge", Elevator2Commands.runElevatorToBarge(elevatorSubsystem2));
+        NamedCommands.registerCommand("ProcessorStore", ProcessorCommands.startPivotToStored(processorSubsystem));
+        NamedCommands.registerCommand("PrepareL4", Elevator2Commands.runElevatorToL4(elevatorSubsystem2));
+        NamedCommands.registerCommand("PrepareL3", Elevator2Commands.runElevatorToL3(elevatorSubsystem2));
+        NamedCommands.registerCommand("PrepareL1", Elevator2Commands.runElevatorToL1(elevatorSubsystem2));
         NamedCommands.registerCommand("ScoreCoral", CoralCommands.scoreCoral(coralSubsystem));
         NamedCommands.registerCommand("IndexCoral", CoralCommands.funnelIntakingUntilBroken(coralSubsystem));
-        NamedCommands.registerCommand("PrepareDealgification", new PrepareDealgeafication(dealgeafierSubsystem, elevatorSubsystem));
+        NamedCommands.registerCommand("PrepareDealgification", new PrepareDealgeafication(dealgeafierSubsystem, elevatorSubsystem2));
         NamedCommands.registerCommand("AlgeaBarge", DealgeafierCommands.shootAlgeaSensorless(dealgeafierSubsystem));
         NamedCommands.registerCommand("AlgeaStart", DealgeafierCommands.runPivotToStart(dealgeafierSubsystem));
         NamedCommands.registerCommand("AlgeaTilt", DealgeafierCommands.runPivotToBarge(dealgeafierSubsystem));
@@ -95,7 +119,7 @@ public class RobotContainer {
         SmartDashboard.putData("Autonomous Chooser", autonomousChooser);
         SmartDashboard.putNumber("Battery Voltage", RobotController.getBatteryVoltage());
 
-        configureDriverBindings();
+        //configureDriverBindings();
         configureOperatorBindings();
         configureTestingBindings();
 
@@ -157,14 +181,16 @@ public class RobotContainer {
         operatorController.b().onTrue(ProcessorCommands.spitOutBall(processorSubsystem));
     }
         */
+
+        /*
          
     private void configureDriverBindings() {
         // Note that X is defined as forward according to WPILib convention, and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-driverController.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(-driverController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-driverController.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(limiterX.calculate(-driverController.getLeftY() * MaxSpeed)) // Drive forward with negative Y (forward)
+                    .withVelocityY(limiterY.calculate(-driverController.getLeftX() * MaxSpeed)) // Drive left with negative X (left)
+                    .withRotationalRate(limiterRotate.calculate(-driverController.getRightX() * MaxAngularRate)) // Drive counterclockwise with negative X (left)
             )
         );
 
@@ -177,11 +203,11 @@ public class RobotContainer {
         driverController.y().whileTrue(new InstantCommand(() -> coralSubsystem.spinCoral(0.4)));
         driverController.y().whileFalse(new InstantCommand(() -> coralSubsystem.stopCoral()));
 
-        driverController.leftTrigger(0.5).whileTrue(new RunCommand(() -> elevatorSubsystem.runElevatorUp(-0.83)));
-        driverController.leftTrigger(0.5).onFalse(new InstantCommand(() -> elevatorSubsystem.runElevatorUp(0.0)));
+        driverController.leftTrigger(0.5).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(0.5)));
+        driverController.leftTrigger(0.5).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
 
-        driverController.rightTrigger(0.5).whileTrue(new RunCommand(() -> elevatorSubsystem.runElevatorDown(0.3)));
-        driverController.rightTrigger(0.5).onFalse(new InstantCommand(() -> elevatorSubsystem.runElevatorDown(0.0)));
+        driverController.rightTrigger(0.5).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(-0.2)));
+        driverController.rightTrigger(0.5).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
 
         driverController.leftBumper().whileTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(1)));
         driverController.leftBumper().whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
@@ -193,33 +219,47 @@ public class RobotContainer {
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
+    */
+
     public void configureOperatorBindings() {   
-        operatorController.y().whileTrue(new InstantCommand(() -> processorSubsystem.startGroundPivot(0.2)));
-        operatorController.y().whileFalse(new InstantCommand(() -> processorSubsystem.startGroundPivot(0.0)));
+        operatorController.y().onTrue(ProcessorCommands.startPivotToStored(processorSubsystem));
+        operatorController.x().onTrue(ProcessorCommands.startPivotToGround(processorSubsystem));
 
-        operatorController.x().whileTrue(new InstantCommand(() -> processorSubsystem.startGroundPivot(-0.125)));
-        operatorController.x().whileFalse(new InstantCommand(() -> processorSubsystem.stopGroundPivot()));
+        operatorController.povRight().onTrue(DealgeafierCommands.runPivotToStart(dealgeafierSubsystem));
+        operatorController.povUp().onTrue(DealgeafierCommands.runPivotToBarge(dealgeafierSubsystem));
+        operatorController.povLeft().onTrue(DealgeafierCommands.runPivotToReef(dealgeafierSubsystem));
+        operatorController.povDown().onTrue(DealgeafierCommands.runPivotToGround(dealgeafierSubsystem));
 
-        operatorController.povRight().whileTrue(new RunCommand(() -> dealgeafierSubsystem.startPivot(-0.23)));
-        operatorController.povRight().onFalse(new InstantCommand(() -> dealgeafierSubsystem.stopPivot()));
+        operatorController.rightTrigger().onTrue(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem));
+        operatorController.rightBumper().onTrue(DealgeafierCommands.shootAlgea(dealgeafierSubsystem));
 
-        operatorController.povLeft().whileTrue(new RunCommand(() -> dealgeafierSubsystem.startPivot(0.23)));
-        operatorController.povLeft().onFalse(new InstantCommand(() -> dealgeafierSubsystem.stopPivot()));
-
-        operatorController.rightTrigger(0.5).whileTrue(new InstantCommand(() -> dealgeafierSubsystem.startRolling(1)));
-        operatorController.rightTrigger(0.5).whileFalse(new InstantCommand(() -> dealgeafierSubsystem.stopRolling()));
-
-        operatorController.leftTrigger(0.5).whileTrue(new InstantCommand(() -> dealgeafierSubsystem.startRolling(-1)));
-        operatorController.leftTrigger(0.5).whileFalse(new InstantCommand(() -> dealgeafierSubsystem.stopRolling()));
+        operatorController.axisLessThan(XboxController.Axis.kRightY.value, -0.5).onTrue(new InstantCommand(() -> elevatorSubsystem2.incrementElevatorState()));
+        operatorController.axisGreaterThan(XboxController.Axis.kRightY.value, 0.5).onTrue(new InstantCommand(() -> elevatorSubsystem2.decrementElevatorState()));
     }
 
     public void configureTestingBindings() {
-        manualController.b().onTrue(DealgeafierCommands.runPivotToBarge(dealgeafierSubsystem));
-        manualController.x().onTrue(DealgeafierCommands.runPivotToReef(dealgeafierSubsystem));
-        manualController.y().onTrue(DealgeafierCommands.runPivotToStored(dealgeafierSubsystem));
+        //manualController.b().onTrue(DealgeafierCommands.runPivotToBarge(dealgeafierSubsystem));
+        drivetrain.setDefaultCommand(
+            drivetrain.applyRequest(() ->
+                drive.withVelocityX((-manualController.getLeftY() * MaxSpeed) * drivingState.getPosition()) // Drive forward with negative Y (forward)
+                    .withVelocityY((-manualController.getLeftX() * MaxSpeed) * drivingState.getPosition()) // Drive left with negative X (left)
+                    .withRotationalRate((-manualController.getRightX() * MaxAngularRate) * drivingState.getPosition()) // Drive counterclockwise with negative X (left)
+            )
+        );
 
-        manualController.povUp().onTrue(ProcessorCommands.startPivotToStored(processorSubsystem));
-        manualController.povDown().onTrue(ProcessorCommands.startPivotToGround(processorSubsystem));
+        manualController.a().onTrue(Elevator2Commands.runElevatorToPosition(elevatorSubsystem2));
+
+        manualController.povLeft().whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(0.5)));
+        manualController.povLeft().onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
+
+        manualController.povRight().whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(-0.2)));
+        manualController.povRight().onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
+
+        manualController.leftTrigger().onTrue(CoralCommands.funnelIntakingUntilBroken(coralSubsystem));
+        manualController.leftBumper().onTrue(CoralCommands.scoreCoral(coralSubsystem));
+
+        manualController.back().and(manualController.rightBumper()).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        drivetrain.registerTelemetry(logger::telemeterize);
     }
 
     public Command getAutonomousCommand() {

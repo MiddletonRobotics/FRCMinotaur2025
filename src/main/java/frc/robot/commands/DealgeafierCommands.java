@@ -37,11 +37,19 @@ public class DealgeafierCommands {
         ).withName("Auto Algea Shooting");
     }
 
+    public static Command runPivotToGround(DealgeafierSubsystem dealgeaElevatorSubsystem) {
+        return new SequentialCommandGroup(
+            new PrintCommand("Running the Algae Pivot to: " + PivotingState.GROUND),
+            new InstantCommand(() -> dealgeaElevatorSubsystem.setPivotingState(PivotingState.GROUND)),
+            new RunCommand(() -> dealgeaElevatorSubsystem.runToPosition(), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.atTargetPosition())
+        );
+    }
+
     public static Command runPivotToReef(DealgeafierSubsystem dealgeaElevatorSubsystem) {
         return new SequentialCommandGroup(
             new PrintCommand("Running the Algae Pivot to: " + PivotingState.REEF),
             new InstantCommand(() -> dealgeaElevatorSubsystem.setPivotingState(PivotingState.REEF)),
-            new RunCommand(() -> dealgeaElevatorSubsystem.runToPosition(), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.atGoal())
+            new RunCommand(() -> dealgeaElevatorSubsystem.runToPosition(), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.atTargetPosition())
         );
     }
 
@@ -49,7 +57,7 @@ public class DealgeafierCommands {
         return new SequentialCommandGroup(
             new PrintCommand("Running the Algae Pivot to: " + PivotingState.BARGE),
             new InstantCommand(() -> dealgeaElevatorSubsystem.setPivotingState(PivotingState.BARGE)),
-            new RunCommand(() -> dealgeaElevatorSubsystem.runToPosition(), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.atGoal())
+            new RunCommand(() -> dealgeaElevatorSubsystem.runToPosition(), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.atTargetPosition())
         );
     }
 
@@ -57,7 +65,7 @@ public class DealgeafierCommands {
         return new SequentialCommandGroup(
             new PrintCommand("Running the Algae Pivot to: " + PivotingState.START),
             new InstantCommand(() -> dealgeaElevatorSubsystem.setPivotingState(PivotingState.START)),
-            new RunCommand(() -> dealgeaElevatorSubsystem.runToPosition(), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.atGoal())
+            new RunCommand(() -> dealgeaElevatorSubsystem.runToProfiledPosition(), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.atTargetPosition())
         );
     }
 
@@ -65,7 +73,7 @@ public class DealgeafierCommands {
         return new SequentialCommandGroup(
             new PrintCommand("Running the Algae Pivot to: " + PivotingState.STORED),
             new InstantCommand(() -> dealgeaElevatorSubsystem.setPivotingState(PivotingState.STORED)).alongWith(new InstantCommand(() -> dealgeaElevatorSubsystem.stopRolling())),
-            new RunCommand(() -> dealgeaElevatorSubsystem.runToPosition(), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.atGoal())
+            new RunCommand(() -> dealgeaElevatorSubsystem.runToPosition(), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.atTargetPosition())
         );
     }
 }

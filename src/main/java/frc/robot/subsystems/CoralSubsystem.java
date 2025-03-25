@@ -76,7 +76,7 @@ public class CoralSubsystem extends SubsystemBase {
         CoralSpinnerConfiguration
             .idleMode(IdleMode.kBrake)
             .inverted(false)
-            .smartCurrentLimit(45);
+            .smartCurrentLimit(60);
             CoralSpinnerConfiguration.encoder
             .positionConversionFactor(1)
             .velocityConversionFactor(1);

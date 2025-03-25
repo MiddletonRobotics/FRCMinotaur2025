@@ -174,8 +174,8 @@ public class Constants {
         public static final int pivotingMotorID = 19;
         public static final int rollerMotorID = 20;
 
-        public static final AngularVelocity LimitedVelocity = DegreesPerSecond.of(80);
-        public static final AngularAcceleration LimitedAcceleration = DegreesPerSecondPerSecond.of(70.0);
+        public static final AngularVelocity LimitedVelocity = DegreesPerSecond.of(120);
+        public static final AngularAcceleration LimitedAcceleration = DegreesPerSecondPerSecond.of(120);
 
         public static final Angle MaximumAllowedPositionError = Degrees.of(2.5);
         public static final AngularVelocity MaximumAllowedVelocityError = DegreesPerSecond.of(2.5);
@@ -246,13 +246,13 @@ public class Constants {
 
         public enum ElevatorStates {
             STOP(0),
-            L1(0.201990),
-            L2(0.448130),
-            L3(0.833966),
-            L4(1.460489),
-            BARGE(1.460489),
-            DEALGEAFIER_L2(0.371324),
-            DEALGEAFIER_L3(0.764419),
+            L1(0.1213),
+            L2(0.2485),
+            L3(0.5099),
+            L4(0.9513),
+            BARGE(1.2368),
+            DEALGEAFIER_L2(0.2047),
+            DEALGEAFIER_L3(0.4453),
             STOW(0);
 
             private final double position;
