@@ -11,7 +11,9 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.RobotContainer.DrivingState;
 import frc.robot.utilities.LimelightHelper;
+import frc.robot.utilities.constants.Constants.ElevatorConstants.ElevatorStates;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
@@ -30,6 +32,14 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
+
+    if(m_robotContainer.elevatorSubsystem2.getElevatorState().getPosition() >= ElevatorStates.L3.getPosition()) {
+      m_robotContainer.drivingState = DrivingState.ELEVATOR_UP;
+    } else {
+      if(m_robotContainer.drivingState == DrivingState.ELEVATOR_UP) {
+        m_robotContainer.drivingState = DrivingState.NORMAL;
+      }
+    }
   }
 
   @Override

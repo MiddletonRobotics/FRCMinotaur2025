@@ -241,8 +241,8 @@ public class Constants {
         public static final double ElevatorFeedforwardkV = 7.23;
         public static final double ElevatorFeedforwardkA = 0.05;
 
-        public static final LinearVelocity LimitedMaxVelocity = MetersPerSecond.of(1);
-        public static final LinearAcceleration LimitedMacAcceleration = MetersPerSecondPerSecond.of(1.25);
+        public static final LinearVelocity LimitedMaxVelocity = MetersPerSecond.of(5.0);
+        public static final LinearAcceleration LimitedMacAcceleration = MetersPerSecondPerSecond.of(5.0);
 
         public enum ElevatorStates {
             STOP(0),

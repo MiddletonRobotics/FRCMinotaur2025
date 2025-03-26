@@ -76,7 +76,7 @@
       }
     },
     {
-      "name": "AlgaeStart",
+      "name": "AlgeaStart",
       "waypointRelativePos": 0.95,
       "endWaypointRelativePos": null,
       "command": {
@@ -98,7 +98,7 @@
       }
     },
     {
-      "name": "AlgaeBarge",
+      "name": "AlgeaBarge",
       "waypointRelativePos": 0.9885195623342179,
       "endWaypointRelativePos": null,
       "command": {
@@ -109,7 +109,7 @@
       }
     },
     {
-      "name": "ScoreAlgae",
+      "name": "ScoreAlgea",
       "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
       "command": {
@@ -133,7 +133,7 @@
     "rotation": 0.0
   },
   "reversed": false,
-  "folder": null,
+  "folder": "AlgeaAutoCenter",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 180.0

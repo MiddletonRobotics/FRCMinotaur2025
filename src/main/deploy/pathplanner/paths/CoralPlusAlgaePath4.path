@@ -79,7 +79,7 @@
     "rotation": 0.0
   },
   "reversed": false,
-  "folder": null,
+  "folder": "CoralPlusAlgea",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0

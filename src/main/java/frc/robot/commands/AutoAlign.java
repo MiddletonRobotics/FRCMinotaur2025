@@ -16,6 +16,7 @@ public class AutoAlign extends Command {
 
   CommandSwerveDrivetrain drivetrain;
   Rotation2d targetAngle;
+  double targetX;
   double targetY;
 
   PIDController xController;
@@ -24,17 +25,19 @@ public class AutoAlign extends Command {
 
   private SwerveRequest.ApplyRobotSpeeds driveChassisSpeeds = new SwerveRequest.ApplyRobotSpeeds();
 
-  public AutoAlign(CommandSwerveDrivetrain drivetrain, Rotation2d targetAngle, double targetY) {
+  public AutoAlign(CommandSwerveDrivetrain drivetrain, Rotation2d targetAngle, double targetY, double targetX) {
     addRequirements(drivetrain  );
     setName("AutoAlign");
 
     this.drivetrain = drivetrain;
     this.targetAngle = targetAngle;
     this.targetY = targetY;
+    this.targetX = targetX;
 
     xController = new PIDController(0.1, 0.0, 0.0);
-    yController = new PIDController(0.1, 0.0, 0.0);;
-    rotationController = new PIDController(0.1, 0.0, 0.0);;
+    yController = new PIDController(0.1, 0.0, 0.0);
+    rotationController = new PIDController(0.1, 0.0, 0.0);
+
     rotationController.enableContinuousInput(-180.0, 180.0);
     xController.setTolerance(0.5);
     yController.setTolerance(0.5);
@@ -48,7 +51,7 @@ public class AutoAlign extends Command {
     String choosenLimelight = drivetrain.limelightUsed;
 
     double xValue = LimelightHelper.getTV(choosenLimelight) ? -yController.calculate(LimelightHelper.getTY(choosenLimelight), targetY) : 0;
-    double yValue = LimelightHelper.getTV(choosenLimelight) ? xController.calculate(LimelightHelper.getTX(choosenLimelight), 0.0) : 0;
+    double yValue = LimelightHelper.getTV(choosenLimelight) ? xController.calculate(LimelightHelper.getTX(choosenLimelight), targetX) : 0;
     double rotationValue = rotationController.calculate(drivetrain.getState().Pose.getRotation().getRadians(), targetAngle.getRadians());
 
     drivetrain.setControl(driveChassisSpeeds.withSpeeds(new ChassisSpeeds(xValue, yValue, rotationValue)));

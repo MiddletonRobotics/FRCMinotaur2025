@@ -9,7 +9,7 @@
       "prevControl": null,
       "nextControl": {
         "x": 2.0220432147365965,
-        "y": 6.6520755255313935
+        "y": 6.652075525531393
       },
       "isLocked": false,
       "linkedName": null
@@ -68,7 +68,7 @@
     "rotation": -55.0
   },
   "reversed": false,
-  "folder": null,
+  "folder": "CoralAutoRight",
   "idealStartingState": {
     "velocity": 0,
     "rotation": -59.99999999999999

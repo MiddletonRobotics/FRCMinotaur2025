@@ -61,18 +61,18 @@ public class ElevatorSubsystem2 extends SubsystemBase {
         elevatorConfiguration = new TalonFXConfiguration();
         elevatorConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         elevatorConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        elevatorConfiguration.Slot0.kP = 3.2;
+        elevatorConfiguration.Slot0.kP = 3.4;
         elevatorConfiguration.Slot0.kD = 0.0;
-        elevatorConfiguration.Slot0.kS = 0.8;
-        elevatorConfiguration.Slot0.kG = 1.0;
+        elevatorConfiguration.Slot0.kS = 0.9;
+        elevatorConfiguration.Slot0.kG = 1.05;
         elevatorConfiguration.Slot0.kV = 0.0;
         elevatorConfiguration.Slot0.kA = 0.0;
         elevatorConfiguration.Slot0.GravityType = GravityTypeValue.Elevator_Static;
 
         elevatorConfiguration.CurrentLimits.StatorCurrentLimitEnable = true;
-        elevatorConfiguration.CurrentLimits.StatorCurrentLimit = 80;
+        elevatorConfiguration.CurrentLimits.StatorCurrentLimit = 85;
         elevatorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
-        elevatorConfiguration.CurrentLimits.SupplyCurrentLimit = 75;
+        elevatorConfiguration.CurrentLimits.SupplyCurrentLimit = 80;
 
         elevatorConfiguration.MotionMagic.MotionMagicAcceleration = 5.0 / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio;
         elevatorConfiguration.MotionMagic.MotionMagicCruiseVelocity = 5.0 / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio;
@@ -194,7 +194,7 @@ public class ElevatorSubsystem2 extends SubsystemBase {
         }
     }
 
-    public ElevatorStates getElevatorState(ElevatorStates elevatorState) {
+    public ElevatorStates getElevatorState() {
         return this.currentElevatorState;
     }
 
@@ -229,6 +229,7 @@ public class ElevatorSubsystem2 extends SubsystemBase {
 
         SmartDashboard.putBoolean("Elevator At Goal", atGoal());
         SmartDashboard.putBoolean("Elevator Stuck", isElevatorCooking());
+        SmartDashboard.putString("Elevator State: ", currentElevatorState.toString());
         SmartDashboard.putNumber("Elevator Target Postion", (positionGoalMeters  / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio));
         SmartDashboard.putNumber("Elevator Current Position", leadPosition.getValueAsDouble());
         SmartDashboard.putNumber("Elevator Current Meters", (leadPosition.getValueAsDouble() / ElevatorConstants.ElevatorGearRatio) * (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter));
