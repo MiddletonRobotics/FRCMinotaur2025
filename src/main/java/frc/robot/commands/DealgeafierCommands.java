@@ -65,7 +65,7 @@ public class DealgeafierCommands {
         return new SequentialCommandGroup(
             new PrintCommand("Running the Algae Pivot to: " + PivotingState.START),
             new InstantCommand(() -> dealgeaElevatorSubsystem.setPivotingState(PivotingState.START)),
-            new RunCommand(() -> dealgeaElevatorSubsystem.runToProfiledPosition(), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.atTargetPosition())
+            new RunCommand(() -> dealgeaElevatorSubsystem.runToPosition(), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.atTargetPosition())
         );
     }
 

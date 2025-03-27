@@ -124,7 +124,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
             .pid(0.3, 0.0, 0.0);
 
         pivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        pivotingEncoder.setPosition(PivotingState.START.getPosition().in(Radians));
+        pivotingEncoder.setPosition(PivotingState.STORED.getPosition().in(Radians));
     }
 
     public void configureRollerMotor() {

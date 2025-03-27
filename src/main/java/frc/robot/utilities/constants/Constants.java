@@ -246,13 +246,13 @@ public class Constants {
 
         public enum ElevatorStates {
             STOP(0),
-            L1(0.1213),
-            L2(0.2485),
-            L3(0.5099),
-            L4(0.9513),
-            BARGE(1.2368),
-            DEALGEAFIER_L2(0.2047),
-            DEALGEAFIER_L3(0.4453),
+            L1(0.1213 + 0.051),
+            L2(0.2485 + 0.051),
+            L3(0.5099 + 0.051),
+            L4(0.9513 + 0.051 + 0.0254),
+            BARGE(1.2368 + 0.051),
+            DEALGEAFIER_L2(0.2047 + 0.051),
+            DEALGEAFIER_L3(0.4453 + 0.051),
             STOW(0);
 
             private final double position;
