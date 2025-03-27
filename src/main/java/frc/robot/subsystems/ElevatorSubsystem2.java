@@ -123,6 +123,10 @@ public class ElevatorSubsystem2 extends SubsystemBase {
         elevatorLeader.setControl(voltageRequest.withOutput(volts).withEnableFOC(false));
     }
 
+    public double elevatorCurrentPosition() {
+        return (leadPosition.getValueAsDouble() / ElevatorConstants.ElevatorGearRatio) * (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter);
+    }
+
     public void setSpeed(double speed) {
         elevatorLeader.set(speed);
         elevatorFollower.set(speed);

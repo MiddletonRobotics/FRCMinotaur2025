@@ -160,7 +160,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         configureAutoBuilder();
 
         field = new Field2d();
-        SmartDashboard.putData("Field",field);
     }
 
     /**
@@ -188,7 +187,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         configureAutoBuilder();
 
         field = new Field2d();
-        SmartDashboard.putData("Field",field);
     }
 
     /**
@@ -224,7 +222,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         configureAutoBuilder();
 
         field = new Field2d();
-        SmartDashboard.putData("Field",field);
     }
 
     private void configureAutoBuilder() {
@@ -357,10 +354,15 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             });
         }
 
+        LimelightHelper.SetRobotOrientation("limelight-left", getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
+        LimelightHelper.SetRobotOrientation("limelight-right", getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
+        SmartDashboard.putNumber("Limelight Tag ID", LimelightHelper.getFiducialID(limelightUsed));
+        SmartDashboard.putData("Field",field);
+
         updateOdometry();
 
         Pose2d currentPose = getState().Pose;
-        field.setRobotPose(currentPose); // Fused pose I think
+        field.setRobotPose(getState().Pose); // Fused pose I think
         Double[] fusedPose = {currentPose.getX(), currentPose.getY(), currentPose.getRotation().getRadians()};
         SmartDashboard.putNumberArray("Fused PoseDBL", fusedPose);
 
@@ -404,12 +406,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private void updateOdometry() {
         choose_LL();
 
-        LLposeEstimate = get_LL_Estimate(true);
+        LLposeEstimate = get_LL_Estimate(false);
         if (LLposeEstimate != null) {
             SmartDashboard.putNumber("LimelightPoseX", LLposeEstimate.pose.getY());
             SmartDashboard.putNumber("LimelightPoseY", LLposeEstimate.pose.getX());
             SmartDashboard.putNumber("LimelightPoseRot", LLposeEstimate.pose.getRotation().getDegrees());
-            setStateStdDevs(VecBuilder.fill(0.7 , 0.7, 6).div(LimelightHelper.getTA(limelightUsed)));
+            setStateStdDevs(VecBuilder.fill(0.5 , 0.5, 6).div(LimelightHelper.getTA(limelightUsed)));
             addVisionMeasurement(LLposeEstimate.pose, LLposeEstimate.timestampSeconds);
         }
     }
@@ -435,10 +437,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (useMegaTag2 == false) {
             poseEstimate = LimelightHelper.getBotPoseEstimate_wpiBlue(limelightUsed);
 
-            if (poseEstimate == null){
+            if (poseEstimate == null) {
                 doRejectUpdate = true;
-            }
-            else{
+            } else {
                 if (poseEstimate.tagCount == 1 && poseEstimate.rawFiducials.length == 1) {
                     if (poseEstimate.rawFiducials[0].ambiguity > .7) {
                         doRejectUpdate = true;
@@ -446,16 +447,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                     if (poseEstimate.rawFiducials[0].distToCamera > 3) {
                         doRejectUpdate = true;
                     }
-                    }
-                    if (poseEstimate.tagCount == 0) {
+                
+                }
+                if (poseEstimate.tagCount == 0) {
                     doRejectUpdate = true;
-                    }
+                }
             }
         } else if (useMegaTag2 == true) {
-            LimelightHelper.SetRobotOrientation("limelight-left", getState().Pose.getRotation().getDegrees(),
-            0, 0, 0, 0, 0);
-            LimelightHelper.SetRobotOrientation("limelight-right", getState().Pose.getRotation().getDegrees(),
-            0, 0, 0, 0, 0);
             poseEstimate = LimelightHelper.getBotPoseEstimate_wpiBlue_MegaTag2(limelightUsed);
 
             if (poseEstimate == null) {

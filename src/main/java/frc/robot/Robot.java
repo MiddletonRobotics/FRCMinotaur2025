@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.RobotController;
@@ -26,6 +27,8 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
+
+    CameraServer.startAutomaticCapture();
     m_robotContainer.onDisabled();
   }
 
@@ -33,7 +36,7 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
 
-    if(m_robotContainer.elevatorSubsystem2.getElevatorState().getPosition() >= ElevatorStates.L3.getPosition()) {
+    if(m_robotContainer.elevatorSubsystem2.elevatorCurrentPosition() >= ElevatorStates.L3.getPosition()) {
       m_robotContainer.drivingState = DrivingState.ELEVATOR_UP;
     } else {
       if(m_robotContainer.drivingState == DrivingState.ELEVATOR_UP) {

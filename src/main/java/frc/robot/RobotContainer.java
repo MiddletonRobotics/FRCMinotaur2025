@@ -33,7 +33,9 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+
 import frc.robot.commands.ProcessorCommands;
+import frc.robot.commands.SwervePosePID;
 import frc.robot.commands.AutoAlign;
 import frc.robot.commands.CoralCommands;
 import frc.robot.commands.DealgeafierCommands;
@@ -43,7 +45,6 @@ import frc.robot.commands.PrepareDealgeafication;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.DealgeafierSubsystem;
 import frc.robot.subsystems.ProcessorSubsystem;
-//import frc.robot.subsystems.AlgeaElevatorSubsystem.RollUntilLimitCommand;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
@@ -59,14 +60,14 @@ public class RobotContainer {
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.13).withRotationalDeadband(MaxAngularRate * 0.13) // Add a 10% deadband
+            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
     public enum DrivingState {
-        ELEVATOR_UP(0),
+        ELEVATOR_UP(0.2),
         SLOWMODE(0.3),
         NORMAL(0.8);
 
@@ -118,6 +119,7 @@ public class RobotContainer {
 
         SmartDashboard.putData("Autonomous Chooser", autonomousChooser);
         SmartDashboard.putNumber("Battery Voltage", RobotController.getBatteryVoltage());
+        //SmartDashboard.putNumber("RoboRIO CPU", RobotController.get)
 
         //configureDriverBindings();
         configureOperatorBindings();
@@ -204,6 +206,11 @@ public class RobotContainer {
         operatorController.y().onTrue(ProcessorCommands.startPivotToStored(processorSubsystem));
         operatorController.x().onTrue(ProcessorCommands.startPivotToGround(processorSubsystem));
 
+        operatorController.b().onTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(1)));
+        operatorController.b().whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
+        operatorController.a().onTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(-1)));
+        operatorController.a().whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
+
         operatorController.povRight().onTrue(DealgeafierCommands.runPivotToStart(dealgeafierSubsystem));
         operatorController.povUp().onTrue(DealgeafierCommands.runPivotToBarge(dealgeafierSubsystem));
         operatorController.povLeft().onTrue(DealgeafierCommands.runPivotToReef(dealgeafierSubsystem));
@@ -225,8 +232,8 @@ public class RobotContainer {
             )
         );
 
-        driverController.leftStick().onTrue(new AutoAlign(drivetrain, Rotation2d.fromDegrees(0.0), 0.4, 0.4));
-        driverController.rightStick().onTrue(new AutoAlign(drivetrain, Rotation2d.fromDegrees(0.0), 0.4, 0.4));
+        driverController.leftStick().onTrue(new SwervePosePID(drivetrain, true));
+        driverController.rightStick().onTrue(new SwervePosePID(drivetrain, false));
 
         driverController.a().onTrue(Elevator2Commands.runElevatorToPosition(elevatorSubsystem2));
         driverController.b().onTrue(Elevator2Commands.runElevatorToStow(elevatorSubsystem2));
@@ -239,13 +246,13 @@ public class RobotContainer {
 
         driverController.leftTrigger().onTrue(CoralCommands.funnelIntakingUntilBroken(coralSubsystem));
         driverController.leftBumper().onTrue(CoralCommands.scoreCoral(coralSubsystem));
-        driverController.rightBumper().onTrue(new ConditionalCommand(
+        driverController.rightTrigger(0.5).onTrue(new ConditionalCommand(
             new InstantCommand(() -> this.drivingState = DrivingState.SLOWMODE), 
             new InstantCommand(() -> this.drivingState = DrivingState.NORMAL), 
             () -> this.drivingState == DrivingState.NORMAL
         ));
 
-        driverController.back().and(driverController.rightTrigger(0.5)).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        driverController.back().and(driverController.rightBumper()).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 

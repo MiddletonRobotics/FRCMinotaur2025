@@ -9,12 +9,6 @@
           "data": {
             "commands": [
               {
-                "type": "named",
-                "data": {
-                  "name": "AlgeaStart"
-                }
-              },
-              {
                 "type": "path",
                 "data": {
                   "pathName": "MoveAutoCenterPath1"

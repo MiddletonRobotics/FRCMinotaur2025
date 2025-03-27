@@ -10,13 +10,12 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.utilities.LimelightHelper;
 
 public class SwervePosePID extends Command {
-    private PIDController xpidController = new PIDController(0.03, 0, 0);
-    private PIDController ypidController = new PIDController(0.1, 0, 0);
+    private PIDController xpidController = new PIDController(0.025, 0, 0);
+    private PIDController ypidController = new PIDController(0.07, 0, 0);
   
     private CommandSwerveDrivetrain drivetrain;
     private Translation2d translation = new Translation2d();
     private boolean left;
-    private Pose2d target;
     private double xVal, yVal;
 
     private final SwerveRequest.RobotCentric drive = new SwerveRequest.RobotCentric();
@@ -42,37 +41,35 @@ public class SwervePosePID extends Command {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        if(left){
-          xVal = xpidController.calculate(LimelightHelper.getTX("limelight-left"), 0);
-          yVal = -ypidController.calculate(LimelightHelper.getTY("limelight-left"), 0);
-        }
-        else{
-            xVal = xpidController.calculate(LimelightHelper.getTX("limelight-right"), 0);
-            yVal = -ypidController.calculate(LimelightHelper.getTY("limelight-right"), 0);
-        }
+      if(left) {
+        xVal = xpidController.calculate(LimelightHelper.getTX("limelight-right"), 2.77);
+        yVal = ypidController.calculate(LimelightHelper.getTY("limelight-right"), 3.07);
+      } else {
+        xVal = xpidController.calculate(LimelightHelper.getTX("limelight-left"), 15.04);
+        yVal = ypidController.calculate(LimelightHelper.getTY("limelight-left"), -2.09);
+      }
 
-        System.out.println("X Value " + xVal);
-        System.out.println("Y Value " + yVal);
+      System.out.println("X Value " + xVal);
+      System.out.println("Y Value " + yVal);
 
-        translation = new Translation2d(yVal, xVal).times(1.5);
-        drivetrain.setControl(
-          drive.withVelocityX(translation.getX())
-                .withVelocityY(translation.getY())
-                .withRotationalRate(0)
-        );        
+      translation = new Translation2d(yVal, xVal).times(1);
+      drivetrain.setControl(drive.withVelocityX(translation.getX()).withVelocityY(translation.getY()).withRotationalRate(0));        
     }
   
     // Called once the command ends or is interrupted.
     @Override
-    public void end(boolean interrupted) {}
+    public void end(boolean interrupted) {
+      
+    }
   
     // Returns true when the command should end.
     @Override
     public boolean isFinished() {
-      if(Math.abs(xVal) <= 0.15 && Math.abs(yVal) <= 0.15){
+      if(Math.abs(xVal) <= 0.15 && Math.abs(yVal) <= 0.15) {
         System.out.println("Finished PID");
         return true;
       }
+
       return false;
     }
   }

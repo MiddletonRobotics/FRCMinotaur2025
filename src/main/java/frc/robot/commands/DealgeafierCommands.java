@@ -14,7 +14,7 @@ public class DealgeafierCommands {
     public static Command intakeUntilBroken(DealgeafierSubsystem dealgeaElevatorSubsystem) {
         return new SequentialCommandGroup(
             new PrintCommand("Running the Auto Algae Intake"),
-            new RunCommand(() -> dealgeaElevatorSubsystem.startRolling(-1), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.getLimitSwitch()),
+            new RunCommand(() -> dealgeaElevatorSubsystem.startRolling(-1.0), dealgeaElevatorSubsystem).until(() -> dealgeaElevatorSubsystem.getLimitSwitch()),
             new InstantCommand(() -> dealgeaElevatorSubsystem.stopRolling())
         ).withName("Auto Algea Intaking");
     } 

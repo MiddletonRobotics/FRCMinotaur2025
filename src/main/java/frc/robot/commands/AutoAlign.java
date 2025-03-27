@@ -50,8 +50,8 @@ public class AutoAlign extends Command {
     drivetrain.choose_LL();
     String choosenLimelight = drivetrain.limelightUsed;
 
-    double xValue = LimelightHelper.getTV(choosenLimelight) ? -yController.calculate(LimelightHelper.getTY(choosenLimelight), targetY) : 0;
-    double yValue = LimelightHelper.getTV(choosenLimelight) ? xController.calculate(LimelightHelper.getTX(choosenLimelight), targetX) : 0;
+    double xValue = LimelightHelper.getTV(choosenLimelight) ? yController.calculate(LimelightHelper.getTY("limelight-left"), targetY) : 0;
+    double yValue = LimelightHelper.getTV(choosenLimelight) ? -xController.calculate(LimelightHelper.getTX("limelight-left"), targetX) : 0;
     double rotationValue = rotationController.calculate(drivetrain.getState().Pose.getRotation().getRadians(), targetAngle.getRadians());
 
     drivetrain.setControl(driveChassisSpeeds.withSpeeds(new ChassisSpeeds(xValue, yValue, rotationValue)));
