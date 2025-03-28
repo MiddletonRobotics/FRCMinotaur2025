@@ -203,12 +203,13 @@ public class RobotContainer {
     */
 
     public void configureOperatorBindings() {   
-        operatorController.y().onTrue(ProcessorCommands.startPivotToStored(processorSubsystem));
+        operatorController.start().onTrue(ProcessorCommands.startPivotToStored(processorSubsystem));
         operatorController.x().onTrue(ProcessorCommands.startPivotToGround(processorSubsystem));
+        operatorController.y().onTrue(ProcessorCommands.startPivotToIntaken(processorSubsystem));
 
-        operatorController.b().onTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(1)));
+        operatorController.b().onTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(0.25)));
         operatorController.b().whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
-        operatorController.a().onTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(-1)));
+        operatorController.a().onTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(-0.5)));
         operatorController.a().whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
 
         operatorController.povRight().onTrue(DealgeafierCommands.runPivotToStart(dealgeafierSubsystem));

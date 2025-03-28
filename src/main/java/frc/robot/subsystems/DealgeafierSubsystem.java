@@ -74,7 +74,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
         STORED(Degrees.of(90.0)),
         BARGE(Degrees.of(115.0)),
         REEF(Degrees.of(190.0)),
-        GROUND(Degrees.of(240.0));
+        GROUND(Degrees.of(235.0));
 
         private final Angle position;
 
@@ -217,7 +217,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
     }
 
     public void stopRolling() {
-        rollerMotor.set(-0.1);
+        rollerMotor.set(-0.17);
     }
 
     public void startPivot(double speed) {

@@ -26,8 +26,7 @@ public class Elevator2Commands {
 
     public static Command runElevatorToStow(ElevatorSubsystem2 elevatorSubsystem) {
         return new SequentialCommandGroup(
-            new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.STOW)),
-            new RunCommand(() -> elevatorSubsystem.runToPosition()).until(() -> elevatorSubsystem.atGoal())
+            new RunCommand(() -> elevatorSubsystem.runToStow()).until(() -> elevatorSubsystem.atGoal())
         );
     }
 

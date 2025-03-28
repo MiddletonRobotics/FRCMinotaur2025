@@ -222,6 +222,12 @@ public class ElevatorSubsystem2 extends SubsystemBase {
         elevatorLeader.setControl(positionVoltageRequest.withPosition((meters / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio)));
     }
 
+    public void runToStow() {
+        double meters = ElevatorStates.STOW.getPosition();
+        elevatorFollower.setControl(positionVoltageRequest.withPosition((meters / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio)));
+        elevatorLeader.setControl(positionVoltageRequest.withPosition((meters / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio)));
+    }
+
     public boolean atGoal() {
         return Math.abs(positionGoalMeters - (leadPosition.getValueAsDouble() / ElevatorConstants.ElevatorGearRatio) * (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter)) <= 0.04;
     }
@@ -230,7 +236,6 @@ public class ElevatorSubsystem2 extends SubsystemBase {
     public void periodic() {
         BaseStatusSignal.refreshAll(leadPosition, followPosition, leadVelocity, followVelocity);
         positionGoalMeters = this.currentElevatorState.getPosition();
-
         SmartDashboard.putBoolean("Elevator At Goal", atGoal());
         SmartDashboard.putBoolean("Elevator Stuck", isElevatorCooking());
         SmartDashboard.putString("Elevator State: ", currentElevatorState.toString());

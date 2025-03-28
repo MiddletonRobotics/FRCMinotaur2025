@@ -70,7 +70,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private static boolean useMegaTag2 = true; // set to false to use MegaTag1
     private static boolean doRejectUpdate = false;
     public static String limelightUsed;
-    private static LimelightHelper.PoseEstimate LLposeEstimate;
+    private static LimelightHelper.PoseEstimate LLposeLeft;
+    private static LimelightHelper.PoseEstimate LLposeRight;
     //Get average tag areas (percentage of image), Choose the limelight with the highest average tag area
     private static double limelightLeftAvgTagArea = 0;
     private static double limelightRightAvgTagArea = 0;
@@ -356,15 +357,34 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
         LimelightHelper.SetRobotOrientation("limelight-left", getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
         LimelightHelper.SetRobotOrientation("limelight-right", getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
-        SmartDashboard.putNumber("Limelight Tag ID", LimelightHelper.getFiducialID(limelightUsed));
-        SmartDashboard.putData("Field",field);
 
-        updateOdometry();
+        SmartDashboard.putNumber("Left Limelight Tag ID", LimelightHelper.getFiducialID("limelight-left"));
+        SmartDashboard.putNumber("Right Limelight Tag ID", LimelightHelper.getFiducialID("limelight-right"));
+
+        LLposeLeft = get_LL_Estimate(false, "limelight-left");
+        LLposeRight = get_LL_Estimate(false, "limelight-right");
+
+        if (LLposeRight != null) {
+            SmartDashboard.putNumber("RightLimelightPoseX", LLposeRight.pose.getX());
+            SmartDashboard.putNumber("RightLimelightPoseY", LLposeRight.pose.getY());
+            SmartDashboard.putNumber("RightLimelightPoseRot", LLposeRight.pose.getRotation().getDegrees());
+            //setStateStdDevs(VecBuilder.fill(0.5, 0.5, Double.MAX_VALUE));
+            addVisionMeasurement(LLposeRight.pose, LLposeRight.timestampSeconds);
+        } 
+        
+        if (LLposeLeft != null) {
+            SmartDashboard.putNumber("LeftLimelightPoseX", LLposeLeft.pose.getX());
+            SmartDashboard.putNumber("LeftLimelightPoseY", LLposeLeft.pose.getY());
+            SmartDashboard.putNumber("LeftLimelightPoseRot", LLposeLeft.pose.getRotation().getDegrees());
+            //setStateStdDevs(VecBuilder.fill(0.5, 0.5, Double.MAX_VALUE));
+            addVisionMeasurement(LLposeLeft.pose, LLposeLeft.timestampSeconds);
+        }
 
         Pose2d currentPose = getState().Pose;
         field.setRobotPose(getState().Pose); // Fused pose I think
         Double[] fusedPose = {currentPose.getX(), currentPose.getY(), currentPose.getRotation().getRadians()};
         SmartDashboard.putNumberArray("Fused PoseDBL", fusedPose);
+        SmartDashboard.putData("Field",field);
 
         /*
         SmartDashboard.putData("Swerve Drive", new Sendable() {
@@ -390,6 +410,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         */
     }
 
+    /*
+
     public void resetToVision(){
         choose_LL();
         
@@ -399,20 +421,30 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
     }
 
+    */
+
     /**
      * Polls the limelights for a pose estimate and uses the pose estimator Kalman filter to fuse the best Limelight pose estimate
      * with the odometry pose estimate
      */
     private void updateOdometry() {
-        choose_LL();
+        LLposeLeft = get_LL_Estimate(false, "limelight-left");
+        LLposeRight = get_LL_Estimate(false, "limelight-right");
 
-        LLposeEstimate = get_LL_Estimate(false);
-        if (LLposeEstimate != null) {
-            SmartDashboard.putNumber("LimelightPoseX", LLposeEstimate.pose.getY());
-            SmartDashboard.putNumber("LimelightPoseY", LLposeEstimate.pose.getX());
-            SmartDashboard.putNumber("LimelightPoseRot", LLposeEstimate.pose.getRotation().getDegrees());
-            setStateStdDevs(VecBuilder.fill(0.5 , 0.5, 6).div(LimelightHelper.getTA(limelightUsed)));
-            addVisionMeasurement(LLposeEstimate.pose, LLposeEstimate.timestampSeconds);
+        if (LLposeRight != null) {
+            SmartDashboard.putNumber("RightLimelightPoseX", LLposeRight.pose.getY());
+            SmartDashboard.putNumber("RightLimelightPoseY", LLposeRight.pose.getX());
+            SmartDashboard.putNumber("RightLimelightPoseRot", LLposeRight.pose.getRotation().getDegrees());
+            setStateStdDevs(VecBuilder.fill(0.7, 0.7, Double.MAX_VALUE));
+            addVisionMeasurement(LLposeRight.pose, LLposeRight.timestampSeconds);
+        } 
+        
+        if (LLposeLeft != null) {
+            SmartDashboard.putNumber("LeftLimelightPoseX", LLposeLeft.pose.getY());
+            SmartDashboard.putNumber("LeftLimelightPoseY", LLposeLeft.pose.getX());
+            SmartDashboard.putNumber("LeftLimelightPoseRot", LLposeLeft.pose.getRotation().getDegrees());
+            setStateStdDevs(VecBuilder.fill(0.7, 0.7, Double.MAX_VALUE));
+            addVisionMeasurement(LLposeLeft.pose, LLposeLeft.timestampSeconds);
         }
     }
 
@@ -430,12 +462,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      * @param useMegaTag2 Boolean to use mt2 or mt1
      * @return Valid pose estimate or null
      */
-    private LimelightHelper.PoseEstimate get_LL_Estimate(boolean useMegaTag2){
+    private LimelightHelper.PoseEstimate get_LL_Estimate(boolean useMegaTag2, String llName){
         doRejectUpdate = false;
         LimelightHelper.PoseEstimate poseEstimate = new LimelightHelper.PoseEstimate();
 
         if (useMegaTag2 == false) {
-            poseEstimate = LimelightHelper.getBotPoseEstimate_wpiBlue(limelightUsed);
+            poseEstimate = LimelightHelper.getBotPoseEstimate_wpiBlue(llName);
 
             if (poseEstimate == null) {
                 doRejectUpdate = true;
@@ -454,7 +486,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 }
             }
         } else if (useMegaTag2 == true) {
-            poseEstimate = LimelightHelper.getBotPoseEstimate_wpiBlue_MegaTag2(limelightUsed);
+            poseEstimate = LimelightHelper.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
 
             if (poseEstimate == null) {
                 doRejectUpdate = true;
@@ -474,8 +506,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             return null;
         }
         else{
-            SmartDashboard.putString("LL Pose", poseEstimate.pose.toString());
-            LLposeEstimate = poseEstimate;
             return poseEstimate;
         }
     }

@@ -16,12 +16,12 @@
     },
     {
       "anchor": {
-        "x": 6.0,
-        "y": 4.175
+        "x": 5.934747516556291,
+        "y": 4.184809602649008
       },
       "prevControl": {
-        "x": 6.245707061328044,
-        "y": 4.128869315921646
+        "x": 6.180454577884335,
+        "y": 4.138678918570654
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": -178.66837930932644
   },
   "reversed": false,
   "folder": "MoveAutoCenter",

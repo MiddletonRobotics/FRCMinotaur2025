@@ -78,7 +78,7 @@ public class ProcessorSubsystem extends SubsystemBase {
 
     public enum GroundPivotingState {
         STORED(Degrees.of(91.6)),
-        INTAKEN(Degrees.of(106.0)),
+        INTAKEN(Radians.of(2.104873)),
         GROUND(Degrees.of(151.0));
 
         private final Angle position;
@@ -187,7 +187,7 @@ public class ProcessorSubsystem extends SubsystemBase {
     }
 
     public void stopFlywheel() {
-        rollerMotor.set(-0.05);
+        rollerMotor.set(-0.1);
     }
 
     public void startGroundPivot(double speed) {

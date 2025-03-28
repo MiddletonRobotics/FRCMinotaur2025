@@ -36,6 +36,14 @@ public class ProcessorCommands {
         );
     }
 
+    public static Command startPivotToIntaken(ProcessorSubsystem algeaGroundSubsystem) {
+        return new SequentialCommandGroup(
+            new PrintCommand("Running the Intake Algea Command"),
+            new InstantCommand(() -> algeaGroundSubsystem.setGoal(GroundPivotingState.INTAKEN)),
+            new RunCommand(() -> algeaGroundSubsystem.runToPosition()).until(() -> algeaGroundSubsystem.atGoal())
+        );
+    }
+
     public static Command startPivotToStored(ProcessorSubsystem algeaGroundSubsystem) {
         return new SequentialCommandGroup(
             new PrintCommand("Running the Intake Algea Command"),
