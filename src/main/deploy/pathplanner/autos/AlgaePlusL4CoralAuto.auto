@@ -24,9 +24,35 @@
           }
         },
         {
-          "type": "named",
+          "type": "parallel",
           "data": {
-            "name": "PrepareL4"
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "PrepareL4"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 0.1
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "CoralPlusAlgaePath1.5"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
           }
         },
         {

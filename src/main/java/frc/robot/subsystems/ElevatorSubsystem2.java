@@ -70,9 +70,9 @@ public class ElevatorSubsystem2 extends SubsystemBase {
         elevatorConfiguration.Slot0.GravityType = GravityTypeValue.Elevator_Static;
 
         elevatorConfiguration.CurrentLimits.StatorCurrentLimitEnable = true;
-        elevatorConfiguration.CurrentLimits.StatorCurrentLimit = 85;
+        elevatorConfiguration.CurrentLimits.StatorCurrentLimit = 90;
         elevatorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
-        elevatorConfiguration.CurrentLimits.SupplyCurrentLimit = 80;
+        elevatorConfiguration.CurrentLimits.SupplyCurrentLimit = 90;
 
         elevatorConfiguration.MotionMagic.MotionMagicAcceleration = 5.0 / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio;
         elevatorConfiguration.MotionMagic.MotionMagicCruiseVelocity = 5.0 / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio;
@@ -130,6 +130,11 @@ public class ElevatorSubsystem2 extends SubsystemBase {
     public void setSpeed(double speed) {
         elevatorLeader.set(speed);
         elevatorFollower.set(speed);
+    }
+
+    public void resetEncoders() {
+        elevatorLeader.setPosition(0.0);
+        elevatorFollower.setPosition(0.0);
     }
 
     public void setElevatorState(ElevatorStates elevatorState) {

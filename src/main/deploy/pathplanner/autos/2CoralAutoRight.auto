@@ -9,37 +9,36 @@
           "data": {
             "commands": [
               {
-                "type": "named",
-                "data": {
-                  "name": "PrepareL4"
-                }
-              },
-              {
                 "type": "path",
                 "data": {
                   "pathName": "CoralAutoRightPath1"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "ProcessorStore"
                 }
               }
             ]
           }
         },
         {
-          "type": "sequential",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "ScoreCoral"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "IndexCoral"
-                }
-              }
-            ]
+            "name": "PrepareL4"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ScoreCoral"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "StowElevator"
           }
         },
         {
@@ -49,41 +48,39 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "PrepareL4"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "CoralAutoRightPath3"
-                }
-              }
-            ]
+            "name": "IndexCoral"
           }
         },
         {
-          "type": "sequential",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "ScoreCoral"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "IndexCoral"
-                }
-              }
-            ]
+            "pathName": "CoralAutoRightPath3"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "PrepareL4"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.375
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ScoreCoral"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "StowElevator"
           }
         }
       ]

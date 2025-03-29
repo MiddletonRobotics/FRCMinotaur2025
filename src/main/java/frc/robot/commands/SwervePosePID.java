@@ -52,7 +52,7 @@ public class SwervePosePID extends Command {
       System.out.println("X Value " + xVal);
       System.out.println("Y Value " + yVal);
 
-      translation = new Translation2d(yVal, xVal).times(1);
+      translation = new Translation2d(yVal, xVal).times(0.5);
       drivetrain.setControl(drive.withVelocityX(translation.getX()).withVelocityY(translation.getY()).withRotationalRate(0));        
     }
   

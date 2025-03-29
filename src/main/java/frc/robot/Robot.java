@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.RobotController;
@@ -27,6 +28,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     m_robotContainer.onDisabled();
+    CameraServer.startAutomaticCapture();
   }
 
   @Override
@@ -40,6 +42,8 @@ public class Robot extends TimedRobot {
         m_robotContainer.drivingState = DrivingState.NORMAL;
       }
     }
+
+    SmartDashboard.putNumber("Battery Voltage", RobotController.getBatteryVoltage());
   }
 
   @Override

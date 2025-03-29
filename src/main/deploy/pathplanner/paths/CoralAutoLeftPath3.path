@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.45,
-        "y": 0.95
+        "x": 1.4,
+        "y": 0.9
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.6083452181568876,
-        "y": 1.1434600524316265
+        "x": 1.5583452181568875,
+        "y": 1.0934600524316265
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.6,
-        "y": 2.8
+        "x": 3.65,
+        "y": 2.91
       },
       "prevControl": {
-        "x": 2.6884573724072056,
-        "y": 2.1377243108624437
+        "x": 2.7384573724072054,
+        "y": 2.247724310862444
       },
       "nextControl": null,
       "isLocked": false,
@@ -36,30 +36,7 @@
   ],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [
-    {
-      "name": "PrepareL4",
-      "waypointRelativePos": 0.5037115863787368,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "PrepareL4"
-        }
-      }
-    },
-    {
-      "name": "ScoreCoral",
-      "waypointRelativePos": 1.0,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "ScoreCoral"
-        }
-      }
-    }
-  ],
+  "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 5.029,
     "maxAcceleration": 4.0,

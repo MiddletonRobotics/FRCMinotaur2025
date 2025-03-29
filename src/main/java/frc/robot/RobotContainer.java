@@ -98,11 +98,13 @@ public class RobotContainer {
     public final DealgeafierSubsystem dealgeafierSubsystem = new DealgeafierSubsystem();
     public final ElevatorSubsystem2 elevatorSubsystem2 = new ElevatorSubsystem2();
     public final ProcessorSubsystem processorSubsystem = new ProcessorSubsystem();
+    private boolean isManual = false;
     //private final Limelight leftElevatorLL = new Limelight(drivetrain, "limelight-left");
     //private final Limelight rightElevatorLL = new Limelight(drivetrain, "limelight-right");
 
     public RobotContainer() {
         NamedCommands.registerCommand("StowElevator", Elevator2Commands.runElevatorToStow(elevatorSubsystem2));
+        NamedCommands.registerCommand("ZeroElevator",Elevator2Commands.runElevatorToReset(elevatorSubsystem2));
         NamedCommands.registerCommand("PrepareBarge", Elevator2Commands.runElevatorToBarge(elevatorSubsystem2));
         NamedCommands.registerCommand("ProcessorStore", ProcessorCommands.startPivotToStored(processorSubsystem));
         NamedCommands.registerCommand("PrepareL4", Elevator2Commands.runElevatorToL4(elevatorSubsystem2));
@@ -118,7 +120,6 @@ public class RobotContainer {
         autonomousChooser = AutoBuilder.buildAutoChooser();
 
         SmartDashboard.putData("Autonomous Chooser", autonomousChooser);
-        SmartDashboard.putNumber("Battery Voltage", RobotController.getBatteryVoltage());
         //SmartDashboard.putNumber("RoboRIO CPU", RobotController.get)
 
         //configureDriverBindings();
@@ -203,58 +204,102 @@ public class RobotContainer {
     */
 
     public void configureOperatorBindings() {   
-        operatorController.start().onTrue(ProcessorCommands.startPivotToStored(processorSubsystem));
-        operatorController.x().onTrue(ProcessorCommands.startPivotToGround(processorSubsystem));
-        operatorController.y().onTrue(ProcessorCommands.startPivotToIntaken(processorSubsystem));
+        operatorController.y().and(() -> !isManual).onTrue(ProcessorCommands.startPivotToStored(processorSubsystem));
+        operatorController.x().and(() -> !isManual).onTrue(ProcessorCommands.startPivotToGround(processorSubsystem));
+        operatorController.start().and(() -> !isManual).onTrue(ProcessorCommands.startPivotToIntaken(processorSubsystem));
 
-        operatorController.b().onTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(0.25)));
-        operatorController.b().whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
-        operatorController.a().onTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(-0.5)));
-        operatorController.a().whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
+        operatorController.b().and(() -> !isManual).onTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(0.25)));
+        operatorController.b().and(() -> !isManual).whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
+        operatorController.a().and(() -> !isManual).onTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(-0.6)));
+        operatorController.a().and(() -> !isManual).whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
 
-        operatorController.povRight().onTrue(DealgeafierCommands.runPivotToStart(dealgeafierSubsystem));
-        operatorController.povUp().onTrue(DealgeafierCommands.runPivotToBarge(dealgeafierSubsystem));
-        operatorController.povLeft().onTrue(DealgeafierCommands.runPivotToReef(dealgeafierSubsystem));
-        operatorController.povDown().onTrue(DealgeafierCommands.runPivotToGround(dealgeafierSubsystem));
+        operatorController.povRight().and(() -> !isManual).onTrue(DealgeafierCommands.runPivotToStart(dealgeafierSubsystem));
+        operatorController.povUp().and(() -> !isManual).onTrue(DealgeafierCommands.runPivotToBarge(dealgeafierSubsystem));
+        operatorController.povLeft().and(() -> !isManual).onTrue(DealgeafierCommands.runPivotToReef(dealgeafierSubsystem));
+        operatorController.povDown().and(() -> !isManual).onTrue(DealgeafierCommands.runPivotToGround(dealgeafierSubsystem));
 
-        operatorController.rightTrigger().onTrue(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem));
-        operatorController.rightBumper().onTrue(DealgeafierCommands.shootAlgea(dealgeafierSubsystem));
+        operatorController.rightTrigger().and(() -> !isManual).onTrue(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem));
+        operatorController.rightBumper().and(() -> !isManual).onTrue(DealgeafierCommands.shootAlgea(dealgeafierSubsystem));
 
-        operatorController.axisLessThan(XboxController.Axis.kRightY.value, -0.5).onTrue(new InstantCommand(() -> elevatorSubsystem2.incrementElevatorState()));
-        operatorController.axisGreaterThan(XboxController.Axis.kRightY.value, 0.5).onTrue(new InstantCommand(() -> elevatorSubsystem2.decrementElevatorState()));
+        operatorController.axisLessThan(XboxController.Axis.kRightY.value, -0.5).and(() -> !isManual).onTrue(new InstantCommand(() -> elevatorSubsystem2.incrementElevatorState()));
+        operatorController.axisGreaterThan(XboxController.Axis.kRightY.value, 0.5).and(() -> !isManual).onTrue(new InstantCommand(() -> elevatorSubsystem2.decrementElevatorState()));
+
+        operatorController.axisLessThan(XboxController.Axis.kLeftY.value, -0.5).and(() -> !isManual).onTrue(new InstantCommand(() -> dealgeafierSubsystem.startPivot(0.1)));
+        operatorController.axisGreaterThan(XboxController.Axis.kLeftY.value, 0.5).and(() -> !isManual).onTrue(new InstantCommand(() -> dealgeafierSubsystem.startPivot(0.1)));
+
+        operatorController.y().and(() -> isManual).whileTrue(new InstantCommand(() -> processorSubsystem.startGroundPivot(0.2)));
+        operatorController.y().and(() -> isManual).whileFalse(new InstantCommand(() -> processorSubsystem.startGroundPivot(0.0)));
+
+        operatorController.x().and(() -> isManual).whileTrue(new InstantCommand(() -> processorSubsystem.startGroundPivot(-0.125)));
+        operatorController.x().and(() -> isManual).whileFalse(new InstantCommand(() -> processorSubsystem.stopGroundPivot()));
+
+        operatorController.povRight().and(() -> isManual).whileTrue(new RunCommand(() -> dealgeafierSubsystem.startPivot(-0.23)));
+        operatorController.povRight().and(() -> isManual).onFalse(new InstantCommand(() -> dealgeafierSubsystem.stopPivot()));
+
+        operatorController.povLeft().and(() -> isManual).whileTrue(new RunCommand(() -> dealgeafierSubsystem.startPivot(0.23)));
+        operatorController.povLeft().and(() -> isManual).onFalse(new InstantCommand(() -> dealgeafierSubsystem.stopPivot()));
+
+        operatorController.rightTrigger(0.5).and(() -> isManual).whileTrue(new InstantCommand(() -> dealgeafierSubsystem.startRolling(1)));
+        operatorController.rightTrigger(0.5).and(() -> isManual).whileFalse(new InstantCommand(() -> dealgeafierSubsystem.stopRolling()));
+
+        operatorController.leftTrigger(0.5).and(() -> isManual).whileTrue(new InstantCommand(() -> dealgeafierSubsystem.startRolling(-1)));
+        operatorController.leftTrigger(0.5).and(() -> isManual).whileFalse(new InstantCommand(() -> dealgeafierSubsystem.stopRolling()));
     }
 
     public void configureTestingBindings() {
-        drivetrain.setDefaultCommand(
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX((-driverController.getLeftY() * MaxSpeed) * drivingState.getPosition()) // Drive forward with negative Y (forward)
-                    .withVelocityY((-driverController.getLeftX() * MaxSpeed) * drivingState.getPosition()) // Drive left with negative X (left)
-                    .withRotationalRate((-driverController.getRightX() * MaxAngularRate) * drivingState.getPosition()) // Drive counterclockwise with negative X (left)
-            )
-        );
+            drivetrain.setDefaultCommand(
+                drivetrain.applyRequest(() ->
+                    drive.withVelocityX((-driverController.getLeftY() * MaxSpeed) * drivingState.getPosition()) // Drive forward with negative Y (forward)
+                        .withVelocityY((-driverController.getLeftX() * MaxSpeed) * drivingState.getPosition()) // Drive left with negative X (left)
+                        .withRotationalRate((-driverController.getRightX() * MaxAngularRate) * drivingState.getPosition()) // Drive counterclockwise with negative X (left)
+                )
+            );
 
-        driverController.leftStick().onTrue(new SwervePosePID(drivetrain, true));
-        driverController.rightStick().onTrue(new SwervePosePID(drivetrain, false));
+            driverController.a().and(() -> !isManual).onTrue(Elevator2Commands.runElevatorToPosition(elevatorSubsystem2));
+            driverController.b().and(() -> !isManual).onTrue(Elevator2Commands.runElevatorToStow(elevatorSubsystem2));
 
-        driverController.a().onTrue(Elevator2Commands.runElevatorToPosition(elevatorSubsystem2));
-        driverController.b().onTrue(Elevator2Commands.runElevatorToStow(elevatorSubsystem2));
+            driverController.povLeft().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(0.5)));
+            driverController.povLeft().and(() -> !isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
 
-        driverController.povLeft().whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(0.5)));
-        driverController.povLeft().onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
+            driverController.povRight().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(-0.2)));
+            driverController.povRight().and(() -> !isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
 
-        driverController.povRight().whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(-0.2)));
-        driverController.povRight().onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
+            driverController.leftTrigger().and(() -> !isManual).onTrue(CoralCommands.funnelIntakingUntilBroken(coralSubsystem));
+            driverController.leftBumper().and(() -> !isManual).onTrue(CoralCommands.scoreCoral(coralSubsystem));
+            driverController.rightTrigger(0.5).and(() -> !isManual).onTrue(new ConditionalCommand(
+                new InstantCommand(() -> this.drivingState = DrivingState.SLOWMODE), 
+                new InstantCommand(() -> this.drivingState = DrivingState.NORMAL), 
+                () -> this.drivingState == DrivingState.NORMAL
+            ));
 
-        driverController.leftTrigger().onTrue(CoralCommands.funnelIntakingUntilBroken(coralSubsystem));
-        driverController.leftBumper().onTrue(CoralCommands.scoreCoral(coralSubsystem));
-        driverController.rightTrigger(0.5).onTrue(new ConditionalCommand(
-            new InstantCommand(() -> this.drivingState = DrivingState.SLOWMODE), 
-            new InstantCommand(() -> this.drivingState = DrivingState.NORMAL), 
-            () -> this.drivingState == DrivingState.NORMAL
-        ));
+            driverController.back().and(() -> !isManual).and(driverController.rightBumper()).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+            driverController.start().and(() -> !isManual).onTrue(new InstantCommand(() -> elevatorSubsystem2.resetEncoders()));
+            drivetrain.registerTelemetry(logger::telemeterize);
 
-        driverController.back().and(driverController.rightBumper()).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-        drivetrain.registerTelemetry(logger::telemeterize);
+            driverController.a().and(() -> isManual).whileTrue(drivetrain.applyRequest(() -> brake));
+            driverController.b().and(() -> isManual).whileTrue(drivetrain.applyRequest(() -> point.withModuleDirection(new Rotation2d(-driverController.getLeftY(), -driverController.getLeftX()))));
+
+            driverController.x().and(() -> isManual).whileTrue(new InstantCommand(() -> coralSubsystem.spinCoral(-1)));
+            driverController.x().and(() -> isManual).whileFalse(new InstantCommand(() -> coralSubsystem.stopCoral()));
+
+            driverController.y().and(() -> isManual).whileTrue(new InstantCommand(() -> coralSubsystem.spinCoral(0.4)));
+            driverController.y().and(() -> isManual).whileFalse(new InstantCommand(() -> coralSubsystem.stopCoral()));
+
+            driverController.leftTrigger(0.5).and(() -> isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(-0.9)));
+            driverController.leftTrigger(0.5).and(() -> isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
+
+            driverController.rightTrigger(0.5).and(() -> isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(0.2)));
+            driverController.rightTrigger(0.5).and(() -> isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
+
+            driverController.leftBumper().and(() -> isManual).whileTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(0.25)));
+            driverController.leftBumper().and(() -> isManual).whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
+
+            driverController.rightBumper().and(() -> isManual).whileTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(-0.6)));
+            driverController.rightBumper().and(() -> isManual).whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
+
+            driverController.povUp().and(() -> isManual).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+            driverController.rightStick().onTrue(new InstantCommand(() -> isManual = !isManual));
+        
     }
 
     public Command getAutonomousCommand() {

@@ -5,15 +5,40 @@
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "CoralAutoRightPath1"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "CoralAutoRightPath1"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "ProcessorStore"
+                }
+              }
+            ]
           }
         },
         {
-          "type": "wait",
+          "type": "named",
           "data": {
-            "waitTime": 0.5
+            "name": "PrepareL4"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ScoreCoral"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "StowElevator"
           }
         },
         {
@@ -23,9 +48,9 @@
           }
         },
         {
-          "type": "wait",
+          "type": "named",
           "data": {
-            "waitTime": 0.25
+            "name": "IndexCoral"
           }
         },
         {
@@ -35,9 +60,27 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "PrepareL4"
+          }
+        },
+        {
           "type": "wait",
           "data": {
-            "waitTime": 0.5
+            "waitTime": 0.375
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ScoreCoral"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "StowElevator"
           }
         },
         {
@@ -47,9 +90,9 @@
           }
         },
         {
-          "type": "wait",
+          "type": "named",
           "data": {
-            "waitTime": 0.25
+            "name": "IndexCoral"
           }
         },
         {
@@ -59,9 +102,27 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "PrepareL4"
+          }
+        },
+        {
           "type": "wait",
           "data": {
-            "waitTime": 0.5
+            "waitTime": 0.375
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ScoreCoral"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "StowElevator"
           }
         }
       ]

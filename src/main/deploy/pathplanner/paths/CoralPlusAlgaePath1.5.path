@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 5.7,
+        "x": 5.92,
         "y": 4.175
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.755497809502709,
-        "y": 4.184211189836965
+        "x": 5.67,
+        "y": 4.175
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 5.925,
-        "y": 4.02
+        "x": 5.7,
+        "y": 4.175
       },
       "prevControl": {
-        "x": 6.581509140137269,
-        "y": 4.008540590332935
+        "x": 5.95,
+        "y": 4.175
       },
       "nextControl": null,
       "isLocked": false,
@@ -47,7 +47,7 @@
   "reversed": false,
   "folder": "CoralPlusAlgea",
   "idealStartingState": {
-    "velocity": 0,
+    "velocity": 0.0,
     "rotation": 180.0
   },
   "useDefaultConstraints": true

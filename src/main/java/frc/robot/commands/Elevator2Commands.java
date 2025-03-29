@@ -18,7 +18,7 @@ public class Elevator2Commands {
 
     public static Command runElevatorToReset(ElevatorSubsystem2 elevatorSubsystem) {
         return new SequentialCommandGroup(
-            new RunCommand(() -> elevatorSubsystem.setPositionGoal(ElevatorStates.STOW.getPosition())).raceWith(new WaitCommand(0.3)),
+            new RunCommand(() -> elevatorSubsystem.runToStow()).until(() -> elevatorSubsystem.atGoal()),
             new WaitUntilCommand(() -> elevatorSubsystem.isElevatorCooking()),
             new InstantCommand(() -> elevatorSubsystem.setPosition(0))
         );
