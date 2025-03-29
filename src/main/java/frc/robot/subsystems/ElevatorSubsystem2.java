@@ -1,6 +1,9 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Celsius;
 import static edu.wpi.first.units.Units.Radians;
+
+import java.io.ObjectInputFilter.Status;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -17,6 +20,7 @@ import com.pathplanner.lib.commands.FollowPathCommand;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utilities.PhoenixUtil;
@@ -51,6 +55,8 @@ public class ElevatorSubsystem2 extends SubsystemBase {
     private final StatusSignal<Angle> followPosition;
     private final StatusSignal<AngularVelocity> leadVelocity;
     private final StatusSignal<AngularVelocity> followVelocity;
+    private final StatusSignal<Temperature> leadTempurature;
+    private final StatusSignal<Temperature> followTempurature;
 
     private double positionGoalMeters;
 
@@ -94,6 +100,8 @@ public class ElevatorSubsystem2 extends SubsystemBase {
         followPosition = elevatorFollower.getPosition();
         leadVelocity = elevatorLeader.getVelocity();
         followVelocity = elevatorFollower.getVelocity();
+        leadTempurature = elevatorLeader.getDeviceTemp();
+        followTempurature = elevatorFollower.getDeviceTemp();
 
         
         PhoenixUtil.run("Set Elevator Signal Frequencies", () ->
@@ -239,7 +247,7 @@ public class ElevatorSubsystem2 extends SubsystemBase {
 
     @Override
     public void periodic() {
-        BaseStatusSignal.refreshAll(leadPosition, followPosition, leadVelocity, followVelocity);
+        BaseStatusSignal.refreshAll(leadPosition, followPosition, leadVelocity, followVelocity, leadTempurature, followTempurature);
         positionGoalMeters = this.currentElevatorState.getPosition();
         SmartDashboard.putBoolean("Elevator At Goal", atGoal());
         SmartDashboard.putBoolean("Elevator Stuck", isElevatorCooking());
@@ -249,5 +257,7 @@ public class ElevatorSubsystem2 extends SubsystemBase {
         SmartDashboard.putNumber("Elevator Current Meters", (leadPosition.getValueAsDouble() / ElevatorConstants.ElevatorGearRatio) * (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter));
         SmartDashboard.putNumber("Elevator Follower Position", followPosition.getValueAsDouble());
         SmartDashboard.putNumber("Elevator Error", (positionGoalMeters  / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio) - leadPosition.getValueAsDouble());
+        SmartDashboard.putNumber("Elevator Lead Temp", leadTempurature.getValue().in(Celsius));
+        SmartDashboard.putNumber("Elevator Follow Temp", followTempurature.getValue().in(Celsius)); 
     }
 }

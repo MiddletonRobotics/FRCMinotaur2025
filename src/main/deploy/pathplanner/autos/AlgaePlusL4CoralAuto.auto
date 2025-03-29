@@ -24,41 +24,21 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "PrepareL4"
-                }
-              },
-              {
-                "type": "sequential",
-                "data": {
-                  "commands": [
-                    {
-                      "type": "wait",
-                      "data": {
-                        "waitTime": 0.1
-                      }
-                    },
-                    {
-                      "type": "path",
-                      "data": {
-                        "pathName": "CoralPlusAlgaePath1.5"
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
+            "name": "PrepareL4"
           }
         },
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.375
+            "waitTime": 0.2
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "CoralPlusAlgaePath1.5"
           }
         },
         {

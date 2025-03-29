@@ -151,7 +151,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Dealgeafier Motor Temp.", rollerMotor.getMotorTemperature());
         SmartDashboard.putBoolean("Dealgeafier Limit- Switch", getLimitSwitch());
         SmartDashboard.putNumber("Dealgeafier Pivot Error", calculateError());
-        SmartDashboard.putBoolean("At Goal", atTargetPosition());
+        SmartDashboard.putBoolean("Dealgeafier At Goal", atTargetPosition());
 
         pivotDisconnected.set(pivotingMotor.getFaults().can);
         rollerDisconnected.set(rollerMotor.getFaults().can);

@@ -224,8 +224,8 @@ public class RobotContainer {
         operatorController.axisLessThan(XboxController.Axis.kRightY.value, -0.5).and(() -> !isManual).onTrue(new InstantCommand(() -> elevatorSubsystem2.incrementElevatorState()));
         operatorController.axisGreaterThan(XboxController.Axis.kRightY.value, 0.5).and(() -> !isManual).onTrue(new InstantCommand(() -> elevatorSubsystem2.decrementElevatorState()));
 
-        operatorController.axisLessThan(XboxController.Axis.kLeftY.value, -0.5).and(() -> !isManual).onTrue(new InstantCommand(() -> dealgeafierSubsystem.startPivot(0.1)));
-        operatorController.axisGreaterThan(XboxController.Axis.kLeftY.value, 0.5).and(() -> !isManual).onTrue(new InstantCommand(() -> dealgeafierSubsystem.startPivot(0.1)));
+        operatorController.axisLessThan(XboxController.Axis.kLeftY.value, -0.5).and(() -> !isManual).onTrue(new InstantCommand(() -> dealgeafierSubsystem.startPivot(-0.23)));
+        operatorController.axisGreaterThan(XboxController.Axis.kLeftY.value, 0.5).and(() -> !isManual).onTrue(new InstantCommand(() -> dealgeafierSubsystem.startPivot(0.23)));
 
         operatorController.y().and(() -> isManual).whileTrue(new InstantCommand(() -> processorSubsystem.startGroundPivot(0.2)));
         operatorController.y().and(() -> isManual).whileFalse(new InstantCommand(() -> processorSubsystem.startGroundPivot(0.0)));
@@ -258,7 +258,7 @@ public class RobotContainer {
             driverController.a().and(() -> !isManual).onTrue(Elevator2Commands.runElevatorToPosition(elevatorSubsystem2));
             driverController.b().and(() -> !isManual).onTrue(Elevator2Commands.runElevatorToStow(elevatorSubsystem2));
 
-            driverController.povLeft().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(0.5)));
+            driverController.povLeft().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(1)));
             driverController.povLeft().and(() -> !isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
 
             driverController.povRight().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(-0.2)));
