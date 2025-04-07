@@ -1,194 +1,246 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.Celsius;
 
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.ParentDevice;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import org.littletonrobotics.junction.Logger;
-
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.ClosedLoopSlot;
-import com.revrobotics.spark.SparkClosedLoopController;
-import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.config.SparkMaxConfig;
-
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.ElevatorFeedforward;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import frc.robot.Robot;
+import frc.robot.utilities.PhoenixUtil;
 import frc.robot.utilities.constants.Constants;
 import frc.robot.utilities.constants.Constants.ElevatorConstants;
 import frc.robot.utilities.constants.Constants.ElevatorConstants.ElevatorStates;
-import frc.robot.utilities.ShuffleData;
-import frc.robot.utilities.TrapezoidController;
-import frc.robot.utilities.UtilityFunctions;
-
-
-
-//import frc.robot.subsystems.elevator.ElevatorConstants.ElevatorStates;
-//import frc.robot.subsystems.elevator.ElevatorIO.ElevatorData;
-//import frc.robot.subsystems.elevator.real.ElevatorSparkMax;
-//import frc.robot.subsystems.elevator.sim.ElevatorSimulation;
-//import frc.robot.utils.ShuffleData;
-//import frc.robot.utils.UtilityFunctions;
 
 public class ElevatorSubsystem extends SubsystemBase {
-    private ElevatorStates state = ElevatorStates.STOP;
+    private final TalonFX elevatorLeader;
+    private final TalonFX elevatorFollower;
 
-    private DigitalInput topLimitSwitch;
-    private DigitalInput bottomLimitSwitch;
+    private final TalonFXConfiguration elevatorConfiguration;
+    private MotionMagicVoltage positionVoltageRequest;
+    private VoltageOut voltageRequest;
 
-    private PIDController pidController;
-    private TrapezoidController trapezoidController;
-    private ElevatorFeedforward feedforward;
+    private ElevatorStates currentElevatorState = ElevatorStates.STOW;
 
-    private SparkMax rightElevatorGearbox, leftElevatorGearbox;
-    private RelativeEncoder rightElevatorEncoder, leftElevatorEncoder;
-    private SparkClosedLoopController leftElevatorPID, rightElevatorPID;
-    private SparkMaxConfig rightElevatorConfiguration, leftElevatorConfiguration;
+    private final StatusSignal<Angle> leadPosition;
+    private final StatusSignal<Angle> followPosition;
+    private final StatusSignal<AngularVelocity> leadVelocity;
+    private final StatusSignal<AngularVelocity> followVelocity;
+    private final StatusSignal<Temperature> leadTempurature;
+    private final StatusSignal<Temperature> followTempurature;
 
-    private Function<Double, Double> wrapping = (input) -> input;
-    private BiFunction<Double, Double, Boolean> deadband = (input, setpoint) -> false;
-    private ElevatorStates elevatorState = ElevatorStates.STOW;
-    private double pidVal, FFVal, outputVoltage;
+    private double positionGoalMeters;
 
     public ElevatorSubsystem() {
-        System.out.println("[Initialization] Creating ElevatorSubsystem");
+        elevatorLeader = new TalonFX(Constants.ElevatorConstants.rightElevatorID);
+        elevatorFollower = new TalonFX(Constants.ElevatorConstants.leftElevatorID);
 
-        leftElevatorGearbox = new SparkMax(Constants.ElevatorConstants.leftElevatorID, MotorType.kBrushless);
-        leftElevatorEncoder = leftElevatorGearbox.getEncoder();
-        leftElevatorPID = leftElevatorGearbox.getClosedLoopController();
-        leftElevatorConfiguration = new SparkMaxConfig();
-        configureLeftGearbox();
+        elevatorConfiguration = new TalonFXConfiguration();
+        elevatorConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        elevatorConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        elevatorConfiguration.Slot0.kP = 3.4;
+        elevatorConfiguration.Slot0.kD = 0.0;
+        elevatorConfiguration.Slot0.kS = 0.9;
+        elevatorConfiguration.Slot0.kG = 1.05;
+        elevatorConfiguration.Slot0.kV = 0.0;
+        elevatorConfiguration.Slot0.kA = 0.0;
+        elevatorConfiguration.Slot0.GravityType = GravityTypeValue.Elevator_Static;
 
-        rightElevatorGearbox = new SparkMax(Constants.ElevatorConstants.rightElevatorID, MotorType.kBrushless);
-        rightElevatorEncoder = rightElevatorGearbox.getEncoder();
-        rightElevatorPID = rightElevatorGearbox.getClosedLoopController();
-        rightElevatorConfiguration = new SparkMaxConfig();
-        configureRightGearbox();
+        elevatorConfiguration.CurrentLimits.StatorCurrentLimitEnable = true;
+        elevatorConfiguration.CurrentLimits.StatorCurrentLimit = 90;
+        elevatorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
+        elevatorConfiguration.CurrentLimits.SupplyCurrentLimit = 90;
 
-        feedforward = new ElevatorFeedforward(
-            Constants.ElevatorConstants.ElevatorFeedforwardkS,
-            Constants.ElevatorConstants.ElevatorFeedforwardkG,
-            Constants.ElevatorConstants.ElevatorFeedforwardkV,
-            Constants.ElevatorConstants.ElevatorFeedforwardkA
+        elevatorConfiguration.MotionMagic.MotionMagicAcceleration = 5.0 / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio;
+        elevatorConfiguration.MotionMagic.MotionMagicCruiseVelocity = 5.0 / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio;
+
+        elevatorLeader.getConfigurator().apply(elevatorConfiguration);
+        elevatorFollower.getConfigurator().apply(elevatorConfiguration.MotorOutput.withInverted(InvertedValue.Clockwise_Positive));  
+
+        elevatorLeader.optimizeBusUtilization();
+        elevatorFollower.optimizeBusUtilization();
+
+        positionVoltageRequest = new MotionMagicVoltage(0.0);
+        voltageRequest = new VoltageOut(0.0);
+
+        elevatorLeader.setPosition(0.0);
+        elevatorFollower.setPosition(0.0);
+        positionGoalMeters = 0.0;
+        
+        leadPosition = elevatorLeader.getPosition();
+        followPosition = elevatorFollower.getPosition();
+        leadVelocity = elevatorLeader.getVelocity();
+        followVelocity = elevatorFollower.getVelocity();
+        leadTempurature = elevatorLeader.getDeviceTemp();
+        followTempurature = elevatorFollower.getDeviceTemp();
+
+        BaseStatusSignal.setUpdateFrequencyForAll(
+            200,
+            leadPosition,
+            followPosition,
+            leadVelocity,
+            followVelocity
+        );
+        
+        BaseStatusSignal.setUpdateFrequencyForAll(
+            500,
+            elevatorLeader.getDutyCycle(),
+            elevatorLeader.getMotorVoltage(),
+            elevatorLeader.getTorqueCurrent()
         );
 
-        pidController = new PIDController(Constants.ElevatorConstants.ElevatorProfileKp, 0.0, Constants.ElevatorConstants.ElevatorProfileKd);
-        pidController.enableContinuousInput(0, 1.5);
-        pidController.setTolerance(0.02);
+        PhoenixUtil.run("Optimize Elevator CAN Utilization", () ->
+            ParentDevice.optimizeBusUtilizationForAll(20, elevatorLeader, elevatorFollower)
+        );
 
-        trapezoidController = new TrapezoidController(0.0, 0.05, .1, 3.5, 3, 7.5, 0.4); 
     }
 
-    private void configureLeftGearbox() {
-        leftElevatorConfiguration
-            .inverted(false) // change back to true for PID
-            .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(62)
-            .voltageCompensation(Constants.ElevatorConstants.ElevatorVoltageCompensation);
-        leftElevatorConfiguration.encoder
-            .positionConversionFactor(Constants.ElevatorConstants.ElevatorPositionConversionFactor)
-            .velocityConversionFactor(Constants.ElevatorConstants.ElevatorVelocityConversionFactor);
-        leftElevatorConfiguration.closedLoop
-            .pid(Constants.ElevatorConstants.ElevatorSparkKp, 0.0, Constants.ElevatorConstants.ElevatorSparkKd)
-            .feedbackSensor(FeedbackSensor.kPrimaryEncoder);
-
-        leftElevatorGearbox.configure(leftElevatorConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        leftElevatorEncoder.setPosition(0.0);
+    public void setVoltage(double volts) {
+        elevatorLeader.setControl(voltageRequest.withOutput(volts).withEnableFOC(false));
     }
 
-    private void configureRightGearbox() {
-        rightElevatorConfiguration
-            .apply(leftElevatorConfiguration)
-            .follow(16, true);
+    public double elevatorCurrentPosition() {
+        return (leadPosition.getValueAsDouble() / ElevatorConstants.ElevatorGearRatio) * (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter);
+    }
 
-        rightElevatorGearbox.configure(rightElevatorConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    public void setSpeed(double speed) {
+        elevatorLeader.set(speed);
+        elevatorFollower.set(speed);
+    }
+
+    public void resetEncoders() {
+        elevatorLeader.setPosition(0.0);
+        elevatorFollower.setPosition(0.0);
+    }
+
+    public void setElevatorState(ElevatorStates elevatorState) {
+        this.currentElevatorState = elevatorState;
+    }
+
+    public void incrementElevatorState() {
+        switch(currentElevatorState) {
+            case STOW:
+                currentElevatorState = ElevatorStates.L1;
+                break;
+            case L1:
+                currentElevatorState = ElevatorStates.L2;
+                break;
+            case L2:
+                currentElevatorState = ElevatorStates.L3;
+                break;
+            case L3:
+                currentElevatorState = ElevatorStates.L4;
+                break;
+            case L4:
+                currentElevatorState = ElevatorStates.BARGE;
+                break;
+            case BARGE:
+                currentElevatorState = ElevatorStates.DEALGEAFIER_L2;
+                break;
+            case DEALGEAFIER_L2:
+                currentElevatorState = ElevatorStates.DEALGEAFIER_L3;
+                break;
+            case DEALGEAFIER_L3:
+                currentElevatorState = ElevatorStates.STOW;
+                break;
+            default:
+                currentElevatorState = ElevatorStates.STOW;
+        }
+    }
+
+    public void decrementElevatorState() {
+        switch(currentElevatorState) {
+            case STOW:
+                currentElevatorState = ElevatorStates.DEALGEAFIER_L3;
+                break;
+            case DEALGEAFIER_L3:
+                currentElevatorState = ElevatorStates.DEALGEAFIER_L2;
+                break;
+            case DEALGEAFIER_L2:
+                currentElevatorState = ElevatorStates.BARGE;
+                break;
+            case BARGE:
+                currentElevatorState = ElevatorStates.L4;
+                break;
+            case L4:
+                currentElevatorState = ElevatorStates.L3;
+                break;
+            case L3:
+                currentElevatorState = ElevatorStates.L2;
+                break;
+            case L2:
+                currentElevatorState = ElevatorStates.L1;
+                break;
+            case L1:
+                currentElevatorState = ElevatorStates.STOW;
+                break;
+            default:
+                currentElevatorState = ElevatorStates.STOW;
+        }
+    }
+
+    public ElevatorStates getElevatorState() {
+        return this.currentElevatorState;
+    }
+
+    public void setPosition(double meters) {
+        elevatorLeader.setPosition((meters / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio) * 3);
+    }
+
+    public boolean isElevatorCooking() {
+        return leadVelocity.getValueAsDouble() < 0.02;
+    }
+
+    public void setPositionGoal(double meters) {
+        positionGoalMeters = meters;
+        elevatorFollower.setControl(positionVoltageRequest.withPosition((meters / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio)));
+        elevatorLeader.setControl(positionVoltageRequest.withPosition((meters / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio)));
+    }
+
+    public void runToPosition() {
+        double meters = currentElevatorState.getPosition();
+        elevatorFollower.setControl(positionVoltageRequest.withPosition((meters / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio)));
+        elevatorLeader.setControl(positionVoltageRequest.withPosition((meters / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio)));
+    }
+
+    public void runToStow() {
+        double meters = ElevatorStates.STOW.getPosition();
+        elevatorFollower.setControl(positionVoltageRequest.withPosition((meters / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio)));
+        elevatorLeader.setControl(positionVoltageRequest.withPosition((meters / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio)));
+    }
+
+    public boolean atGoal() {
+        return Math.abs(positionGoalMeters - (leadPosition.getValueAsDouble() / ElevatorConstants.ElevatorGearRatio) * (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter)) <= 0.04;
     }
 
     @Override
     public void periodic() {
-        pidVal = pidController.calculate(getPositionMeters(), getElevatorState().getPosition());
-        FFVal = feedforward.calculate(0.15);
-
-        outputVoltage = pidVal + FFVal;
-
-        //SmartDashboard.putNumber("Elevator Position", getPositionMeters());
-        //SmartDashboard.putNumber("Elevator T Position", getElevatorState().getPosition());
-        //SmartDashboard.putNumber("Elevator Error Pos", pidController.getError());
-        //SmartDashboard.putBoolean("At Position EEE", atSetpoint());
-        //SmartDashboard.putString("Elevator State", this.elevatorState.toString());
+        BaseStatusSignal.refreshAll(leadPosition, followPosition, leadVelocity, followVelocity, leadTempurature, followTempurature);
+        positionGoalMeters = this.currentElevatorState.getPosition();
     }
 
-    public ElevatorStates getState() {
-        return state;
-    }
-
-    public double getPositionMeters() {
-        double leftPosition = leftElevatorEncoder.getPosition();
-        double rightPosition = rightElevatorEncoder.getPosition();
-
-        return (leftPosition + rightPosition) / 2;
-    }
-
-    public boolean atSetpoint() {
-        return pidController.atSetpoint();
-    }
-
-    public boolean integratedPIDatSetpoint() {
-        return Math.abs(getElevatorState().getPosition() - getPositionMeters()) < 0.2;
-    }
-
-    public double getVelocityRadiansPerSecond() {
-        return (leftElevatorEncoder.getVelocity() + rightElevatorEncoder.getVelocity()) / 2;
-    }
-
-    public ElevatorStates getElevatorState() {
-        return elevatorState;
-    }
-
-    public void setElevatorState(ElevatorStates elevatorState) {
-        this.elevatorState = elevatorState;
-    }
-
-    public void runElevatorToPosition() {
-        leftElevatorGearbox.setVoltage(outputVoltage);
-    }
-
-    public void runElevatorIntegratedPID() {
-        leftElevatorPID.setReference(getElevatorState().getPosition(), ControlType.kPosition, ClosedLoopSlot.kSlot0, feedforward.calculate(0.15));
-    }
-
-    public void runElevatorUp(double speed) {
-        leftElevatorGearbox.set(speed);
-    }
-
-    public void runElevatorDown(double speed) {
-        leftElevatorGearbox.set(speed);
-    }
-
-    public void stop() {
-        leftElevatorGearbox.setVoltage(0.0);
-        rightElevatorGearbox.setVoltage(0.0);
+    public void updateLogs() {
+        SmartDashboard.putBoolean("Elevator At Goal", atGoal());
+        SmartDashboard.putBoolean("Elevator Stuck", isElevatorCooking());
+        SmartDashboard.putString("Elevator State: ", currentElevatorState.toString());
+        SmartDashboard.putNumber("Elevator Target Postion", (positionGoalMeters  / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio));
+        SmartDashboard.putNumber("Elevator Current Position", leadPosition.getValueAsDouble());
+        SmartDashboard.putNumber("Elevator Current Meters", (leadPosition.getValueAsDouble() / ElevatorConstants.ElevatorGearRatio) * (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter));
+        SmartDashboard.putNumber("Elevator Follower Position", followPosition.getValueAsDouble());
+        SmartDashboard.putNumber("Elevator Error", (positionGoalMeters  / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio) - leadPosition.getValueAsDouble());
+        SmartDashboard.putNumber("Elevator Lead Temp", leadTempurature.getValue().in(Celsius));
+        SmartDashboard.putNumber("Elevator Follow Temp", followTempurature.getValue().in(Celsius)); 
     }
 }

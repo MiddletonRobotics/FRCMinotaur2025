@@ -5,29 +5,36 @@
 package frc.robot;
 
 import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.RobotContainer.DrivingState;
-import frc.robot.utilities.LimelightHelper;
+import frc.robot.utilities.BlinkinLEDController;
+import frc.robot.utilities.BlinkinLEDController.BlinkinPattern;
 import frc.robot.utilities.constants.Constants.ElevatorConstants.ElevatorStates;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private final RobotContainer m_robotContainer;
+  private final BlinkinLEDController ledController;
   
   public Robot() {
     m_robotContainer = new RobotContainer();
+    ledController = BlinkinLEDController.getInstance();
+  }
+
+  public static boolean isBlue() {
+    return DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == DriverStation.Alliance.Blue;
   }
 
   @Override
   public void robotInit() {
     m_robotContainer.onDisabled();
+    ledController.setPattern(BlinkinPattern.GREEN);
     CameraServer.startAutomaticCapture();
   }
 
@@ -58,6 +65,7 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    m_robotContainer.onAutonomousInit();
 
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();

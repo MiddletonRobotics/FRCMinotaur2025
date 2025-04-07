@@ -2,11 +2,8 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
-import org.littletonrobotics.junction.Logger;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.ClosedLoopSlot;
@@ -22,19 +19,12 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utilities.constants.Constants;
 
@@ -143,19 +133,21 @@ public class DealgeafierSubsystem extends SubsystemBase {
     }
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Dealgeafier Pivot Position", pivotingEncoder.getPosition());
-        SmartDashboard.putNumber("Dealgeafier Pivot Temp.", pivotingMotor.getMotorTemperature());
-        SmartDashboard.putNumber("Dealgeafier Pivot Target", pivotingState.getPosition().in(Radians));
-        SmartDashboard.putNumber("Dealgeafier Roller Vel.", rollingEncoder.getVelocity());
-        SmartDashboard.putNumber("Dealgeafier Roller AO", pivotingMotor.get());
-        SmartDashboard.putNumber("Dealgeafier Motor Temp.", rollerMotor.getMotorTemperature());
-        SmartDashboard.putBoolean("Dealgeafier Limit- Switch", getLimitSwitch());
-        SmartDashboard.putNumber("Dealgeafier Pivot Error", calculateError());
-        SmartDashboard.putBoolean("Dealgeafier At Goal", atTargetPosition());
+        updateLogs();
 
         pivotDisconnected.set(pivotingMotor.getFaults().can);
         rollerDisconnected.set(rollerMotor.getFaults().can);
         deviceBrownedOut.set(isBrownedOut());
+    }
+
+    public void updateLogs() {
+        SmartDashboard.putNumber("Dealgeafier Pivot Position", pivotingEncoder.getPosition());
+        SmartDashboard.putNumber("Dealgeafier Pivot Temp.", pivotingMotor.getMotorTemperature());
+        SmartDashboard.putNumber("Dealgeafier Pivot Target", pivotingState.getPosition().in(Radians));
+        SmartDashboard.putNumber("Dealgeafier Motor Temp.", rollerMotor.getMotorTemperature());
+        SmartDashboard.putBoolean("Dealgeafier Limit- Switch", getLimitSwitch());
+        SmartDashboard.putNumber("Dealgeafier Pivot Error", calculateError());
+        SmartDashboard.putBoolean("Dealgeafier At Goal", atTargetPosition());
     }
 
     public void setNeutralModes(IdleMode idleMode) {

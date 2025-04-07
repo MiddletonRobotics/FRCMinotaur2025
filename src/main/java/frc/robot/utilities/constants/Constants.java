@@ -9,27 +9,20 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Volts;
-import static edu.wpi.first.units.Units.VoltsPerRadianPerSecond;
 
-import java.util.Map;
 
-import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.pathplanner.lib.config.PIDConstants;
 
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Transform3d;
+
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.AngularVelocityUnit;
-import edu.wpi.first.units.DistanceUnit;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.VoltageUnit;
+
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -38,6 +31,7 @@ import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.utilities.SwerveModuleGearing;
+import frc.robot.utilities.BlinkinLEDController.BlinkinPattern;
 
 // All of the constants that are accessed by other files, to prevent repetition and allows easy changing
 
@@ -281,6 +275,9 @@ public class Constants {
         public static final Angle rightLimelightRoll = Degrees.of(0);
         public static final Angle rightLimelightPitch = Degrees.of(20.0);
         public static final Angle rightLimelightYaw = Degrees.of(30.0);
+
+        public static final Vector<N3> MT1_STDEVS = VecBuilder.fill(0.5, 0.5, 1.0);
+        public static final Vector<N3> MT2_STDEVS = VecBuilder.fill(0.7, 0.7, 694694);
     }
 
     public static final class DriverConstants {
@@ -290,5 +287,7 @@ public class Constants {
 
         public static final double kDeadband = 0.1;
         public static final boolean disableHAL = false; 
+
+        public static final BlinkinPattern DEF_PATTERN = BlinkinPattern.LARSON_SCANNER_RED;
     }
 }

@@ -3,13 +3,12 @@ package frc.robot.commands;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.utilities.LimelightHelper;
 
-public class SwervePosePID extends Command {
+public class AlignToTarget extends Command {
     private PIDController xpidController = new PIDController(0.025, 0, 0);
     private PIDController ypidController = new PIDController(0.07, 0, 0);
   
@@ -21,7 +20,7 @@ public class SwervePosePID extends Command {
     private final SwerveRequest.RobotCentric drive = new SwerveRequest.RobotCentric();
 
     /** Creates a new SwervePosePID. */
-    public SwervePosePID(CommandSwerveDrivetrain drivetrainGlobal, boolean isLeft) {
+    public AlignToTarget(CommandSwerveDrivetrain drivetrainGlobal, boolean isLeft) {
       this.drivetrain = drivetrainGlobal;
       this.left = isLeft;
       // Use addRequirements() here to declare subsystem dependencies.

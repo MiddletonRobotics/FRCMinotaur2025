@@ -14,32 +14,19 @@ import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.events.EventTrigger;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
-import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 import frc.robot.commands.ProcessorCommands;
-import frc.robot.commands.SwervePosePID;
-import frc.robot.commands.AutoAlign;
 import frc.robot.commands.CoralCommands;
 import frc.robot.commands.DealgeafierCommands;
-import frc.robot.commands.Elevator2Commands;
 import frc.robot.commands.ElevatorCommands;
 import frc.robot.commands.PrepareDealgeafication;
 import frc.robot.generated.TunerConstants;
@@ -48,11 +35,8 @@ import frc.robot.subsystems.ProcessorSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
-import frc.robot.subsystems.ElevatorSubsystem2;
-import frc.robot.subsystems.Limelight;
-import frc.robot.subsystems.DealgeafierSubsystem.PivotingState;
-import frc.robot.subsystems.ProcessorSubsystem.GroundPivotingState;
-import frc.robot.utilities.constants.Constants.ElevatorConstants.ElevatorStates;
+import frc.robot.subsystems.LEDSubsystem;
+import frc.robot.utilities.constants.Constants;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -91,31 +75,36 @@ public class RobotContainer {
     private int operatorControllerPort = 1;
 
     private final CommandXboxController driverController = new CommandXboxController(driverControllerPort);
+    private final XboxController driverControllerHID = driverController.getHID();
     private final CommandXboxController operatorController = new CommandXboxController(operatorControllerPort);
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     public CoralSubsystem coralSubsystem = new CoralSubsystem();
     public final DealgeafierSubsystem dealgeafierSubsystem = new DealgeafierSubsystem();
-    public final ElevatorSubsystem2 elevatorSubsystem2 = new ElevatorSubsystem2();
+    public final ElevatorSubsystem elevatorSubsystem2 = new ElevatorSubsystem();
     public final ProcessorSubsystem processorSubsystem = new ProcessorSubsystem();
+    private LEDSubsystem ledSubsystem = new LEDSubsystem();
     private boolean isManual = false;
     //private final Limelight leftElevatorLL = new Limelight(drivetrain, "limelight-left");
     //private final Limelight rightElevatorLL = new Limelight(drivetrain, "limelight-right");
 
     public RobotContainer() {
-        NamedCommands.registerCommand("StowElevator", Elevator2Commands.runElevatorToStow(elevatorSubsystem2));
-        NamedCommands.registerCommand("ZeroElevator",Elevator2Commands.runElevatorToReset(elevatorSubsystem2));
-        NamedCommands.registerCommand("PrepareBarge", Elevator2Commands.runElevatorToBarge(elevatorSubsystem2));
+        NamedCommands.registerCommand("StowElevator", ElevatorCommands.runElevatorToStow(elevatorSubsystem2));
+        NamedCommands.registerCommand("ZeroElevator",ElevatorCommands.runElevatorToReset(elevatorSubsystem2));
+        NamedCommands.registerCommand("PrepareBarge", ElevatorCommands.runElevatorToBarge(elevatorSubsystem2));
         NamedCommands.registerCommand("ProcessorStore", ProcessorCommands.startPivotToStored(processorSubsystem));
-        NamedCommands.registerCommand("PrepareL4", Elevator2Commands.runElevatorToL4(elevatorSubsystem2));
-        NamedCommands.registerCommand("PrepareL3", Elevator2Commands.runElevatorToL3(elevatorSubsystem2));
-        NamedCommands.registerCommand("PrepareL1", Elevator2Commands.runElevatorToL1(elevatorSubsystem2));
+        NamedCommands.registerCommand("PrepareL4", ElevatorCommands.runElevatorToL4(elevatorSubsystem2));
+        NamedCommands.registerCommand("PrepareL3", ElevatorCommands.runElevatorToL3(elevatorSubsystem2));
+        NamedCommands.registerCommand("PrepareL1", ElevatorCommands.runElevatorToL1(elevatorSubsystem2));
         NamedCommands.registerCommand("ScoreCoral", CoralCommands.scoreCoral(coralSubsystem));
-        NamedCommands.registerCommand("IndexCoral", CoralCommands.funnelIntakingUntilBroken(coralSubsystem));
+        NamedCommands.registerCommand("IndexCoral", CoralCommands.funnelIntakingUntilBroken(coralSubsystem, ledSubsystem));
         NamedCommands.registerCommand("PrepareDealgification", new PrepareDealgeafication(dealgeafierSubsystem, elevatorSubsystem2));
         NamedCommands.registerCommand("AlgeaBarge", DealgeafierCommands.shootAlgeaSensorless(dealgeafierSubsystem));
         NamedCommands.registerCommand("AlgeaStart", DealgeafierCommands.runPivotToStart(dealgeafierSubsystem));
         NamedCommands.registerCommand("AlgeaTilt", DealgeafierCommands.runPivotToBarge(dealgeafierSubsystem));
+
+        new EventTrigger("ETStowElevator").whileTrue(ElevatorCommands.runElevatorToStow(elevatorSubsystem2));
+        new EventTrigger("ETPrepareDealgification").whileTrue(new PrepareDealgeafication(dealgeafierSubsystem, elevatorSubsystem2));
 
         autonomousChooser = AutoBuilder.buildAutoChooser();
 
@@ -132,7 +121,12 @@ public class RobotContainer {
     public void onTeleopInit() {
         dealgeafierSubsystem.setNeutralModes(IdleMode.kBrake);
         processorSubsystem.setNeutralModes(IdleMode.kBrake);
+        ledSubsystem.setPattern(Constants.DriverConstants.DEF_PATTERN);
         dealgeafierSubsystem.stopRolling();
+    }
+
+    public void onAutonomousInit() {
+        ledSubsystem.setPattern(Constants.DriverConstants.DEF_PATTERN);
     }
 
     public void onDisabled() {
@@ -249,14 +243,14 @@ public class RobotContainer {
     public void configureTestingBindings() {
             drivetrain.setDefaultCommand(
                 drivetrain.applyRequest(() ->
-                    drive.withVelocityX((-driverController.getLeftY() * MaxSpeed) * drivingState.getPosition()) // Drive forward with negative Y (forward)
-                        .withVelocityY((-driverController.getLeftX() * MaxSpeed) * drivingState.getPosition()) // Drive left with negative X (left)
-                        .withRotationalRate((-driverController.getRightX() * MaxAngularRate) * drivingState.getPosition()) // Drive counterclockwise with negative X (left)
+                    drive.withVelocityX((-driverControllerHID.getLeftY() * MaxSpeed) * drivingState.getPosition()) // Drive forward with negative Y (forward)
+                        .withVelocityY((-driverControllerHID.getLeftX() * MaxSpeed) * drivingState.getPosition()) // Drive left with negative X (left)
+                        .withRotationalRate((-driverControllerHID.getRightX() * MaxAngularRate) * drivingState.getPosition()) // Drive counterclockwise with negative X (left)
                 )
             );
 
-            driverController.a().and(() -> !isManual).onTrue(Elevator2Commands.runElevatorToPosition(elevatorSubsystem2));
-            driverController.b().and(() -> !isManual).onTrue(Elevator2Commands.runElevatorToStow(elevatorSubsystem2));
+            driverController.a().and(() -> !isManual).onTrue(ElevatorCommands.runElevatorToPosition(elevatorSubsystem2));
+            driverController.b().and(() -> !isManual).onTrue(ElevatorCommands.runElevatorToStow(elevatorSubsystem2));
 
             driverController.povLeft().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(1)));
             driverController.povLeft().and(() -> !isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
@@ -264,7 +258,7 @@ public class RobotContainer {
             driverController.povRight().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(-0.2)));
             driverController.povRight().and(() -> !isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
 
-            driverController.leftTrigger().and(() -> !isManual).onTrue(CoralCommands.funnelIntakingUntilBroken(coralSubsystem));
+            driverController.leftTrigger().and(() -> !isManual).onTrue(CoralCommands.funnelIntakingUntilBroken(coralSubsystem, ledSubsystem));
             driverController.leftBumper().and(() -> !isManual).onTrue(CoralCommands.scoreCoral(coralSubsystem));
             driverController.rightTrigger(0.5).and(() -> !isManual).onTrue(new ConditionalCommand(
                 new InstantCommand(() -> this.drivingState = DrivingState.SLOWMODE), 

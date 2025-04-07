@@ -2,8 +2,6 @@ package frc.robot.commands;
 
 import java.util.function.DoubleSupplier;
 
-import com.revrobotics.spark.ClosedLoopSlot;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;

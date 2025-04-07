@@ -2,8 +2,6 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.SignalLogger;
@@ -13,28 +11,19 @@ import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
-import com.pathplanner.lib.trajectory.PathPlannerTrajectoryState;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Twist2d;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -44,11 +33,10 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 import frc.robot.utilities.LimelightHelper;
-import frc.robot.utilities.LimelightHelper.PoseEstimate;
-import frc.robot.utilities.constants.FieldConstants;
 
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
@@ -146,6 +134,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     /* The SysId routine to test */
     private SysIdRoutine m_sysIdRoutineToApply = m_sysIdRoutineTranslation;
+
+    private final static CommandSwerveDrivetrain instance;
+
+    static {
+        instance = TunerConstants.createDrivetrain();
+    }
+
+    public static CommandSwerveDrivetrain getInstance() {
+        return instance;
+    }
 
     /**
      * Constructs a CTRE SwerveDrivetrain using the specified constants.
@@ -365,27 +363,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         LimelightHelper.SetRobotOrientation("limelight-left", getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
         LimelightHelper.SetRobotOrientation("limelight-right", getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
 
-        SmartDashboard.putNumber("Left Limelight Tag ID", LimelightHelper.getFiducialID("limelight-left"));
-        SmartDashboard.putNumber("Right Limelight Tag ID", LimelightHelper.getFiducialID("limelight-right"));
-
         LLposeLeft = get_LL_Estimate(false, "limelight-left");
         LLposeRight = get_LL_Estimate(false, "limelight-right");
 
-        if (LLposeRight != null) {
-            SmartDashboard.putNumber("RightLimelightPoseX", LLposeRight.pose.getX());
-            SmartDashboard.putNumber("RightLimelightPoseY", LLposeRight.pose.getY());
-            SmartDashboard.putNumber("RightLimelightPoseRot", LLposeRight.pose.getRotation().getDegrees());
-            //setStateStdDevs(VecBuilder.fill(0.5, 0.5, Double.MAX_VALUE));
-            addVisionMeasurement(LLposeRight.pose, LLposeRight.timestampSeconds);
-        } 
-        
-        if (LLposeLeft != null) {
-            SmartDashboard.putNumber("LeftLimelightPoseX", LLposeLeft.pose.getX());
-            SmartDashboard.putNumber("LeftLimelightPoseY", LLposeLeft.pose.getY());
-            SmartDashboard.putNumber("LeftLimelightPoseRot", LLposeLeft.pose.getRotation().getDegrees());
-            //setStateStdDevs(VecBuilder.fill(0.5, 0.5, Double.MAX_VALUE));
-            addVisionMeasurement(LLposeLeft.pose, LLposeLeft.timestampSeconds);
-        }
+        addMeasuremrent();
+        updateLogs();
 
         /* 
 
@@ -402,11 +384,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
         */
 
-        Pose2d currentPose = getState().Pose;
-        field.setRobotPose(getState().Pose); // Fused pose I think
-        Double[] fusedPose = {currentPose.getX(), currentPose.getY(), currentPose.getRotation().getRadians()};
-        SmartDashboard.putNumberArray("Fused PoseDBL", fusedPose);
-        SmartDashboard.putData("Field",field);
+        //Double[] fusedPose = {currentPose.getX(), currentPose.getY(), currentPose.getRotation().getRadians()};
+        //SmartDashboard.putNumberArray("Fused PoseDBL", fusedPose);
 
         /*
         SmartDashboard.putData("Swerve Drive", new Sendable() {
@@ -430,8 +409,35 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             }
         });
         */
+    }
+
+    public void updateLogs() {
+        SmartDashboard.putNumber("Left Limelight Tag ID", LimelightHelper.getFiducialID("limelight-left"));
+        SmartDashboard.putNumber("Right Limelight Tag ID", LimelightHelper.getFiducialID("limelight-right"));
+
+        Pose2d currentPose = getState().Pose;
+        field.setRobotPose(getState().Pose);
 
         SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
+        SmartDashboard.putData("Field",field);
+    }
+
+    public void addMeasuremrent() {
+        if (LLposeRight != null) {
+            //SmartDashboard.putNumber("RightLimelightPoseX", LLposeRight.pose.getX());
+            //SmartDashboard.putNumber("RightLimelightPoseY", LLposeRight.pose.getY());
+            //SmartDashboard.putNumber("RightLimelightPoseRot", LLposeRight.pose.getRotation().getDegrees());
+            //setStateStdDevs(VecBuilder.fill(0.5, 0.5, Double.MAX_VALUE));
+            addVisionMeasurement(LLposeRight.pose, LLposeRight.timestampSeconds);
+        } 
+        
+        if (LLposeLeft != null) {
+            //SmartDashboard.putNumber("LeftLimelightPoseX", LLposeLeft.pose.getX());
+            //SmartDashboard.putNumber("LeftLimelightPoseY", LLposeLeft.pose.getY());
+            //SmartDashboard.putNumber("LeftLimelightPoseRot", LLposeLeft.pose.getRotation().getDegrees());
+            //setStateStdDevs(VecBuilder.fill(0.5, 0.5, Double.MAX_VALUE));
+            addVisionMeasurement(LLposeLeft.pose, LLposeLeft.timestampSeconds);
+        }
     }
 
     /*

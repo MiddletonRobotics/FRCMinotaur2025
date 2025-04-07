@@ -1,59 +1,30 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
-import frc.robot.subsystems.DealgeafierSubsystem.PivotingState;
 import frc.robot.utilities.constants.Constants;
 
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static edu.wpi.first.units.Units.Volts;
-import static edu.wpi.first.units.Units.VoltsPerRadianPerSecond;
 
-import java.util.Set;
-
-import org.littletonrobotics.junction.Logger;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.math.controller.ElevatorFeedforward;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
-import edu.wpi.first.networktables.GenericEntry;
-import edu.wpi.first.units.AngleUnit;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
-import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ProcessorSubsystem extends SubsystemBase {
     private SparkMax pivotingMotor;
@@ -143,6 +114,14 @@ public class ProcessorSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        updateLogs();
+
+        pivotDisconnected.set(pivotingMotor.getFaults().can);
+        rollerDisconnected.set(rollerMotor.getFaults().can);
+        deviceBrownedOut.set(isBrownedOut());
+    }
+
+    public void updateLogs() {
         SmartDashboard.putNumber("Processor Pivot Position", pivotingEncoder.getPosition());
         SmartDashboard.putNumber("Processor Pivot Motor Temp.", pivotingMotor.getMotorTemperature());
         SmartDashboard.putNumber("Processor Pivot Target", groundPivotingState.getPosition().in(Radians));
@@ -152,10 +131,6 @@ public class ProcessorSubsystem extends SubsystemBase {
         SmartDashboard.putBoolean("Processor Roller Cooking", isRollerCooking());
         SmartDashboard.putNumber("Processor Pivot Error", calculateError());
         SmartDashboard.putBoolean("Processor At Goal", atGoal());
-
-        pivotDisconnected.set(pivotingMotor.getFaults().can);
-        rollerDisconnected.set(rollerMotor.getFaults().can);
-        deviceBrownedOut.set(isBrownedOut());
     }
 
     public void setNeutralModes(IdleMode idleMode) {
