@@ -2,8 +2,11 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Volts;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.ClosedLoopSlot;
@@ -39,6 +42,9 @@ public class DealgeafierSubsystem extends SubsystemBase {
     private RelativeEncoder rollingEncoder;
     private SparkClosedLoopController pivotingPIDController;
 
+    private CANcoder absolutePivotingEncoder;
+    private CANcoderConfiguration absoluteEncoderConfiguration;
+
     private ProfiledPIDController profiledPIDController;
     private TrapezoidProfile.Constraints constraints;
     private TrapezoidProfile profile;
@@ -47,9 +53,15 @@ public class DealgeafierSubsystem extends SubsystemBase {
     private final TrapezoidProfile.State goalAngle = new TrapezoidProfile.State();
     private final Timer timer = new Timer();
 
-    private Alert pivotDisconnected;
-    private Alert rollerDisconnected;
-    private Alert deviceBrownedOut;
+    private Alert pivotCANDisconnected;
+    private Alert pivotOverTempurature;
+    private Alert pivotOverCurrent;
+    private Alert pivotSensorDisconnected;
+
+    private Alert rollerCANDisconnected;
+    private Alert rollerOverTempurature;
+    private Alert rollerOverCurrent;
+    private Alert rollerSensorDisconnected;
 
     private ArmFeedforward feedforward = new ArmFeedforward(
         Constants.DealgeafierConstants.kS.in(Volts),
@@ -63,8 +75,8 @@ public class DealgeafierSubsystem extends SubsystemBase {
         START(Degrees.of(71.0)),
         STORED(Degrees.of(90.0)),
         BARGE(Degrees.of(107.0)),
-        REEF(Degrees.of(190.0)),
-        GROUND(Degrees.of(235.0));
+        REEF(Degrees.of(162.0)),
+        GROUND(Degrees.of(207.0));
 
         private final Angle position;
 
@@ -91,13 +103,23 @@ public class DealgeafierSubsystem extends SubsystemBase {
         rollerConfiguration = new SparkMaxConfig();
         configureRollerMotor();
 
+        absolutePivotingEncoder = new CANcoder(22);
+        absoluteEncoderConfiguration = new CANcoderConfiguration();
+        configurePivotingEncoder();
+
         constraints = new TrapezoidProfile.Constraints(1.25, 0.25);
         profile = new TrapezoidProfile(constraints);
         profiledPIDController = new ProfiledPIDController(0.4, 0.0, 0.0, constraints);
 
-        pivotDisconnected = new Alert("Dealgeafier Pivot CAN Issue", AlertType.kError);
-        rollerDisconnected = new Alert("Dealgeafier Roller CAN Issue", AlertType.kError);
-        deviceBrownedOut = new Alert("Dealgeafier Hardware Browned Out", AlertType.kError);
+        pivotCANDisconnected = new Alert("Dealgeafier Pivot CAN Disconnect. Will not Function", AlertType.kError);
+        pivotOverTempurature = new Alert("Dealgeafier Pivot Over Tempurature", AlertType.kWarning);
+        pivotOverCurrent = new Alert("Dealgeafier Pivot Over Current", AlertType.kWarning);
+        pivotSensorDisconnected = new Alert("Dealgeafier Pivot Sensor Disconnect. Will not function", AlertType.kError);
+
+        rollerCANDisconnected = new Alert("Dealgeafier Roller CAN Disconnect. Will not Function", AlertType.kError);
+        rollerOverTempurature = new Alert("Dealgeafier Roller Over Tempurature", AlertType.kWarning);
+        rollerOverCurrent = new Alert("Dealgeafier Roller Over Current", AlertType.kWarning);
+        rollerSensorDisconnected = new Alert("Dealgeafier Roller Sensor Disconnect. Will not function", AlertType.kError);
 
         algeaLimitSwitch = new DigitalInput(3); // Initialize limit switch on DIO port 0
     }
@@ -114,7 +136,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
             .pid(0.3, 0.0, 0.0);
 
         pivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        pivotingEncoder.setPosition(PivotingState.STORED.getPosition().in(Radians));
+        pivotingEncoder.setPosition(PivotingState.START.getPosition().in(Radians));
     }
 
     public void configureRollerMotor() {
@@ -131,23 +153,43 @@ public class DealgeafierSubsystem extends SubsystemBase {
         rollerMotor.configure(rollerConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         rollingEncoder.setPosition(0.0);
     }
+
+    public void configurePivotingEncoder() {
+        absoluteEncoderConfiguration.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 1;
+        absoluteEncoderConfiguration.MagnetSensor.MagnetOffset = -0.452;
+        absolutePivotingEncoder.getConfigurator().apply(absoluteEncoderConfiguration);
+    }
+
     @Override
     public void periodic() {
         updateLogs();
 
-        pivotDisconnected.set(pivotingMotor.getFaults().can);
-        rollerDisconnected.set(rollerMotor.getFaults().can);
-        deviceBrownedOut.set(isBrownedOut());
+        pivotingEncoder.setPosition(getAbsoluteEncoderPosition().in(Radians));
+
+        pivotCANDisconnected.set(pivotingMotor.getFaults().can);
+        pivotOverTempurature.set(pivotingMotor.getFaults().temperature);
+        pivotOverCurrent.set(pivotingMotor.getWarnings().overcurrent);
+        pivotSensorDisconnected.set(pivotingMotor.getFaults().sensor);
+
+        rollerCANDisconnected.set(rollerMotor.getFaults().can);
+        rollerOverTempurature.set(rollerMotor.getFaults().temperature);
+        rollerOverCurrent.set(rollerMotor.getWarnings().overcurrent);
+        rollerSensorDisconnected.set(rollerMotor.getFaults().sensor);
     }
 
     public void updateLogs() {
         SmartDashboard.putNumber("Dealgeafier Pivot Position", pivotingEncoder.getPosition());
+        SmartDashboard.putNumber("Dealgeafier Absolute Pivot Position", absolutePivotingEncoder.getAbsolutePosition().getValue().in(Rotations));
         SmartDashboard.putNumber("Dealgeafier Pivot Temp.", pivotingMotor.getMotorTemperature());
         SmartDashboard.putNumber("Dealgeafier Pivot Target", pivotingState.getPosition().in(Radians));
         SmartDashboard.putNumber("Dealgeafier Motor Temp.", rollerMotor.getMotorTemperature());
         SmartDashboard.putBoolean("Dealgeafier Limit- Switch", getLimitSwitch());
         SmartDashboard.putNumber("Dealgeafier Pivot Error", calculateError());
         SmartDashboard.putBoolean("Dealgeafier At Goal", atTargetPosition());
+    }
+
+    public Angle getAbsoluteEncoderPosition() {
+        return Rotations.of(absolutePivotingEncoder.getAbsolutePosition().getValue().in(Rotations));
     }
 
     public void setNeutralModes(IdleMode idleMode) {

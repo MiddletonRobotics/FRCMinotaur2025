@@ -8,7 +8,9 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -23,6 +25,11 @@ public class CoralSubsystem extends SubsystemBase {
 
     //private SparkClosedLoopController pivotingPIDController;
 
+    private Alert rollerCANDisconnected;
+    private Alert rollerOverTempurature;
+    private Alert rollerOverCurrent;
+    private Alert rollerSensorDisconnected;
+
     private DigitalInput firstBeamBreak;
     private DigitalInput secondBeamBreak;
 
@@ -36,6 +43,11 @@ public class CoralSubsystem extends SubsystemBase {
 
         firstBeamBreak = new DigitalInput(1);
         secondBeamBreak = new DigitalInput(2);
+
+        rollerCANDisconnected = new Alert("Coral CAN Disconnect. Will not function.", AlertType.kError);
+        rollerOverTempurature = new Alert("Coral Over Tempurature", AlertType.kWarning);
+        rollerOverCurrent = new Alert("Coral Over Current", AlertType.kWarning);
+        rollerSensorDisconnected = new Alert("Coral Sensor Disconnected. Will not function.", AlertType.kError);
     }
     
     public void configureCoralSpinner() {
@@ -76,6 +88,11 @@ public class CoralSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         updateLogs();
+
+        rollerCANDisconnected.set(coralSpinnerMotor.getFaults().can);
+        rollerOverTempurature.set(coralSpinnerMotor.getFaults().temperature);
+        rollerOverCurrent.set(coralSpinnerMotor.getWarnings().overcurrent);
+        rollerSensorDisconnected.set(coralSpinnerMotor.getFaults().sensor);
     }
 
     public void updateLogs() {

@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Celsius;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -13,13 +14,17 @@ import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Temperature;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.utilities.PhoenixUtil;
+import frc.robot.utilities.BlinkinLEDController.BlinkinPattern;
 import frc.robot.utilities.constants.Constants;
 import frc.robot.utilities.constants.Constants.ElevatorConstants;
 import frc.robot.utilities.constants.Constants.ElevatorConstants.ElevatorStates;
@@ -40,6 +45,19 @@ public class ElevatorSubsystem extends SubsystemBase {
     private final StatusSignal<AngularVelocity> followVelocity;
     private final StatusSignal<Temperature> leadTempurature;
     private final StatusSignal<Temperature> followTempurature;
+
+    private final Debouncer connectedDebouncer = new Debouncer(0.5);
+    private final Debouncer followerConnectedDebouncer = new Debouncer(0.5);
+
+    private Alert elevatorLeaderCANDisconnected;
+    private Alert elevatorLeaderOverTempurature;
+    private Alert elevatorLeaderOverCurrent;
+    private Alert elevatorLeaderFeature;
+
+    private Alert elevatorFollowerCANDisconnected;
+    private Alert elevatorFollowerOverTempurature;
+    private Alert elevatorFollowerOverCurrent;
+    private Alert elevatorFollowerFeature;
 
     private double positionGoalMeters;
 
@@ -105,6 +123,15 @@ public class ElevatorSubsystem extends SubsystemBase {
             ParentDevice.optimizeBusUtilizationForAll(20, elevatorLeader, elevatorFollower)
         );
 
+        elevatorLeaderCANDisconnected = new Alert("Elevator Leader CAN Disconnect. Will not function.", AlertType.kError);
+        elevatorLeaderOverTempurature = new Alert("Elevator Leader Over Tempurature", AlertType.kWarning);
+        elevatorLeaderOverCurrent = new Alert("Elevator Leader Over Current", AlertType.kWarning);
+        elevatorLeaderFeature = new Alert("Elevator Leader is not lisensed, reverting to RemoteCANCoder.", AlertType.kWarning);
+
+        elevatorFollowerCANDisconnected = new Alert("Elevator Follower CAN Disconnect. Will not function.", AlertType.kError);
+        elevatorFollowerOverTempurature = new Alert("Elevator Follower Over Tempurature", AlertType.kWarning);
+        elevatorFollowerOverCurrent = new Alert("Elevator Follower Over Current", AlertType.kWarning);
+        elevatorFollowerFeature = new Alert("Elevator Follower is not lisensed, reverting to RemoteCANCoder.", AlertType.kWarning);
     }
 
     public void setVoltage(double volts) {
@@ -200,7 +227,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public boolean isElevatorCooking() {
-        return leadVelocity.getValueAsDouble() < 0.02;
+        return leadVelocity.getValueAsDouble() < 0.02 && elevatorLeader.getMotorStallCurrent().getValue().in(Amps) > Amps.of(12.0).baseUnitMagnitude();
     }
 
     public void setPositionGoal(double meters) {
@@ -227,8 +254,28 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        updateLogs();
+        
         BaseStatusSignal.refreshAll(leadPosition, followPosition, leadVelocity, followVelocity, leadTempurature, followTempurature);
         positionGoalMeters = this.currentElevatorState.getPosition();
+
+        /*
+
+        if(isElevatorCooking()) {
+            new LEDSubsystem().setPattern(BlinkinPattern.STROBE_RED);
+        }
+
+        */
+
+        elevatorLeaderCANDisconnected.set(connectedDebouncer.calculate(elevatorLeader.isConnected()));
+        elevatorLeaderOverTempurature.set(elevatorLeader.getFault_DeviceTemp().getValue().booleanValue());
+        elevatorLeaderOverCurrent.set(elevatorLeader.getFault_OverSupplyV().getValue().booleanValue());
+        elevatorLeaderFeature.set(elevatorLeader.getFault_UsingFusedCANcoderWhileUnlicensed().getValue().booleanValue());
+
+        elevatorFollowerCANDisconnected.set(connectedDebouncer.calculate(elevatorFollower.isConnected()));
+        elevatorFollowerOverTempurature.set(elevatorFollower.getFault_DeviceTemp().getValue().booleanValue());
+        elevatorFollowerOverCurrent.set(elevatorFollower.getFault_OverSupplyV().getValue().booleanValue());
+        elevatorFollowerFeature.set(elevatorFollower.getFault_UsingFusedCANcoderWhileUnlicensed().getValue().booleanValue());
     }
 
     public void updateLogs() {

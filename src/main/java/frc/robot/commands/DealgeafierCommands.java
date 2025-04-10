@@ -8,7 +8,10 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 
 import frc.robot.subsystems.DealgeafierSubsystem;
+import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.DealgeafierSubsystem.PivotingState;
+import frc.robot.utilities.BlinkinLEDController.BlinkinPattern;
+import frc.robot.utilities.constants.Constants;
 
 public class DealgeafierCommands {
     public static Command intakeUntilBroken(DealgeafierSubsystem dealgeaElevatorSubsystem) {
@@ -19,7 +22,7 @@ public class DealgeafierCommands {
         ).withName("Auto Algea Intaking");
     } 
     
-    public static Command shootAlgea(DealgeafierSubsystem dealgeaElevatorSubsystem) {
+    public static Command shootAlgea(DealgeafierSubsystem dealgeaElevatorSubsystem, LEDSubsystem ledSubsystem) {
         return new SequentialCommandGroup(
             new PrintCommand("Running the Auto Algae Shooting"),
             new RunCommand(() -> dealgeaElevatorSubsystem.startRolling(1), dealgeaElevatorSubsystem).until(() -> !dealgeaElevatorSubsystem.getLimitSwitch()),

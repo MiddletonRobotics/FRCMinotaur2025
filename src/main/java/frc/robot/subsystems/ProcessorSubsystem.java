@@ -37,9 +37,15 @@ public class ProcessorSubsystem extends SubsystemBase {
     private RelativeEncoder rollingEncoder;
     private SparkClosedLoopController pivotPIDController;
 
-    private Alert pivotDisconnected;
-    private Alert rollerDisconnected;
-    private Alert deviceBrownedOut;
+    private Alert pivotCANDisconnected;
+    private Alert pivotOverTempurature;
+    private Alert pivotOverCurrent;
+    private Alert pivotSensorDisconnected;
+
+    private Alert rollerCANDisconnected;
+    private Alert rollerOverTempurature;
+    private Alert rollerOverCurrent;
+    private Alert rollerSensorDisconnected;
 
     private ArmFeedforward feedforward = new ArmFeedforward(
         Constants.ProcessorConstants.kS.in(Volts),
@@ -77,9 +83,15 @@ public class ProcessorSubsystem extends SubsystemBase {
         rollerConfiguration = new SparkMaxConfig();
         configureRollerMotor();
 
-        pivotDisconnected = new Alert("Processor Pivot CAN Issue", AlertType.kError);
-        rollerDisconnected = new Alert("Processor Roller CAN Issue", AlertType.kError);
-        deviceBrownedOut = new Alert("Dealgeafier Hardware Browned Out", AlertType.kError);
+        pivotCANDisconnected = new Alert("Processor Pivot CAN Disconnect. Will not Function", AlertType.kError);
+        pivotOverTempurature = new Alert("Processor Pivot Over Tempurature", AlertType.kWarning);
+        pivotOverCurrent = new Alert("Processor Pivot Over Current", AlertType.kWarning);
+        pivotSensorDisconnected = new Alert("Processor Pivot Sensor Disconnect. Will not function", AlertType.kError);
+
+        rollerCANDisconnected = new Alert("Processor Roller CAN Disconnect. Will not Function", AlertType.kError);
+        rollerOverTempurature = new Alert("Processor Roller Over Tempurature", AlertType.kWarning);
+        rollerOverCurrent = new Alert("Processor Roller Over Current", AlertType.kWarning);
+        rollerSensorDisconnected = new Alert("Processor Roller Sensor Disconnect. Will not function", AlertType.kError);
     }
 
     public void configurePivotingMotor() {
@@ -116,9 +128,15 @@ public class ProcessorSubsystem extends SubsystemBase {
     public void periodic() {
         updateLogs();
 
-        pivotDisconnected.set(pivotingMotor.getFaults().can);
-        rollerDisconnected.set(rollerMotor.getFaults().can);
-        deviceBrownedOut.set(isBrownedOut());
+        pivotCANDisconnected.set(pivotingMotor.getFaults().can);
+        pivotOverTempurature.set(pivotingMotor.getFaults().temperature);
+        pivotOverCurrent.set(pivotingMotor.getWarnings().overcurrent);
+        pivotSensorDisconnected.set(pivotingMotor.getFaults().sensor);
+
+        rollerCANDisconnected.set(rollerMotor.getFaults().can);
+        rollerOverTempurature.set(rollerMotor.getFaults().temperature);
+        rollerOverCurrent.set(rollerMotor.getWarnings().overcurrent);
+        rollerSensorDisconnected.set(rollerMotor.getFaults().sensor);
     }
 
     public void updateLogs() {

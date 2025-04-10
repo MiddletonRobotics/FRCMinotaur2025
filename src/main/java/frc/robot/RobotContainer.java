@@ -23,11 +23,13 @@ import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.ProcessorCommands;
+import frc.robot.commands.ShootBarge;
 import frc.robot.commands.CoralCommands;
 import frc.robot.commands.DealgeafierCommands;
 import frc.robot.commands.ElevatorCommands;
+import frc.robot.commands.LEDCommands;
 import frc.robot.commands.PrepareDealgeafication;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.DealgeafierSubsystem;
@@ -36,6 +38,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.LEDSubsystem;
+import frc.robot.utilities.BlinkinLEDController.BlinkinPattern;
 import frc.robot.utilities.constants.Constants;
 
 public class RobotContainer {
@@ -96,15 +99,17 @@ public class RobotContainer {
         NamedCommands.registerCommand("PrepareL4", ElevatorCommands.runElevatorToL4(elevatorSubsystem2));
         NamedCommands.registerCommand("PrepareL3", ElevatorCommands.runElevatorToL3(elevatorSubsystem2));
         NamedCommands.registerCommand("PrepareL1", ElevatorCommands.runElevatorToL1(elevatorSubsystem2));
-        NamedCommands.registerCommand("ScoreCoral", CoralCommands.scoreCoral(coralSubsystem));
+        NamedCommands.registerCommand("ScoreCoral", CoralCommands.scoreCoral(coralSubsystem, ledSubsystem));
         NamedCommands.registerCommand("IndexCoral", CoralCommands.funnelIntakingUntilBroken(coralSubsystem, ledSubsystem));
         NamedCommands.registerCommand("PrepareDealgification", new PrepareDealgeafication(dealgeafierSubsystem, elevatorSubsystem2));
         NamedCommands.registerCommand("AlgeaBarge", DealgeafierCommands.shootAlgeaSensorless(dealgeafierSubsystem));
         NamedCommands.registerCommand("AlgeaStart", DealgeafierCommands.runPivotToStart(dealgeafierSubsystem));
         NamedCommands.registerCommand("AlgeaTilt", DealgeafierCommands.runPivotToBarge(dealgeafierSubsystem));
+        NamedCommands.registerCommand("ShootBarge", new ShootBarge(elevatorSubsystem2, dealgeafierSubsystem, ledSubsystem));
 
-        new EventTrigger("ETStowElevator").whileTrue(ElevatorCommands.runElevatorToStow(elevatorSubsystem2));
         new EventTrigger("ETPrepareDealgification").whileTrue(new PrepareDealgeafication(dealgeafierSubsystem, elevatorSubsystem2));
+        new EventTrigger("ETStoreDealgeafier").whileTrue(DealgeafierCommands.runPivotToStored(dealgeafierSubsystem));
+        new EventTrigger("ETReefDealgeafier").whileTrue(DealgeafierCommands.runPivotToReef(dealgeafierSubsystem));
 
         autonomousChooser = AutoBuilder.buildAutoChooser();
 
@@ -213,7 +218,7 @@ public class RobotContainer {
         operatorController.povDown().and(() -> !isManual).onTrue(DealgeafierCommands.runPivotToGround(dealgeafierSubsystem));
 
         operatorController.rightTrigger().and(() -> !isManual).onTrue(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem));
-        operatorController.rightBumper().and(() -> !isManual).onTrue(DealgeafierCommands.shootAlgea(dealgeafierSubsystem));
+        operatorController.rightBumper().and(() -> !isManual).onTrue(DealgeafierCommands.shootAlgea(dealgeafierSubsystem, ledSubsystem));
 
         operatorController.axisLessThan(XboxController.Axis.kRightY.value, -0.5).and(() -> !isManual).onTrue(new InstantCommand(() -> elevatorSubsystem2.incrementElevatorState()));
         operatorController.axisGreaterThan(XboxController.Axis.kRightY.value, 0.5).and(() -> !isManual).onTrue(new InstantCommand(() -> elevatorSubsystem2.decrementElevatorState()));
@@ -252,14 +257,14 @@ public class RobotContainer {
             driverController.a().and(() -> !isManual).onTrue(ElevatorCommands.runElevatorToPosition(elevatorSubsystem2));
             driverController.b().and(() -> !isManual).onTrue(ElevatorCommands.runElevatorToStow(elevatorSubsystem2));
 
-            driverController.povLeft().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(1)));
+            driverController.povLeft().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(0.3)));
             driverController.povLeft().and(() -> !isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
 
             driverController.povRight().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(-0.2)));
             driverController.povRight().and(() -> !isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
 
             driverController.leftTrigger().and(() -> !isManual).onTrue(CoralCommands.funnelIntakingUntilBroken(coralSubsystem, ledSubsystem));
-            driverController.leftBumper().and(() -> !isManual).onTrue(CoralCommands.scoreCoral(coralSubsystem));
+            driverController.leftBumper().and(() -> !isManual).onTrue(CoralCommands.scoreCoral(coralSubsystem, ledSubsystem));
             driverController.rightTrigger(0.5).and(() -> !isManual).onTrue(new ConditionalCommand(
                 new InstantCommand(() -> this.drivingState = DrivingState.SLOWMODE), 
                 new InstantCommand(() -> this.drivingState = DrivingState.NORMAL), 
@@ -293,6 +298,9 @@ public class RobotContainer {
 
             driverController.povUp().and(() -> isManual).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
             driverController.rightStick().onTrue(new InstantCommand(() -> isManual = !isManual));
+
+            new Trigger(() -> processorSubsystem.isRollerCooking()).onTrue(LEDCommands.intakenAlgea(ledSubsystem));
+            new Trigger(() -> dealgeafierSubsystem.getLimitSwitch()).onTrue(LEDCommands.intakenAlgea(ledSubsystem));
         
     }
 

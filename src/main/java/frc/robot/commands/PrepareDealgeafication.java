@@ -8,8 +8,7 @@ import frc.robot.subsystems.ElevatorSubsystem;
 public class PrepareDealgeafication extends SequentialCommandGroup {
     public PrepareDealgeafication(DealgeafierSubsystem dealgeafierSubsystem, ElevatorSubsystem elevatorSubsystem2) {
         setName("Prepare Dealgeafication");
-        addCommands
-        (
+        addCommands(
             ElevatorCommands.runElevatorToD2(elevatorSubsystem2).alongWith(new InstantCommand(() -> dealgeafierSubsystem.startRolling(-1))).alongWith(DealgeafierCommands.runPivotToReef(dealgeafierSubsystem))
         );
     }

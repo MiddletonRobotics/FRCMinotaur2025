@@ -18,24 +18,26 @@ public class CoralCommands {
           new PrintCommand("Automatic Coral Intaking"),  
           new InstantCommand(() -> ledSubsystem.setPattern(BlinkinPattern.STROBE_GOLD)),
           new RunCommand(() -> coralSubsystem.spinCoral(-1), coralSubsystem).until(() -> coralSubsystem.firstBeamBroken()).withTimeout(4),
+          new InstantCommand(() -> ledSubsystem.setPattern(BlinkinPattern.GOLD)),
           new RunCommand(() -> coralSubsystem.spinCoral(-0.6), coralSubsystem).until(() -> coralSubsystem.secondBeamBreak()).withTimeout(0.8),
           new RunCommand(() -> coralSubsystem.spinCoral(-0.15), coralSubsystem).until(() -> !coralSubsystem.firstBeamBroken()).withTimeout(0.8),
           new InstantCommand(() -> coralSubsystem.stopCoral()),
           new InstantCommand(() -> coralSubsystem.spinCoral(0.1)),
-          new WaitCommand(0.1),
+          new WaitCommand(0.2),
           new InstantCommand(() -> coralSubsystem.stopCoral()).alongWith(new InstantCommand(() -> ledSubsystem.setPattern(Constants.DriverConstants.DEF_PATTERN)))
         );
     }
 
-    public static Command scoreCoral(CoralSubsystem coralSubsystem) {
+    public static Command scoreCoral(CoralSubsystem coralSubsystem, LEDSubsystem ledSubsystem) {
       return new SequentialCommandGroup(
         new PrintCommand("Automatic Coral Scoring"), 
+        new InstantCommand(() -> ledSubsystem.setPattern(BlinkinPattern.STROBE_GOLD)),
         new InstantCommand(() -> coralSubsystem.spinCoral(-0.5)),
         new WaitCommand(0.4),
         new InstantCommand(() -> coralSubsystem.stopCoral()),
         new InstantCommand(() -> coralSubsystem.spinCoral(0.5)),
         new WaitCommand(0.3),
-        new InstantCommand(() -> coralSubsystem.stopCoral())
+        new InstantCommand(() -> coralSubsystem.stopCoral()).alongWith(new InstantCommand(() -> ledSubsystem.setPattern(Constants.DriverConstants.DEF_PATTERN)))
       );
   }
 }
