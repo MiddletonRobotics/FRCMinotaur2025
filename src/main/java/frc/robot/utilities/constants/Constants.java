@@ -10,11 +10,14 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.ArrayList;
+import java.util.List;
 
 import com.pathplanner.lib.config.PIDConstants;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 
 import edu.wpi.first.math.geometry.Translation2d;
@@ -174,8 +177,8 @@ public class Constants {
         public static final Angle MaximumAllowedPositionError = Degrees.of(2.5);
         public static final AngularVelocity MaximumAllowedVelocityError = DegreesPerSecond.of(2.5);
 
-        public static final Voltage kG = Volts.of(0.25);
-        public static final Voltage kS = Volts.of(0.15);
+        public static final Voltage kG = Volts.of(0.35);
+        public static final Voltage kS = Volts.of(0.25);
         public static final double kV = 1.14;
 
         public static final double PositionConversionFactor = (360 / (25 * (42 / 18)) * Math.PI) / 180;
@@ -262,19 +265,41 @@ public class Constants {
     }
 
     public class LimelightConstants {
-        public static final Distance leftLimelightForward = Inches.of(7.415);
-        public static final Distance leftLimelightLateral = Inches.of(11.613);
-        public static final Distance leftLimelightHeight = Inches.of(5.872);
-        public static final Angle leftLimelightRoll = Degrees.of(0);
-        public static final Angle leftLimelightPitch = Degrees.of(20.0);
-        public static final Angle leftLimelightYaw = Degrees.of(330.0);
+        public static enum REEFS {
+            LEFT, RIGHT
+        }
 
-        public static final Distance rightLimelightForward = Inches.of(7.214);
-        public static final Distance rightLimelightLateral = Inches.of(11.320);
-        public static final Distance rightLimelightHeight = Inches.of(5.721);
-        public static final Angle rightLimelightRoll = Degrees.of(0);
-        public static final Angle rightLimelightPitch = Degrees.of(20.0);
-        public static final Angle rightLimelightYaw = Degrees.of(30.0);
+        public static final List<Pose2d> STATION_WAYPOINTS = new ArrayList<Pose2d>(
+            List.of(
+                new Pose2d(1.151, 1.03, Rotation2d.fromDegrees(55)), // 12 Station
+                new Pose2d(1.1383, 7.01, Rotation2d.fromDegrees(-55)) // 13 Station 1.0873
+            )
+        );
+
+        public static final List<Pose2d> LEFT_REEF_WAYPOINTS = new ArrayList<Pose2d>(
+            List.of(
+                new Pose2d(3.735, 3.14, Rotation2d.fromDegrees(60)), // 17 Left
+                new Pose2d(3.30, 4.15, Rotation2d.fromDegrees(0)), // 18 Left
+                new Pose2d(4.06, 5.105, Rotation2d.fromDegrees(300)), // 19 Left
+                new Pose2d(5.2619, 4.99953, Rotation2d.fromDegrees(240)), // 20 Left
+                new Pose2d(5.70, 3.85, Rotation2d.fromDegrees(180)), // 21 Left
+                new Pose2d(4.9113, 2.93927, Rotation2d.fromDegrees(120)) // 22 Left
+            )
+        );
+
+        public static final List<Pose2d> RIGHT_REEF_WAYPOINTS = new ArrayList<Pose2d>(
+            List.of(
+                new Pose2d(4.05, 2.95, Rotation2d.fromDegrees(60)), // 17 Right
+                new Pose2d(3.30, 3.85, Rotation2d.fromDegrees(0)), // 18 Right
+                new Pose2d(3.713, 4.925, Rotation2d.fromDegrees(300)), // 19 Right
+                new Pose2d(4.9489, 5.16, Rotation2d.fromDegrees(240)), // 20 Right
+                new Pose2d(5.70, 4.20, Rotation2d.fromDegrees(180)), // 21 Right
+                new Pose2d(5.2619, 3.05047, Rotation2d.fromDegrees(120)) // 22 Right
+            )
+        );
+
+        public static final Pose2d BLUE_PROCESSOR = new Pose2d(5.987542, 0.78, Rotation2d.fromDegrees(90));
+        public static final Pose2d RED_PROCESSOR = new Pose2d(17.55 - 5.987542, 8.05 - 0.78, Rotation2d.fromDegrees(180));
 
         public static final Vector<N3> MT1_STDEVS = VecBuilder.fill(0.5, 0.5, 1.0);
         public static final Vector<N3> MT2_STDEVS = VecBuilder.fill(0.7, 0.7, 694694);

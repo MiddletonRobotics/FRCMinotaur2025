@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.SignalLogger;
@@ -14,15 +15,20 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -31,12 +37,14 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 import frc.robot.utilities.LimelightHelper;
+import frc.robot.utilities.constants.Constants;
 
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
@@ -62,6 +70,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
 
+    private StructArrayPublisher<SwerveModuleState> modulePublisher = NetworkTableInstance.getDefault().getStructArrayTopic("ModuleStates", SwerveModuleState.struct).publish();
+    private StructPublisher<Pose2d> botpose = NetworkTableInstance.getDefault().getStructTopic("botPoseNT", Pose2d.struct).publish();
+
     private static boolean useMegaTag2 = true; // set to false to use MegaTag1
     private static boolean doRejectUpdate = false;
     public static String limelightUsed;
@@ -72,6 +83,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private static double limelightRightAvgTagArea = 0;
 
     private Field2d field;
+    private static CommandSwerveDrivetrain system;
+    private boolean waypointsTransformed = false;
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -163,6 +176,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+
+        initializeOtf();
         configureAutoBuilder();
 
         field = new Field2d();
@@ -190,6 +205,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+
+        initializeOtf();
         configureAutoBuilder();
 
         field = new Field2d();
@@ -225,6 +242,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+
+        initializeOtf();
         configureAutoBuilder();
 
         field = new Field2d();
@@ -280,15 +299,125 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return m_sysIdRoutineToApply.quasistatic(direction);
     }
 
+    
     /**
      * Runs the SysId Dynamic test in the given direction for the routine
-     * specified by {@link #m_sysIdRoutineToApply}.
+     * specified by {@link #sysIdRoutineToApply}.
      *
      * @param direction Direction of the SysId Dynamic test
      * @return Command to run
      */
     public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-        return m_sysIdRoutineToApply.dynamic(direction);
+        return this.m_sysIdRoutineToApply.dynamic(direction);
+    }
+
+     /**
+     * <ul>
+     * <li>Initializes the on-the-fly (OTF) waypoints for the robot
+     * <li>Transforms the waypoints for the red alliance if needed
+     * </ul>
+     */
+    public void initializeOtf() {
+        if ((DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) && !waypointsTransformed) {
+            waypointsTransformed = true;
+
+            transformWaypointsForAlliance(Constants.LimelightConstants.STATION_WAYPOINTS);
+            transformWaypointsForAlliance(Constants.LimelightConstants.LEFT_REEF_WAYPOINTS);
+            transformWaypointsForAlliance(Constants.LimelightConstants.RIGHT_REEF_WAYPOINTS);
+        }
+    }
+
+    private void transformWaypointsForAlliance(List<Pose2d> waypoints) {
+        final double FIELD_LENGTH = 17.55;
+        final double X_OFFSET = 0.0;
+
+        for (int i = 0; i < waypoints.size(); i++) {
+            Pose2d bluePose = waypoints.get(i);
+            waypoints.set(
+                i,
+                new Pose2d(
+                    FIELD_LENGTH - bluePose.getX() + X_OFFSET,
+                    bluePose.getY(),
+                    Rotation2d.fromDegrees(180 - bluePose.getRotation().getDegrees())
+                )
+            );
+        }
+    }
+
+    /**
+     * Uses PathPlanner's {@link AutoBuilder#pathfindToPose} to move to the desired pose
+     *
+     * @param pose The desired pose
+     * @return A {@link DeferredCommand} that moves the robot to the desired pose
+     */
+    public Command goToPose(Pose2d pose) {
+        return defer(
+            () -> AutoBuilder.pathfindToPose(
+                pose,
+                new PathConstraints(
+                    3.5,
+                    4.0,
+                    Units.degreesToRadians(540),
+                    Units.degreesToRadians(720)
+                )
+            ).finallyDo((interrupted) -> this.stop())
+        );
+    }
+
+    /**
+     * Moves the robot to the nearest left or right reef
+     *
+     * @param reef Desired left or right reef from {@link Constants.Swerve.REEFS}
+     * @return A {@link DeferredCommand} that moves the robot to the nearest left or right reef
+     */
+    public Command pathToReef(Constants.LimelightConstants.REEFS reef) {
+        return defer(() -> {
+            Pose2d target = null;
+
+            if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
+                target = this.getState().Pose.nearest(
+                    (reef == Constants.LimelightConstants.REEFS.LEFT) ? Constants.LimelightConstants.RIGHT_REEF_WAYPOINTS : Constants.LimelightConstants.LEFT_REEF_WAYPOINTS
+                );
+            } else {
+                target = this.getState().Pose.nearest(
+                    (reef == Constants.LimelightConstants.REEFS.LEFT) ? Constants.LimelightConstants.LEFT_REEF_WAYPOINTS : Constants.LimelightConstants.RIGHT_REEF_WAYPOINTS
+                );
+            }
+
+            return goToPose(target).withTimeout(0.01).andThen(goToPose(target));
+        });
+    }
+
+    /**
+     * Moves the robot to the red or blue processor depending on current alliance
+     *
+     * @return A {@link DeferredCommand} that moves the robot to the red or blue processor
+     */
+    public Command pathToProcessor() {
+        return defer(() -> {
+            Pose2d target = null;
+
+            if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
+                target = Constants.LimelightConstants.RED_PROCESSOR;
+            } else {
+                target = Constants.LimelightConstants.BLUE_PROCESSOR;
+            }
+
+            return goToPose(target).withTimeout(0.01).andThen(goToPose(target));
+        });
+    }
+
+    /**
+     * Moves the robot to the nearest coral station
+     *
+     * @return A {@link DeferredCommand} that moves the robot to the nearest coral station
+     */
+    public Command pathToStation() {
+        return defer(() -> {
+            Pose2d target = this.getState().Pose.nearest(Constants.LimelightConstants.STATION_WAYPOINTS);
+
+            return goToPose(target).withTimeout(0.01).andThen(goToPose(target));
+        });
     }
 
     private void startSimThread() {
@@ -360,13 +489,18 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             });
         }
 
+        modulePublisher.set(this.getState().ModuleStates);
+        botpose.set(this.getState().Pose);
+        field.setRobotPose(this.getState().Pose);
+
         LimelightHelper.SetRobotOrientation("limelight-left", getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
         LimelightHelper.SetRobotOrientation("limelight-right", getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
 
-        LLposeLeft = get_LL_Estimate(false, "limelight-left");
-        LLposeRight = get_LL_Estimate(false, "limelight-right");
+        LLposeLeft = get_LL_Estimate(true, "limelight-left");
+        LLposeRight = get_LL_Estimate(true, "limelight-right");
 
         addMeasuremrent();
+
         updateLogs();
 
         /* 
@@ -416,7 +550,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         SmartDashboard.putNumber("Right Limelight Tag ID", LimelightHelper.getFiducialID("limelight-right"));
 
         Pose2d currentPose = getState().Pose;
-        field.setRobotPose(getState().Pose);
+        field.setRobotPose(currentPose);
 
         SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
         SmartDashboard.putData("Field",field);
@@ -424,39 +558,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     public void addMeasuremrent() {
         if (LLposeRight != null) {
-            //SmartDashboard.putNumber("RightLimelightPoseX", LLposeRight.pose.getX());
-            //SmartDashboard.putNumber("RightLimelightPoseY", LLposeRight.pose.getY());
-            //SmartDashboard.putNumber("RightLimelightPoseRot", LLposeRight.pose.getRotation().getDegrees());
-            //setStateStdDevs(VecBuilder.fill(0.5, 0.5, Double.MAX_VALUE));
             addVisionMeasurement(LLposeRight.pose, LLposeRight.timestampSeconds);
         } 
         
         if (LLposeLeft != null) {
-            //SmartDashboard.putNumber("LeftLimelightPoseX", LLposeLeft.pose.getX());
-            //SmartDashboard.putNumber("LeftLimelightPoseY", LLposeLeft.pose.getY());
-            //SmartDashboard.putNumber("LeftLimelightPoseRot", LLposeLeft.pose.getRotation().getDegrees());
-            //setStateStdDevs(VecBuilder.fill(0.5, 0.5, Double.MAX_VALUE));
             addVisionMeasurement(LLposeLeft.pose, LLposeLeft.timestampSeconds);
         }
     }
 
-    /*
-
-    public void resetToVision(){
-        choose_LL();
-        
-        LLposeEstimate = get_manual_LL_Estimate();
-        if (LLposeEstimate != null) {
-            resetPose(LLposeEstimate.pose);
-        }
-    }
-
-    */
-
-    /**
-     * Polls the limelights for a pose estimate and uses the pose estimator Kalman filter to fuse the best Limelight pose estimate
-     * with the odometry pose estimate
-     */
     private void updateOdometry() {
         LLposeLeft = get_LL_Estimate(false, "limelight-left");
         LLposeRight = get_LL_Estimate(false, "limelight-right");
@@ -478,20 +587,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
     }
 
-    /**
-     * Uses the autobuilder and PathPlanner's navigation grid to pathfind to a pose in real time
-     * 
-     * @param pose Pose to pathfind to
-     * @param endVelocity Velocity at pose
-     */
     public Command path_find_to(Pose2d pose, LinearVelocity endVelocity){
         return AutoBuilder.pathfindToPose(pose, TunerConstants.oTF_Constraints, endVelocity);
     }
 
-    /**
-     * @param useMegaTag2 Boolean to use mt2 or mt1
-     * @return Valid pose estimate or null
-     */
     private LimelightHelper.PoseEstimate get_LL_Estimate(boolean useMegaTag2, String llName){
         doRejectUpdate = false;
         LimelightHelper.PoseEstimate poseEstimate = new LimelightHelper.PoseEstimate();
@@ -572,5 +671,32 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         Double[] pose = {poseEstimate.pose.getX(), poseEstimate.pose.getY(), poseEstimate.pose.getRotation().getRadians()};
         SmartDashboard.putNumberArray("Manual Pose", pose);
         return poseEstimate;
+    }
+
+    public Command stop() {
+        return runOnce(
+            () -> this.setControl(
+                new SwerveRequest.RobotCentric().withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0)
+            )
+        );
+    }
+
+    /**
+     * Gets the {@link Swerve} subsystem instance
+     *
+     * @return The {@link Swerve} subsystem instance
+     */
+    public static CommandSwerveDrivetrain system() {
+        if (system == null) {
+            system = new CommandSwerveDrivetrain(
+                TunerConstants.DrivetrainConstants,
+                TunerConstants.FrontLeft,
+                TunerConstants.FrontRight,
+                TunerConstants.BackLeft,
+                TunerConstants.BackRight
+            );
+        }
+
+        return system;
     }
 }

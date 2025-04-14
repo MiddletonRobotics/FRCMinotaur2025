@@ -30,15 +30,28 @@
           }
         },
         {
-          "type": "wait",
+          "type": "parallel",
           "data": {
-            "waitTime": 0.2
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "PrepareL4"
+                }
+              }
+            ]
           }
         },
         {
           "type": "path",
           "data": {
             "pathName": "CoralPlusAlgaePath1.5"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.375
           }
         },
         {
@@ -73,25 +86,13 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "CoralPlusAlgaePath3"
-          }
-        },
-        {
-          "type": "race",
+          "type": "parallel",
           "data": {
             "commands": [
               {
-                "type": "named",
+                "type": "path",
                 "data": {
-                  "name": "AlgeaTilt"
-                }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 1.0
+                  "pathName": "CoralPlusAlgaePath3"
                 }
               }
             ]
@@ -104,13 +105,20 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "PrepareBarge"
+                  "name": "AlgeaTilt"
                 }
-              },
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
               {
-                "type": "wait",
+                "type": "named",
                 "data": {
-                  "waitTime": 2.0
+                  "name": "PrepareBarge"
                 }
               }
             ]
@@ -125,31 +133,6 @@
                 "data": {
                   "name": "AlgeaBarge"
                 }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 1.0
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "race",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "AlgeaStart"
-                }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 1.0
-                }
               }
             ]
           }
@@ -162,12 +145,6 @@
                 "type": "named",
                 "data": {
                   "name": "StowElevator"
-                }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 2.0
                 }
               }
             ]

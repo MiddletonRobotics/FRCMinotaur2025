@@ -45,10 +45,33 @@
     }
   ],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "PrepareDealgification",
+      "waypointRelativePos": 0.5997285311671086,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "PrepareDealgification"
+        }
+      }
+    },
+    {
+      "name": "ScoreCoral",
+      "waypointRelativePos": 0.9516744031830241,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "ScoreCoral"
+        }
+      }
+    }
+  ],
   "globalConstraints": {
-    "maxVelocity": 5.029,
-    "maxAcceleration": 4.0,
+    "maxVelocity": 3.35,
+    "maxAcceleration": 2.25,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,

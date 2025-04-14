@@ -9,34 +9,58 @@
           "data": {
             "commands": [
               {
-                "type": "named",
-                "data": {
-                  "name": "PrepareL4"
-                }
-              },
-              {
                 "type": "path",
                 "data": {
                   "pathName": "CoralAutoLeftPath1"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "ProcessorStore"
                 }
               }
             ]
           }
         },
         {
-          "type": "sequential",
+          "type": "named",
+          "data": {
+            "name": "PrepareL4"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "CoralAutoLeftPath1.5"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.25
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ScoreCoral"
+          }
+        },
+        {
+          "type": "parallel",
           "data": {
             "commands": [
               {
-                "type": "named",
+                "type": "path",
                 "data": {
-                  "name": "ScoreCoral"
+                  "pathName": "CoralAutoLeftPath2"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "IndexCoral"
+                  "name": "StowElevator"
                 }
               }
             ]

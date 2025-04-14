@@ -25,7 +25,10 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.ProcessorCommands;
+import frc.robot.commands.RetractElevatorSafe;
 import frc.robot.commands.ShootBarge;
+import frc.robot.commands.ShootBargeNoRetraction;
+import frc.robot.commands.AlignToTarget;
 import frc.robot.commands.CoralCommands;
 import frc.robot.commands.DealgeafierCommands;
 import frc.robot.commands.ElevatorCommands;
@@ -38,6 +41,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.LEDSubsystem;
+import frc.robot.subsystems.Limelight;
 import frc.robot.utilities.BlinkinLEDController.BlinkinPattern;
 import frc.robot.utilities.constants.Constants;
 
@@ -80,12 +84,13 @@ public class RobotContainer {
     private final CommandXboxController driverController = new CommandXboxController(driverControllerPort);
     private final XboxController driverControllerHID = driverController.getHID();
     private final CommandXboxController operatorController = new CommandXboxController(operatorControllerPort);
-    public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+    public final CommandSwerveDrivetrain drivetrain = CommandSwerveDrivetrain.system();
 
     public CoralSubsystem coralSubsystem = new CoralSubsystem();
     public final DealgeafierSubsystem dealgeafierSubsystem = new DealgeafierSubsystem();
     public final ElevatorSubsystem elevatorSubsystem2 = new ElevatorSubsystem();
     public final ProcessorSubsystem processorSubsystem = new ProcessorSubsystem();
+    //public final Limelight limelights = Limelight.system();
     private LEDSubsystem ledSubsystem = new LEDSubsystem();
     private boolean isManual = false;
     //private final Limelight leftElevatorLL = new Limelight(drivetrain, "limelight-left");
@@ -105,7 +110,9 @@ public class RobotContainer {
         NamedCommands.registerCommand("AlgeaBarge", DealgeafierCommands.shootAlgeaSensorless(dealgeafierSubsystem));
         NamedCommands.registerCommand("AlgeaStart", DealgeafierCommands.runPivotToStart(dealgeafierSubsystem));
         NamedCommands.registerCommand("AlgeaTilt", DealgeafierCommands.runPivotToBarge(dealgeafierSubsystem));
+        NamedCommands.registerCommand("ShootBargeNoRetraction", new ShootBargeNoRetraction(elevatorSubsystem2, dealgeafierSubsystem, ledSubsystem));
         NamedCommands.registerCommand("ShootBarge", new ShootBarge(elevatorSubsystem2, dealgeafierSubsystem, ledSubsystem));
+        NamedCommands.registerCommand("RetractElevatorSafe", new RetractElevatorSafe(elevatorSubsystem2, dealgeafierSubsystem, ledSubsystem));
 
         new EventTrigger("ETPrepareDealgification").whileTrue(new PrepareDealgeafication(dealgeafierSubsystem, elevatorSubsystem2));
         new EventTrigger("ETStoreDealgeafier").whileTrue(DealgeafierCommands.runPivotToStored(dealgeafierSubsystem));
@@ -246,61 +253,63 @@ public class RobotContainer {
     }
 
     public void configureTestingBindings() {
-            drivetrain.setDefaultCommand(
-                drivetrain.applyRequest(() ->
-                    drive.withVelocityX((-driverControllerHID.getLeftY() * MaxSpeed) * drivingState.getPosition()) // Drive forward with negative Y (forward)
-                        .withVelocityY((-driverControllerHID.getLeftX() * MaxSpeed) * drivingState.getPosition()) // Drive left with negative X (left)
-                        .withRotationalRate((-driverControllerHID.getRightX() * MaxAngularRate) * drivingState.getPosition()) // Drive counterclockwise with negative X (left)
-                )
-            );
+        drivetrain.setDefaultCommand(
+            drivetrain.applyRequest(() ->
+                drive.withVelocityX((-driverControllerHID.getLeftY() * MaxSpeed) * drivingState.getPosition()) // Drive forward with negative Y (forward)
+                    .withVelocityY((-driverControllerHID.getLeftX() * MaxSpeed) * drivingState.getPosition()) // Drive left with negative X (left)
+                    .withRotationalRate((-driverControllerHID.getRightX() * MaxAngularRate) * drivingState.getPosition()) // Drive counterclockwise with negative X (left)
+            )
+        );
 
-            driverController.a().and(() -> !isManual).onTrue(ElevatorCommands.runElevatorToPosition(elevatorSubsystem2));
-            driverController.b().and(() -> !isManual).onTrue(ElevatorCommands.runElevatorToStow(elevatorSubsystem2));
+        driverController.a().and(() -> !isManual).onTrue(ElevatorCommands.runElevatorToPosition(elevatorSubsystem2));
+        driverController.b().and(() -> !isManual).onTrue(ElevatorCommands.runElevatorToStow(elevatorSubsystem2));
 
-            driverController.povLeft().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(0.3)));
-            driverController.povLeft().and(() -> !isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
+        driverController.povUp().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(0.3)));
+        driverController.povUp().and(() -> !isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
 
-            driverController.povRight().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(-0.2)));
-            driverController.povRight().and(() -> !isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
+        driverController.povRight().and(() -> !isManual).whileTrue(drivetrain.pathToReef(Constants.LimelightConstants.REEFS.RIGHT));
 
-            driverController.leftTrigger().and(() -> !isManual).onTrue(CoralCommands.funnelIntakingUntilBroken(coralSubsystem, ledSubsystem));
-            driverController.leftBumper().and(() -> !isManual).onTrue(CoralCommands.scoreCoral(coralSubsystem, ledSubsystem));
-            driverController.rightTrigger(0.5).and(() -> !isManual).onTrue(new ConditionalCommand(
-                new InstantCommand(() -> this.drivingState = DrivingState.SLOWMODE), 
-                new InstantCommand(() -> this.drivingState = DrivingState.NORMAL), 
-                () -> this.drivingState == DrivingState.NORMAL
-            ));
+        driverController.povDown().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(-0.2)));
+        driverController.povDown().and(() -> !isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
 
-            driverController.back().and(() -> !isManual).and(driverController.rightBumper()).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-            driverController.start().and(() -> !isManual).onTrue(new InstantCommand(() -> elevatorSubsystem2.resetEncoders()));
-            drivetrain.registerTelemetry(logger::telemeterize);
+        driverController.povLeft().and(() -> !isManual).whileTrue(drivetrain.pathToReef(Constants.LimelightConstants.REEFS.LEFT));
 
-            driverController.a().and(() -> isManual).whileTrue(drivetrain.applyRequest(() -> brake));
-            driverController.b().and(() -> isManual).whileTrue(drivetrain.applyRequest(() -> point.withModuleDirection(new Rotation2d(-driverController.getLeftY(), -driverController.getLeftX()))));
+        driverController.leftTrigger().and(() -> !isManual).onTrue(CoralCommands.funnelIntakingUntilBroken(coralSubsystem, ledSubsystem));
+        driverController.leftBumper().and(() -> !isManual).onTrue(CoralCommands.scoreCoral(coralSubsystem, ledSubsystem));
+        driverController.rightTrigger(0.5).and(() -> !isManual).onTrue(new ConditionalCommand(
+            new InstantCommand(() -> this.drivingState = DrivingState.SLOWMODE), 
+            new InstantCommand(() -> this.drivingState = DrivingState.NORMAL), 
+            () -> this.drivingState == DrivingState.NORMAL
+        ));
 
-            driverController.x().and(() -> isManual).whileTrue(new InstantCommand(() -> coralSubsystem.spinCoral(-1)));
-            driverController.x().and(() -> isManual).whileFalse(new InstantCommand(() -> coralSubsystem.stopCoral()));
+        driverController.back().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        driverController.start().and(() -> !isManual).onTrue(new InstantCommand(() -> elevatorSubsystem2.resetEncoders()));
 
-            driverController.y().and(() -> isManual).whileTrue(new InstantCommand(() -> coralSubsystem.spinCoral(0.4)));
-            driverController.y().and(() -> isManual).whileFalse(new InstantCommand(() -> coralSubsystem.stopCoral()));
+        driverController.a().and(() -> isManual).whileTrue(drivetrain.applyRequest(() -> brake));
+        driverController.b().and(() -> isManual).whileTrue(drivetrain.applyRequest(() -> point.withModuleDirection(new Rotation2d(-driverController.getLeftY(), -driverController.getLeftX()))));
 
-            driverController.leftTrigger(0.5).and(() -> isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(-0.9)));
-            driverController.leftTrigger(0.5).and(() -> isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
+        driverController.x().and(() -> isManual).whileTrue(new InstantCommand(() -> coralSubsystem.spinCoral(-1)));
+        driverController.x().and(() -> isManual).whileFalse(new InstantCommand(() -> coralSubsystem.stopCoral()));
 
-            driverController.rightTrigger(0.5).and(() -> isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(0.2)));
-            driverController.rightTrigger(0.5).and(() -> isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
+        driverController.y().and(() -> isManual).whileTrue(new InstantCommand(() -> coralSubsystem.spinCoral(0.4)));
+        driverController.y().and(() -> isManual).whileFalse(new InstantCommand(() -> coralSubsystem.stopCoral()));
 
-            driverController.leftBumper().and(() -> isManual).whileTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(0.25)));
-            driverController.leftBumper().and(() -> isManual).whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
+        driverController.leftTrigger(0.5).and(() -> isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(-0.9)));
+        driverController.leftTrigger(0.5).and(() -> isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
 
-            driverController.rightBumper().and(() -> isManual).whileTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(-0.6)));
-            driverController.rightBumper().and(() -> isManual).whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
+        driverController.rightTrigger(0.5).and(() -> isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(0.2)));
+        driverController.rightTrigger(0.5).and(() -> isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
 
-            driverController.povUp().and(() -> isManual).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-            driverController.rightStick().onTrue(new InstantCommand(() -> isManual = !isManual));
+        driverController.leftBumper().and(() -> isManual).whileTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(0.25)));
+        driverController.leftBumper().and(() -> isManual).whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
 
-            new Trigger(() -> processorSubsystem.isRollerCooking()).onTrue(LEDCommands.intakenAlgea(ledSubsystem));
-            new Trigger(() -> dealgeafierSubsystem.getLimitSwitch()).onTrue(LEDCommands.intakenAlgea(ledSubsystem));
+        driverController.rightBumper().and(() -> isManual).whileTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(-0.6)));
+        driverController.rightBumper().and(() -> isManual).whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
+
+        new Trigger(() -> processorSubsystem.isRollerCooking()).onTrue(LEDCommands.intakenAlgea(ledSubsystem));
+        new Trigger(() -> dealgeafierSubsystem.getLimitSwitch()).onTrue(LEDCommands.intakenAlgea(ledSubsystem));
+
+        drivetrain.registerTelemetry(logger::telemeterize);
         
     }
 

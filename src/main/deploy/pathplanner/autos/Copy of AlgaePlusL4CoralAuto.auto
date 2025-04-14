@@ -11,7 +11,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "CoralAutoLeftPath1"
+                  "pathName": "CoralPlusAlgaePath1"
                 }
               },
               {
@@ -30,15 +30,28 @@
           }
         },
         {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "PrepareL4"
+                }
+              }
+            ]
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "CoralAutoLeftPath1.5"
+            "pathName": "CoralPlusAlgaePath1.5"
           }
         },
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.275
+            "waitTime": 0.375
           }
         },
         {
@@ -54,65 +67,22 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "CoralAutoLeftPath2"
+                  "pathName": "CoralPlusAlgaePath2"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "StowElevator"
+                  "name": "PrepareDealgification"
                 }
               }
             ]
-          }
-        },
-        {
-          "type": "race",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "IndexCoral"
-                }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 1.0
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "CoralAutoLeftPath3"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "PrepareL4"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "CoralAutoLeftPath3.5"
           }
         },
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.275
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "ScoreCoral"
+            "waitTime": 0.5
           }
         },
         {
@@ -122,13 +92,64 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "CoralAutoLeftPath4"
+                  "pathName": "CoralPlusAlgaePath3"
                 }
               },
               {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 0.5
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "AlgeaStart"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ShootBargeNoRetraction"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
                 "type": "named",
                 "data": {
-                  "name": "StowElevator"
+                  "name": "RetractElevatorSafe"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 0.5
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "CoralPlusAlgaePath4"
+                      }
+                    }
+                  ]
                 }
               }
             ]

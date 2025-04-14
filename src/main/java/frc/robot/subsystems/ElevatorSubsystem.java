@@ -24,7 +24,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.utilities.PhoenixUtil;
-import frc.robot.utilities.BlinkinLEDController.BlinkinPattern;
 import frc.robot.utilities.constants.Constants;
 import frc.robot.utilities.constants.Constants.ElevatorConstants;
 import frc.robot.utilities.constants.Constants.ElevatorConstants.ElevatorStates;
@@ -267,12 +266,12 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         */
 
-        elevatorLeaderCANDisconnected.set(connectedDebouncer.calculate(elevatorLeader.isConnected()));
+        elevatorLeaderCANDisconnected.set(connectedDebouncer.calculate(elevatorLeader.isAlive()));
         elevatorLeaderOverTempurature.set(elevatorLeader.getFault_DeviceTemp().getValue().booleanValue());
         elevatorLeaderOverCurrent.set(elevatorLeader.getFault_OverSupplyV().getValue().booleanValue());
         elevatorLeaderFeature.set(elevatorLeader.getFault_UsingFusedCANcoderWhileUnlicensed().getValue().booleanValue());
 
-        elevatorFollowerCANDisconnected.set(connectedDebouncer.calculate(elevatorFollower.isConnected()));
+        elevatorFollowerCANDisconnected.set(followerConnectedDebouncer.calculate(elevatorFollower.isAlive()));
         elevatorFollowerOverTempurature.set(elevatorFollower.getFault_DeviceTemp().getValue().booleanValue());
         elevatorFollowerOverCurrent.set(elevatorFollower.getFault_OverSupplyV().getValue().booleanValue());
         elevatorFollowerFeature.set(elevatorFollower.getFault_UsingFusedCANcoderWhileUnlicensed().getValue().booleanValue());

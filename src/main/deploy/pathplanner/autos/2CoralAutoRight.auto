@@ -30,27 +30,59 @@
           }
         },
         {
+          "type": "path",
+          "data": {
+            "pathName": "CoralAutoRightPath1.5"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.275
+          }
+        },
+        {
           "type": "named",
           "data": {
             "name": "ScoreCoral"
           }
         },
         {
-          "type": "named",
+          "type": "parallel",
           "data": {
-            "name": "StowElevator"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "CoralAutoRightPath2"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "StowElevator"
+                }
+              }
+            ]
           }
         },
         {
-          "type": "path",
+          "type": "race",
           "data": {
-            "pathName": "CoralAutoRightPath2"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "IndexCoral"
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "IndexCoral"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 1.0
+                }
+              }
+            ]
           }
         },
         {
@@ -66,9 +98,15 @@
           }
         },
         {
+          "type": "path",
+          "data": {
+            "pathName": "CoralAutoRightPath3.5"
+          }
+        },
+        {
           "type": "wait",
           "data": {
-            "waitTime": 0.375
+            "waitTime": 0.275
           }
         },
         {
@@ -78,9 +116,22 @@
           }
         },
         {
-          "type": "named",
+          "type": "parallel",
           "data": {
-            "name": "StowElevator"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "CoralAutoRightPath4"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "StowElevator"
+                }
+              }
+            ]
           }
         }
       ]

@@ -133,7 +133,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
             .positionConversionFactor(Constants.DealgeafierConstants.PositionConversionFactor)
             .velocityConversionFactor(Constants.DealgeafierConstants.VelocityConversionFactor);
         pivotingConfiguration.closedLoop
-            .pid(0.3, 0.0, 0.0);
+            .pid(0.35, 0.0, 0.0);
 
         pivotingMotor.configure(pivotingConfiguration, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         pivotingEncoder.setPosition(PivotingState.START.getPosition().in(Radians));
@@ -235,7 +235,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
 
     public boolean atTargetPosition() {
         Angle targetPosition = getPivotingState().getPosition();
-        return (targetPosition.in(Radians) - pivotingEncoder.getPosition() < 0.1 && targetPosition.in(Radians) - pivotingEncoder.getPosition() > -0.1);
+        return (targetPosition.in(Radians) - pivotingEncoder.getPosition() < 0.1 && targetPosition.in(Radians) - pivotingEncoder.getPosition() > -0.14);
     }
 
     public boolean profileAtGoal() {

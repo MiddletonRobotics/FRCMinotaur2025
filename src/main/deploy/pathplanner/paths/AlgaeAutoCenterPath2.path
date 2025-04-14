@@ -63,10 +63,66 @@
     }
   ],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "StowElevator",
+      "waypointRelativePos": 0.05225256962864723,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "StowElevator"
+        }
+      }
+    },
+    {
+      "name": "AlgeaStart",
+      "waypointRelativePos": 0.95,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "AlgaeStart"
+        }
+      }
+    },
+    {
+      "name": "PrepareL4",
+      "waypointRelativePos": 0.9761376823607426,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "PrepareL4"
+        }
+      }
+    },
+    {
+      "name": "AlgeaBarge",
+      "waypointRelativePos": 0.9885195623342179,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "AlgaeBarge"
+        }
+      }
+    },
+    {
+      "name": "ScoreAlgea",
+      "waypointRelativePos": 1.0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "ScoreAlgae"
+        }
+      }
+    }
+  ],
   "globalConstraints": {
-    "maxVelocity": 5.029,
-    "maxAcceleration": 4.0,
+    "maxVelocity": 3.35,
+    "maxAcceleration": 2.25,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,

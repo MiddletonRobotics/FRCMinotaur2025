@@ -41,11 +41,11 @@ public class AlignToTarget extends Command {
     @Override
     public void execute() {
       if(left) {
-        xVal = xpidController.calculate(LimelightHelper.getTX("limelight-right"), 2.77);
-        yVal = ypidController.calculate(LimelightHelper.getTY("limelight-right"), 3.07);
+        xVal = xpidController.calculate(LimelightHelper.getTX("limelight-right"), 10.69);
+        yVal = ypidController.calculate(LimelightHelper.getTY("limelight-right"), -1.46);
       } else {
-        xVal = xpidController.calculate(LimelightHelper.getTX("limelight-left"), 15.04);
-        yVal = ypidController.calculate(LimelightHelper.getTY("limelight-left"), -2.09);
+        xVal = xpidController.calculate(LimelightHelper.getTX("limelight-left"), -0.82);
+        yVal = ypidController.calculate(LimelightHelper.getTY("limelight-left"), 0.5);
       }
 
       System.out.println("X Value " + xVal);

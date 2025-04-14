@@ -3,43 +3,38 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.45,
-        "y": 0.95
+        "x": 7.45,
+        "y": 5.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.6083452181568876,
-        "y": 1.1434600524316265
+        "x": 6.398812133196879,
+        "y": 5.017660286043006
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.63,
-        "y": 2.83
+        "x": 5.21,
+        "y": 5.27
       },
       "prevControl": {
-        "x": 2.7184573724072054,
-        "y": 2.167724310862444
+        "x": 5.509758231878418,
+        "y": 5.789196487600433
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 0.647228271880065,
-      "rotationDegrees": 59.99999999999999
-    }
-  ],
+  "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 5.029,
-    "maxAcceleration": 4.0,
+    "maxVelocity": 3.35,
+    "maxAcceleration": 2.25,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -47,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 59.99999999999999
+    "rotation": -119.99999999999999
   },
   "reversed": false,
-  "folder": "CoralAutoLeft",
+  "folder": "CoralPlusAlgea",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 55.0
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }

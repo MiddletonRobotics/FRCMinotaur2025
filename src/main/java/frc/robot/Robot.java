@@ -51,6 +51,7 @@ public class Robot extends TimedRobot {
     }
 
     SmartDashboard.putNumber("Battery Voltage", RobotController.getBatteryVoltage());
+    SmartDashboard.putData(CommandScheduler.getInstance());
   }
 
   @Override
