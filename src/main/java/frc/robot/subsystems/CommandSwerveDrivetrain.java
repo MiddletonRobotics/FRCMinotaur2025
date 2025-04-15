@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.*;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.SignalLogger;
@@ -15,7 +16,10 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.Waypoint;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
@@ -388,6 +392,43 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         });
     }
 
+    public Command flyToReef(Constants.LimelightConstants.REEFS reef) {
+        Pose2d curPose = getState().Pose;
+        Pose2d goalPose = null; 
+
+        if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
+            goalPose = this.getState().Pose.nearest(
+                (reef == Constants.LimelightConstants.REEFS.LEFT) ? Constants.LimelightConstants.RIGHT_REEF_WAYPOINTS : Constants.LimelightConstants.LEFT_REEF_WAYPOINTS
+            );
+        } else {
+            goalPose = this.getState().Pose.nearest(
+                (reef == Constants.LimelightConstants.REEFS.LEFT) ? Constants.LimelightConstants.LEFT_REEF_WAYPOINTS : Constants.LimelightConstants.RIGHT_REEF_WAYPOINTS
+            );
+        }
+        
+        List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(
+            new Pose2d(curPose.getX(), curPose.getY(), Rotation2d.fromDegrees(0)),
+            new Pose2d(goalPose.getX(), goalPose.getY(), Rotation2d.fromDegrees(0))
+        );
+
+        // The values are low so if anything goes wrong we can disable the robot
+        PathConstraints constraints = new PathConstraints(0.5, 1, 2 * Math.PI, 4 * Math.PI);
+
+        PathPlannerPath alignmentPath = new PathPlannerPath(
+            waypoints,
+            constraints,
+            null,
+            new GoalEndState(0, goalPose.getRotation())
+        );
+
+        resetPose(getState().Pose);
+        return AutoBuilder.followPath(alignmentPath);
+    }
+
+    public Command alignToRightReef (Constants.LimelightConstants.REEFS reef) {
+        return new DeferredCommand(() -> flyToReef(reef), Set.of(this));
+    }
+
     /**
      * Moves the robot to the red or blue processor depending on current alliance
      *
@@ -496,8 +537,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         LimelightHelper.SetRobotOrientation("limelight-left", getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
         LimelightHelper.SetRobotOrientation("limelight-right", getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
 
-        LLposeLeft = get_LL_Estimate(true, "limelight-left");
-        LLposeRight = get_LL_Estimate(true, "limelight-right");
+        LLposeLeft = get_LL_Estimate(false, "limelight-left");
+        LLposeRight = get_LL_Estimate(false, "limelight-right");
 
         addMeasuremrent();
 

@@ -125,12 +125,6 @@
         {
           "type": "named",
           "data": {
-            "name": "AlgeaStart"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
             "name": "StowElevator"
           }
         },

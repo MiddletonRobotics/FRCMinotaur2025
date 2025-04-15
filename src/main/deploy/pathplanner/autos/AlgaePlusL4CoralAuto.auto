@@ -107,6 +107,12 @@
                 "data": {
                   "name": "AlgeaTilt"
                 }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.5
+                }
               }
             ]
           }
@@ -132,6 +138,12 @@
                 "type": "named",
                 "data": {
                   "name": "AlgeaBarge"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.25
                 }
               }
             ]
