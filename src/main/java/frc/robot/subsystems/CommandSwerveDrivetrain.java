@@ -77,7 +77,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private StructArrayPublisher<SwerveModuleState> modulePublisher = NetworkTableInstance.getDefault().getStructArrayTopic("ModuleStates", SwerveModuleState.struct).publish();
     private StructPublisher<Pose2d> botpose = NetworkTableInstance.getDefault().getStructTopic("botPoseNT", Pose2d.struct).publish();
 
-    private static boolean useMegaTag2 = true; // set to false to use MegaTag1
     private static boolean doRejectUpdate = false;
     public static String limelightUsed;
     private static LimelightHelper.PoseEstimate LLposeLeft;
@@ -530,19 +529,28 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             });
         }
 
-        modulePublisher.set(this.getState().ModuleStates);
-        botpose.set(this.getState().Pose);
-        field.setRobotPose(this.getState().Pose);
-
         LimelightHelper.SetRobotOrientation("limelight-left", getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
         LimelightHelper.SetRobotOrientation("limelight-right", getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
 
         LLposeLeft = get_LL_Estimate(false, "limelight-left");
         LLposeRight = get_LL_Estimate(false, "limelight-right");
 
-        addMeasuremrent();
+        if (LLposeRight != null) {
+            addVisionMeasurement(LLposeRight.pose, LLposeRight.timestampSeconds);
+        } 
+        
+        if (LLposeLeft != null) {
+            addVisionMeasurement(LLposeLeft.pose, LLposeLeft.timestampSeconds);
+        }
 
-        updateLogs();
+        SmartDashboard.putNumber("Left Limelight Tag ID", LimelightHelper.getFiducialID("limelight-left"));
+        SmartDashboard.putNumber("Right Limelight Tag ID", LimelightHelper.getFiducialID("limelight-right"));
+
+        Pose2d currentPose = getState().Pose;
+        field.setRobotPose(currentPose);
+
+        SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
+        SmartDashboard.putData("Field",field);
 
         /* 
 
@@ -586,25 +594,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         */
     }
 
-    public void updateLogs() {
-        SmartDashboard.putNumber("Left Limelight Tag ID", LimelightHelper.getFiducialID("limelight-left"));
-        SmartDashboard.putNumber("Right Limelight Tag ID", LimelightHelper.getFiducialID("limelight-right"));
-
-        Pose2d currentPose = getState().Pose;
-        field.setRobotPose(currentPose);
-
-        SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
-        SmartDashboard.putData("Field",field);
-    }
-
     public void addMeasuremrent() {
-        if (LLposeRight != null) {
-            addVisionMeasurement(LLposeRight.pose, LLposeRight.timestampSeconds);
-        } 
-        
-        if (LLposeLeft != null) {
-            addVisionMeasurement(LLposeLeft.pose, LLposeLeft.timestampSeconds);
-        }
     }
 
     private void updateOdometry() {
