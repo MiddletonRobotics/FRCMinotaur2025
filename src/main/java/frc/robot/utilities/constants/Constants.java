@@ -281,10 +281,10 @@ public class Constants {
                 new Pose2d(3.735, 3.14, Rotation2d.fromDegrees(60)), // 17 Left
                 new Pose2d(3.30, 4.15, Rotation2d.fromDegrees(0)), // 18 Left
                 new Pose2d(4.06, 5.105, Rotation2d.fromDegrees(300)), // 19 Left
-                new Pose2d(5.2619, 4.99953, Rotation2d.fromDegrees(240)), // 20 Left
+                new Pose2d(5.28, 5.04, Rotation2d.fromDegrees(240)), // 20 Left
                 new Pose2d(5.70, 3.85, Rotation2d.fromDegrees(180)), // 21 Left
                 new Pose2d(4.9113, 2.93927, Rotation2d.fromDegrees(120)) // 22 Left
-            )
+            )       
         );
 
         public static final List<Pose2d> RIGHT_REEF_WAYPOINTS = new ArrayList<Pose2d>(
@@ -292,7 +292,7 @@ public class Constants {
                 new Pose2d(4.05, 2.95, Rotation2d.fromDegrees(60)), // 17 Right
                 new Pose2d(3.30, 3.85, Rotation2d.fromDegrees(0)), // 18 Right
                 new Pose2d(3.713, 4.925, Rotation2d.fromDegrees(300)), // 19 Right
-                new Pose2d(4.9489, 5.16, Rotation2d.fromDegrees(240)), // 20 Right
+                new Pose2d(4.99, 5.24, Rotation2d.fromDegrees(240)), // 20 Right
                 new Pose2d(5.70, 4.20, Rotation2d.fromDegrees(180)), // 21 Right
                 new Pose2d(5.2619, 3.05047, Rotation2d.fromDegrees(120)) // 22 Right
             )

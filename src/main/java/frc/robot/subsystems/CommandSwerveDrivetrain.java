@@ -21,6 +21,8 @@ import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -395,9 +397,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         Pose2d curPose = getState().Pose;
         Pose2d goalPose = null; 
 
-        if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
+        if (DriverStation.getAlliance().get() == Alliance.Blue) {
             goalPose = this.getState().Pose.nearest(
-                (reef == Constants.LimelightConstants.REEFS.LEFT) ? Constants.LimelightConstants.RIGHT_REEF_WAYPOINTS : Constants.LimelightConstants.LEFT_REEF_WAYPOINTS
+                (reef == Constants.LimelightConstants.REEFS.LEFT) ? Constants.LimelightConstants.LEFT_REEF_WAYPOINTS : Constants.LimelightConstants.RIGHT_REEF_WAYPOINTS
             );
         } else {
             goalPose = this.getState().Pose.nearest(
@@ -406,12 +408,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
         
         List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(
-            new Pose2d(curPose.getX(), curPose.getY(), Rotation2d.fromDegrees(0)),
+            new Pose2d(curPose.getX(), curPose.getY(), curPose.getRotation()),
             new Pose2d(goalPose.getX(), goalPose.getY(), Rotation2d.fromDegrees(0))
         );
 
         // The values are low so if anything goes wrong we can disable the robot
-        PathConstraints constraints = new PathConstraints(0.5, 1, 2 * Math.PI, 4 * Math.PI);
+        PathConstraints constraints = new PathConstraints(1.0, 0.75, 2 * Math.PI, 4 * Math.PI);
 
         PathPlannerPath alignmentPath = new PathPlannerPath(
             waypoints,
@@ -419,6 +421,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             null,
             new GoalEndState(0, goalPose.getRotation())
         );
+
+        SmartDashboard.putNumber("Goal Pose X", goalPose.getX());
+        SmartDashboard.putNumber("Goal Pose Y", goalPose.getY());
+        SmartDashboard.putNumber("Goal Pose Rotation", goalPose.getRotation().getDegrees());
+
 
         resetPose(getState().Pose);
         return AutoBuilder.followPath(alignmentPath);
@@ -536,12 +543,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         LLposeRight = get_LL_Estimate(false, "limelight-right");
 
         if (LLposeRight != null) {
-            addVisionMeasurement(LLposeRight.pose, LLposeRight.timestampSeconds);
+            addVisionMeasurement(LLposeRight.pose, LLposeRight.timestampSeconds, VecBuilder.fill(0.7, 0.7, 0.3));
         } 
         
         if (LLposeLeft != null) {
-            addVisionMeasurement(LLposeLeft.pose, LLposeLeft.timestampSeconds);
+            addVisionMeasurement(LLposeLeft.pose, LLposeLeft.timestampSeconds, VecBuilder.fill(0.7, 0.7, 0.3));
         }
+
+        SmartDashboard.putNumber("Current Pose X", getState().Pose.getX());
+        SmartDashboard.putNumber("Current Pose Y", getState().Pose.getY());
+        SmartDashboard.putNumber("Current Pose Rotation", getState().Pose.getRotation().getDegrees());
 
         SmartDashboard.putNumber("Left Limelight Tag ID", LimelightHelper.getFiducialID("limelight-left"));
         SmartDashboard.putNumber("Right Limelight Tag ID", LimelightHelper.getFiducialID("limelight-right"));

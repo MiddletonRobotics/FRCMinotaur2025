@@ -267,12 +267,12 @@ public class RobotContainer {
         driverController.povUp().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(0.3)));
         driverController.povUp().and(() -> !isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
 
-        driverController.povRight().and(() -> !isManual).whileTrue(drivetrain.flyToReef(Constants.LimelightConstants.REEFS.RIGHT));
+        driverController.povRight().and(() -> !isManual).whileTrue(drivetrain.alignToRightReef(Constants.LimelightConstants.REEFS.RIGHT));
 
         driverController.povDown().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(-0.2)));
         driverController.povDown().and(() -> !isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
 
-        driverController.povLeft().and(() -> !isManual).whileTrue(drivetrain.flyToReef(Constants.LimelightConstants.REEFS.LEFT));
+        driverController.povLeft().and(() -> !isManual).whileTrue(drivetrain.alignToRightReef(Constants.LimelightConstants.REEFS.LEFT));
 
         driverController.leftTrigger().and(() -> !isManual).onTrue(CoralCommands.funnelIntakingUntilBroken(coralSubsystem, ledSubsystem));
         driverController.leftBumper().and(() -> !isManual).onTrue(CoralCommands.scoreCoral(coralSubsystem, ledSubsystem));
