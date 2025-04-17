@@ -76,9 +76,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
 
-    private StructArrayPublisher<SwerveModuleState> modulePublisher = NetworkTableInstance.getDefault().getStructArrayTopic("ModuleStates", SwerveModuleState.struct).publish();
-    private StructPublisher<Pose2d> botpose = NetworkTableInstance.getDefault().getStructTopic("botPoseNT", Pose2d.struct).publish();
-
     private static boolean doRejectUpdate = false;
     public static String limelightUsed;
     private static LimelightHelper.PoseEstimate LLposeLeft;
@@ -413,7 +410,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         );
 
         // The values are low so if anything goes wrong we can disable the robot
-        PathConstraints constraints = new PathConstraints(1.0, 0.75, 2 * Math.PI, 4 * Math.PI);
+        PathConstraints constraints = new PathConstraints(2.5, 2.25, 2 * Math.PI, 4 * Math.PI);
 
         PathPlannerPath alignmentPath = new PathPlannerPath(
             waypoints,

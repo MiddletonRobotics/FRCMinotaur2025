@@ -247,6 +247,12 @@ public class ElevatorSubsystem extends SubsystemBase {
         elevatorLeader.setControl(positionVoltageRequest.withPosition((meters / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio)));
     }
 
+    public void runToL1() {
+        double meters = ElevatorStates.L1.getPosition();
+        elevatorFollower.setControl(positionVoltageRequest.withPosition((meters / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio)));
+        elevatorLeader.setControl(positionVoltageRequest.withPosition((meters / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio)));
+    }
+
     public boolean atGoal() {
         return Math.abs(positionGoalMeters - (leadPosition.getValueAsDouble() / ElevatorConstants.ElevatorGearRatio) * (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter)) <= 0.04;
     }

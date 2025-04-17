@@ -29,6 +29,12 @@ public class ElevatorCommands {
         );
     }
 
+    public static Command stageElevatorToL1(ElevatorSubsystem elevatorSubsystem) {
+        return new SequentialCommandGroup(
+            new RunCommand(() -> elevatorSubsystem.runToL1()).until(() -> elevatorSubsystem.atGoal())
+        );
+    }
+
     public static Command runElevatorToL1(ElevatorSubsystem elevatorSubsystem) {
         return new SequentialCommandGroup(
             new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.L1)),

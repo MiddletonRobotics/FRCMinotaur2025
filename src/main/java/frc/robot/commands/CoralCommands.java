@@ -8,12 +8,13 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 
 import frc.robot.subsystems.CoralSubsystem;
+import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.utilities.BlinkinLEDController.BlinkinPattern;
 import frc.robot.utilities.constants.Constants;
 
 public class CoralCommands {
-    public static Command funnelIntakingUntilBroken(CoralSubsystem coralSubsystem, LEDSubsystem ledSubsystem) {
+    public static Command funnelIntakingUntilBroken(CoralSubsystem coralSubsystem, ElevatorSubsystem elevatorSubsystem, LEDSubsystem ledSubsystem) {
         return new SequentialCommandGroup(
           new PrintCommand("Automatic Coral Intaking"),  
           new InstantCommand(() -> ledSubsystem.setPattern(BlinkinPattern.STROBE_GOLD)),
@@ -24,7 +25,9 @@ public class CoralCommands {
           new InstantCommand(() -> coralSubsystem.stopCoral()),
           new InstantCommand(() -> coralSubsystem.spinCoral(0.15)),
           new WaitCommand(0.2),
-          new InstantCommand(() -> coralSubsystem.stopCoral()).alongWith(new InstantCommand(() -> ledSubsystem.setPattern(Constants.DriverConstants.DEF_PATTERN)))
+          new InstantCommand(() -> coralSubsystem.stopCoral()).alongWith(new InstantCommand(() -> ledSubsystem.setPattern(BlinkinPattern.CP1_BREATH_FAST))),
+          ElevatorCommands.stageElevatorToL1(elevatorSubsystem).onlyIf(() -> coralSubsystem.secondBeamBreak()),
+          new InstantCommand(() -> ledSubsystem.setPattern(BlinkinPattern.CP1_BREATH_FAST))
         );
     }
 

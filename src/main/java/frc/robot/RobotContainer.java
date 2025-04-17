@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -44,6 +45,7 @@ import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.Limelight;
 import frc.robot.utilities.BlinkinLEDController.BlinkinPattern;
 import frc.robot.utilities.constants.Constants;
+import frc.robot.utilities.constants.Constants.LimelightConstants.REEFS;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -105,7 +107,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("PrepareL3", ElevatorCommands.runElevatorToL3(elevatorSubsystem2));
         NamedCommands.registerCommand("PrepareL1", ElevatorCommands.runElevatorToL1(elevatorSubsystem2));
         NamedCommands.registerCommand("ScoreCoral", CoralCommands.scoreCoral(coralSubsystem, ledSubsystem));
-        NamedCommands.registerCommand("IndexCoral", CoralCommands.funnelIntakingUntilBroken(coralSubsystem, ledSubsystem));
+        NamedCommands.registerCommand("IndexCoral", CoralCommands.funnelIntakingUntilBroken(coralSubsystem, elevatorSubsystem2, ledSubsystem));
         NamedCommands.registerCommand("PrepareDealgification", new PrepareDealgeafication(dealgeafierSubsystem, elevatorSubsystem2));
         NamedCommands.registerCommand("AlgeaBarge", DealgeafierCommands.shootAlgeaSensorless(dealgeafierSubsystem));
         NamedCommands.registerCommand("AlgeaStart", DealgeafierCommands.runPivotToStart(dealgeafierSubsystem));
@@ -267,20 +269,22 @@ public class RobotContainer {
         driverController.povUp().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(0.3)));
         driverController.povUp().and(() -> !isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
 
-        driverController.povRight().and(() -> !isManual).whileTrue(drivetrain.alignToRightReef(Constants.LimelightConstants.REEFS.RIGHT));
+        driverController.povRight().and(() -> !isManual).onTrue(drivetrain.alignToRightReef(Constants.LimelightConstants.REEFS.RIGHT));
 
         driverController.povDown().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(-0.2)));
         driverController.povDown().and(() -> !isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
 
-        driverController.povLeft().and(() -> !isManual).whileTrue(drivetrain.alignToRightReef(Constants.LimelightConstants.REEFS.LEFT));
+        driverController.povLeft().and(() -> !isManual).onTrue(drivetrain.alignToRightReef(Constants.LimelightConstants.REEFS.LEFT));
 
-        driverController.leftTrigger().and(() -> !isManual).onTrue(CoralCommands.funnelIntakingUntilBroken(coralSubsystem, ledSubsystem));
+        driverController.leftTrigger().and(() -> !isManual).onTrue(CoralCommands.funnelIntakingUntilBroken(coralSubsystem, elevatorSubsystem2, ledSubsystem));
         driverController.leftBumper().and(() -> !isManual).onTrue(CoralCommands.scoreCoral(coralSubsystem, ledSubsystem));
-        driverController.rightTrigger(0.5).and(() -> !isManual).onTrue(new ConditionalCommand(
+        driverController.rightBumper().and(() -> !isManual).onTrue(new ConditionalCommand(
             new InstantCommand(() -> this.drivingState = DrivingState.SLOWMODE), 
             new InstantCommand(() -> this.drivingState = DrivingState.NORMAL), 
             () -> this.drivingState == DrivingState.NORMAL
         ));
+
+        driverController.rightTrigger(0.5).onTrue(new InstantCommand(() -> CommandScheduler.getInstance().cancel(drivetrain.alignToRightReef(null))));
 
         driverController.back().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         driverController.start().and(() -> !isManual).onTrue(new InstantCommand(() -> elevatorSubsystem2.resetEncoders()));

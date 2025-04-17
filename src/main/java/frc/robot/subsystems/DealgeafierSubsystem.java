@@ -143,7 +143,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
         rollerConfiguration
             .idleMode(IdleMode.kBrake)
             .inverted(true)
-            .smartCurrentLimit(32);
+            .smartCurrentLimit(40);
         rollerConfiguration.encoder
             .positionConversionFactor(1)
             .velocityConversionFactor(1);
@@ -251,7 +251,11 @@ public class DealgeafierSubsystem extends SubsystemBase {
     }
 
     public void stopRolling() {
-        rollerMotor.set(-0.5);
+        if(getLimitSwitch()) {
+            rollerMotor.set(-0.9);
+        } else {
+            rollerMotor.set(-0.1);
+        }
     }
 
     public void startPivot(double speed) {
