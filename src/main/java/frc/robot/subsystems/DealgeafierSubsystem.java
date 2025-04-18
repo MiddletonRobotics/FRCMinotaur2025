@@ -76,7 +76,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
         STORED(Degrees.of(90.0)),
         BARGE(Degrees.of(107.0)),
         REEF(Degrees.of(162.0)),
-        GROUND(Degrees.of(207.0));
+        GROUND(Degrees.of(213.0));
 
         private final Angle position;
 
@@ -143,7 +143,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
         rollerConfiguration
             .idleMode(IdleMode.kBrake)
             .inverted(true)
-            .smartCurrentLimit(40);
+            .smartCurrentLimit(50);
         rollerConfiguration.encoder
             .positionConversionFactor(1)
             .velocityConversionFactor(1);

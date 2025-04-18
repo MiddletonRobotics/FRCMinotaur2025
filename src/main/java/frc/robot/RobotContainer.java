@@ -35,6 +35,7 @@ import frc.robot.commands.DealgeafierCommands;
 import frc.robot.commands.ElevatorCommands;
 import frc.robot.commands.LEDCommands;
 import frc.robot.commands.PrepareDealgeafication;
+import frc.robot.commands.PrepareDealgeaficationL3;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.DealgeafierSubsystem;
 import frc.robot.subsystems.ProcessorSubsystem;
@@ -109,6 +110,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("ScoreCoral", CoralCommands.scoreCoral(coralSubsystem, ledSubsystem));
         NamedCommands.registerCommand("IndexCoral", CoralCommands.funnelIntakingUntilBroken(coralSubsystem, elevatorSubsystem2, ledSubsystem));
         NamedCommands.registerCommand("PrepareDealgification", new PrepareDealgeafication(dealgeafierSubsystem, elevatorSubsystem2));
+        NamedCommands.registerCommand("PrepareDealgificationL3", new PrepareDealgeaficationL3(dealgeafierSubsystem, elevatorSubsystem2));
         NamedCommands.registerCommand("AlgeaBarge", DealgeafierCommands.shootAlgeaSensorless(dealgeafierSubsystem));
         NamedCommands.registerCommand("AlgeaStart", DealgeafierCommands.runPivotToStart(dealgeafierSubsystem));
         NamedCommands.registerCommand("AlgeaTilt", DealgeafierCommands.runPivotToBarge(dealgeafierSubsystem));
@@ -212,11 +214,11 @@ public class RobotContainer {
     */
 
     public void configureOperatorBindings() {   
-        operatorController.y().and(() -> !isManual).onTrue(ProcessorCommands.startPivotToStored(processorSubsystem));
+        operatorController.y().and(() -> !isManual).onTrue(ProcessorCommands.startPivotToIntaken(processorSubsystem));
         operatorController.x().and(() -> !isManual).onTrue(ProcessorCommands.startPivotToGround(processorSubsystem));
-        operatorController.start().and(() -> !isManual).onTrue(ProcessorCommands.startPivotToIntaken(processorSubsystem));
+        operatorController.start().and(() -> !isManual).onTrue(ProcessorCommands.startPivotToStored                                                                                                                                                                                 (processorSubsystem));
 
-        operatorController.b().and(() -> !isManual).onTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(0.25)));
+        operatorController.b().and(() -> !isManual).onTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(0.35)));
         operatorController.b().and(() -> !isManual).whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
         operatorController.a().and(() -> !isManual).onTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(-0.6)));
         operatorController.a().and(() -> !isManual).whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
@@ -229,11 +231,14 @@ public class RobotContainer {
         operatorController.rightTrigger().and(() -> !isManual).onTrue(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem));
         operatorController.rightBumper().and(() -> !isManual).onTrue(DealgeafierCommands.shootAlgea(dealgeafierSubsystem, ledSubsystem));
 
-        operatorController.axisLessThan(XboxController.Axis.kRightY.value, -0.5).and(() -> !isManual).onTrue(new InstantCommand(() -> elevatorSubsystem2.incrementElevatorState()));
-        operatorController.axisGreaterThan(XboxController.Axis.kRightY.value, 0.5).and(() -> !isManual).onTrue(new InstantCommand(() -> elevatorSubsystem2.decrementElevatorState()));
+        operatorController.leftBumper().and(() -> !isManual).whileTrue(new RunCommand(() -> dealgeafierSubsystem.startPivot(-0.23)));
+        operatorController.leftBumper().and(() -> !isManual).onFalse(new InstantCommand(() -> dealgeafierSubsystem.stopPivot()));
 
-        operatorController.axisLessThan(XboxController.Axis.kLeftY.value, -0.5).and(() -> !isManual).onTrue(new InstantCommand(() -> dealgeafierSubsystem.startPivot(-0.23)));
-        operatorController.axisGreaterThan(XboxController.Axis.kLeftY.value, 0.5).and(() -> !isManual).onTrue(new InstantCommand(() -> dealgeafierSubsystem.startPivot(0.23)));
+        operatorController.leftTrigger(0.5).and(() -> !isManual).whileTrue(new RunCommand(() -> dealgeafierSubsystem.startPivot(0.23)));
+        operatorController.leftTrigger(0.5).and(() -> !isManual).onFalse(new InstantCommand(() -> dealgeafierSubsystem.stopPivot()));
+
+        operatorController.axisLessThan(XboxController.Axis.kRightY.value, -0.35).and(() -> !isManual).onTrue(new InstantCommand(() -> elevatorSubsystem2.incrementElevatorState()));
+        operatorController.axisGreaterThan(XboxController.Axis.kRightY.value, 0.35).and(() -> !isManual).onTrue(new InstantCommand(() -> elevatorSubsystem2.decrementElevatorState()));
 
         operatorController.y().and(() -> isManual).whileTrue(new InstantCommand(() -> processorSubsystem.startGroundPivot(0.2)));
         operatorController.y().and(() -> isManual).whileFalse(new InstantCommand(() -> processorSubsystem.startGroundPivot(0.0)));
@@ -246,7 +251,7 @@ public class RobotContainer {
 
         operatorController.povLeft().and(() -> isManual).whileTrue(new RunCommand(() -> dealgeafierSubsystem.startPivot(0.23)));
         operatorController.povLeft().and(() -> isManual).onFalse(new InstantCommand(() -> dealgeafierSubsystem.stopPivot()));
-
+   
         operatorController.rightTrigger(0.5).and(() -> isManual).whileTrue(new InstantCommand(() -> dealgeafierSubsystem.startRolling(1)));
         operatorController.rightTrigger(0.5).and(() -> isManual).whileFalse(new InstantCommand(() -> dealgeafierSubsystem.stopRolling()));
 
@@ -265,6 +270,7 @@ public class RobotContainer {
 
         driverController.a().and(() -> !isManual).onTrue(ElevatorCommands.runElevatorToPosition(elevatorSubsystem2));
         driverController.b().and(() -> !isManual).onTrue(ElevatorCommands.runElevatorToStow(elevatorSubsystem2));
+        driverController.x().onTrue(new InstantCommand(() -> isManual = !isManual));
 
         driverController.povUp().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(0.3)));
         driverController.povUp().and(() -> !isManual).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));

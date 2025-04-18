@@ -8,32 +8,27 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.429752761594647,
-        "y": 4.02
+        "x": 6.9202840909090915,
+        "y": 3.990099431818182
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 7.3,
+        "x": 7.4,
         "y": 5.0
       },
       "prevControl": {
-        "x": 6.834596004597907,
-        "y": 5.0
+        "x": 7.576776695296637,
+        "y": 4.8232233047033635
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 0.15263644773357893,
-      "rotationDegrees": 180.0
-    }
-  ],
+  "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -46,8 +41,8 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
-    "rotation": 0.0
+    "velocity": 0.0,
+    "rotation": 45.0
   },
   "reversed": false,
   "folder": "CoralPlusAlgea",

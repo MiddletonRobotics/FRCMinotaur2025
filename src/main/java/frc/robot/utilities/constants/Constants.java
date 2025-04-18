@@ -244,9 +244,9 @@ public class Constants {
         public enum ElevatorStates {
             STOP(0),
             L1(0.13124986979166664), // 0.1213 + 0.051
-            L2(0.2713302083333333), // 0.2485 + 0.051
-            L3(0.5421147135416666), // 0.5099 + 0.051
-            L4(0.9606359375 + 0.03), //0.9513 + 0.051 + 0.0254
+            L2(0.2713302083333333 + 0.026), // 0.2485 + 0.051
+            L3(0.5421147135416666 + 0.026), // 0.5099 + 0.051
+            L4(0.9606359375 + 0.03 + 0.013), //0.9513 + 0.051 + 0.0254
             BARGE(1.06),
             DEALGEAFIER_L2(0.25148645833333333), // 0.2047 + 0.051
             DEALGEAFIER_L3(0.5184014322916666), // 0.4453 + 0.051
@@ -281,7 +281,7 @@ public class Constants {
                 new Pose2d(3.735, 3.14, Rotation2d.fromDegrees(60)), // 17 Left
                 new Pose2d(3.30, 4.15, Rotation2d.fromDegrees(0)), // 18 Left
                 new Pose2d(4.06, 5.105, Rotation2d.fromDegrees(300)), // 19 Left
-                new Pose2d(5.28, 5.04, Rotation2d.fromDegrees(240)), // 20 Left
+                new Pose2d(5.27, 5.02, Rotation2d.fromDegrees(240)), // 20 Left
                 new Pose2d(5.70, 3.85, Rotation2d.fromDegrees(180)), // 21 Left
                 new Pose2d(4.9113, 2.93927, Rotation2d.fromDegrees(120)) // 22 Left
             )       
@@ -289,12 +289,12 @@ public class Constants {
 
         public static final List<Pose2d> RIGHT_REEF_WAYPOINTS = new ArrayList<Pose2d>(
             List.of(
-                new Pose2d(4.05, 2.95, Rotation2d.fromDegrees(60)), // 17 Right
+                new Pose2d(4.025, 2.890, Rotation2d.fromDegrees(60)), // 17 Right
                 new Pose2d(3.30, 3.85, Rotation2d.fromDegrees(0)), // 18 Right
                 new Pose2d(3.713, 4.925, Rotation2d.fromDegrees(300)), // 19 Right
-                new Pose2d(4.99, 5.24, Rotation2d.fromDegrees(240)), // 20 Right
+                new Pose2d(4.995, 5.19, Rotation2d.fromDegrees(240)), // 20 Right
                 new Pose2d(5.70, 4.20, Rotation2d.fromDegrees(180)), // 21 Right
-                new Pose2d(5.2619, 3.05047, Rotation2d.fromDegrees(120)) // 22 Right
+                new Pose2d(5.23, 3.060, Rotation2d.fromDegrees(120)) // 22 Right
             )
         );
 

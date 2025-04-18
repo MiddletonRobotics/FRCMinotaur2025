@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.45,
+        "x": 7.4,
         "y": 5.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.398812133196879,
-        "y": 5.017660286043006
+        "x": 6.491840472296112,
+        "y": 5.246429040984723
       },
       "isLocked": false,
       "linkedName": null
@@ -20,23 +20,28 @@
         "y": 5.27
       },
       "prevControl": {
-        "x": 5.509758231878418,
-        "y": 5.789196487600433
+        "x": 5.6638636363636365,
+        "y": 5.934559659090909
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.752397558849173,
+      "rotationDegrees": -119.99999999999999
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.35,
-    "maxAcceleration": 2.25,
-    "maxAngularVelocity": 540.0,
-    "maxAngularAcceleration": 720.0,
+    "maxVelocity": 4.4,
+    "maxAcceleration": 4.0,
+    "maxAngularVelocity": 700.0,
+    "maxAngularAcceleration": 900.0,
     "nominalVoltage": 12.0,
     "unlimited": false
   },
@@ -48,7 +53,7 @@
   "folder": "CoralPlusAlgea",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 45.0
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }

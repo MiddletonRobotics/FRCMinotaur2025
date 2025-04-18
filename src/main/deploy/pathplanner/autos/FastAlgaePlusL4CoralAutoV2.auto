@@ -38,7 +38,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.375
+            "waitTime": 0.25
           }
         },
         {
@@ -80,12 +80,6 @@
           }
         },
         {
-          "type": "wait",
-          "data": {
-            "waitTime": 0.5
-          }
-        },
-        {
           "type": "parallel",
           "data": {
             "commands": [
@@ -111,23 +105,16 @@
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 0.5
+                  "waitTime": 0.25
                 }
               }
             ]
           }
         },
         {
-          "type": "parallel",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "PrepareBarge"
-                }
-              }
-            ]
+            "name": "PrepareBarge"
           }
         },
         {
@@ -150,13 +137,38 @@
           }
         },
         {
-          "type": "race",
+          "type": "named",
+          "data": {
+            "name": "StowElevator"
+          }
+        },
+        {
+          "type": "parallel",
           "data": {
             "commands": [
               {
-                "type": "named",
+                "type": "path",
                 "data": {
-                  "name": "StowElevator"
+                  "pathName": "CoralPlusAlgaePath4.5"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 1.125
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "PrepareDealgificationL3"
+                      }
+                    }
+                  ]
                 }
               }
             ]
@@ -165,7 +177,63 @@
         {
           "type": "path",
           "data": {
-            "pathName": "CoralPlusAlgaePath4"
+            "pathName": "CoralPlusAlgaePath5"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "AlgeaTilt"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.25
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "PrepareBarge"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "AlgeaBarge"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.25
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "StowElevator"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "CoralPlusAlgaePath6"
           }
         }
       ]

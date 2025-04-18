@@ -55,7 +55,7 @@ public class ProcessorSubsystem extends SubsystemBase {
 
     public enum GroundPivotingState {
         STORED(Degrees.of(91.6)),
-        INTAKEN(Radians.of(2.104873)),
+        INTAKEN(Degrees.of(83)),
         GROUND(Degrees.of(151.0));
 
         private final Angle position;
