@@ -42,7 +42,7 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
 
-    if(m_robotContainer.elevatorSubsystem2.elevatorCurrentPosition() >= ElevatorStates.L3.getPosition()) {
+    if(m_robotContainer.elevatorSubsystem2.elevatorCurrentPosition() >= ElevatorStates.DEALGEAFIER_L3.getPosition()) {
       m_robotContainer.drivingState = DrivingState.ELEVATOR_UP;
     } else {
       if(m_robotContainer.drivingState == DrivingState.ELEVATOR_UP) {

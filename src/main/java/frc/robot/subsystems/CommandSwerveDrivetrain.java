@@ -20,6 +20,11 @@ import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
+import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
+import com.pathplanner.lib.trajectory.PathPlannerTrajectoryState;
+import com.pathplanner.lib.util.FlippingUtil;
+import com.pathplanner.lib.util.PathPlannerLogging;
+import com.pathplanner.lib.util.FlippingUtil.FieldSymmetry;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -374,34 +379,26 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
      */
     public Command pathToReef(Constants.LimelightConstants.REEFS reef) {
         return defer(() -> {
-            Pose2d target = null;
+            Pose2d goalPose = this.getState().Pose.nearest(
+                (reef == Constants.LimelightConstants.REEFS.LEFT) ? Constants.LimelightConstants.LEFT_REEF_WAYPOINTS : Constants.LimelightConstants.RIGHT_REEF_WAYPOINTS
+            );
 
-            if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
-                target = this.getState().Pose.nearest(
-                    (reef == Constants.LimelightConstants.REEFS.LEFT) ? Constants.LimelightConstants.RIGHT_REEF_WAYPOINTS : Constants.LimelightConstants.LEFT_REEF_WAYPOINTS
-                );
-            } else {
-                target = this.getState().Pose.nearest(
-                    (reef == Constants.LimelightConstants.REEFS.LEFT) ? Constants.LimelightConstants.LEFT_REEF_WAYPOINTS : Constants.LimelightConstants.RIGHT_REEF_WAYPOINTS
-                );
+            if (DriverStation.getAlliance().get() == Alliance.Red) {
+                FlippingUtil.flipFieldPose(goalPose);
             }
 
-            return goToPose(target).withTimeout(0.01).andThen(goToPose(target));
+            return goToPose(goalPose).withTimeout(0.01).andThen(goToPose(goalPose));
         });
     }
 
     public Command flyToReef(Constants.LimelightConstants.REEFS reef) {
         Pose2d curPose = getState().Pose;
-        Pose2d goalPose = null; 
+        Pose2d goalPose = this.getState().Pose.nearest(
+            (reef == Constants.LimelightConstants.REEFS.LEFT) ? Constants.LimelightConstants.LEFT_REEF_WAYPOINTS : Constants.LimelightConstants.RIGHT_REEF_WAYPOINTS
+        );
 
-        if (DriverStation.getAlliance().get() == Alliance.Blue) {
-            goalPose = this.getState().Pose.nearest(
-                (reef == Constants.LimelightConstants.REEFS.LEFT) ? Constants.LimelightConstants.LEFT_REEF_WAYPOINTS : Constants.LimelightConstants.RIGHT_REEF_WAYPOINTS
-            );
-        } else {
-            goalPose = this.getState().Pose.nearest(
-                (reef == Constants.LimelightConstants.REEFS.LEFT) ? Constants.LimelightConstants.LEFT_REEF_WAYPOINTS : Constants.LimelightConstants.RIGHT_REEF_WAYPOINTS
-            );
+        if (DriverStation.getAlliance().get() == Alliance.Red) {
+            FlippingUtil.flipFieldPose(goalPose);
         }
         
         List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(
@@ -422,7 +419,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         SmartDashboard.putNumber("Goal Pose X", goalPose.getX());
         SmartDashboard.putNumber("Goal Pose Y", goalPose.getY());
         SmartDashboard.putNumber("Goal Pose Rotation", goalPose.getRotation().getDegrees());
-
 
         resetPose(getState().Pose);
         return AutoBuilder.followPath(alignmentPath);
@@ -559,71 +555,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
         SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
         SmartDashboard.putData("Field",field);
-
-        /* 
-
-        List<Trajectory.State> trajectory_states = new ArrayList<Trajectory.State>();
-        for (PathPlannerTrajectoryState state  : trajectory_states) {
-            trajectory_states.add(new Trajectory.State(
-                state.timeSeconds,
-                state.linearVelocity,
-                0,
-                state.pose,
-                0
-            ));
-        }
-
-        */
-
-        //Double[] fusedPose = {currentPose.getX(), currentPose.getY(), currentPose.getRotation().getRadians()};
-        //SmartDashboard.putNumberArray("Fused PoseDBL", fusedPose);
-
-        /*
-        SmartDashboard.putData("Swerve Drive", new Sendable() {
-            @Override
-            public void initSendable(SendableBuilder builder) {
-                builder.setSmartDashboardType("SwerveDrive");
-    
-                builder.addDoubleProperty("Front Left Angle", () -> getModule(0).getTargetState().angle.getRadians(), null);
-                builder.addDoubleProperty("Front Left Velocity", () -> getModule(0).getTargetState().speedMetersPerSecond, null);
-            
-                builder.addDoubleProperty("Front Right Angle", () -> getModule(1).getTargetState().angle.getRadians(), null);
-                builder.addDoubleProperty("Front Right Velocity", () -> getModule(1).getTargetState().speedMetersPerSecond, null);
-            
-                builder.addDoubleProperty("Back Left Angle", () -> getModule(2).getTargetState().angle.getRadians(), null);
-                builder.addDoubleProperty("Back Left Velocity", () -> getModule(2).getTargetState().speedMetersPerSecond, null);
-            
-                builder.addDoubleProperty("Back Right Angle", () -> getModule(3).getTargetState().angle.getRadians(), null);
-                builder.addDoubleProperty("Back Right Velocity", () -> getModule(3).getTargetState().speedMetersPerSecond, null);
-            
-                builder.addDoubleProperty("Robot Angle", () -> getState().Pose.getRotation().getRadians(), null);
-            }
-        });
-        */
-    }
-
-    public void addMeasuremrent() {
-    }
-
-    private void updateOdometry() {
-        LLposeLeft = get_LL_Estimate(false, "limelight-left");
-        LLposeRight = get_LL_Estimate(false, "limelight-right");
-
-        if (LLposeRight != null) {
-            SmartDashboard.putNumber("RightLimelightPoseX", LLposeRight.pose.getY());
-            SmartDashboard.putNumber("RightLimelightPoseY", LLposeRight.pose.getX());
-            SmartDashboard.putNumber("RightLimelightPoseRot", LLposeRight.pose.getRotation().getDegrees());
-            setStateStdDevs(VecBuilder.fill(0.7, 0.7, Double.MAX_VALUE));
-            addVisionMeasurement(LLposeRight.pose, LLposeRight.timestampSeconds);
-        } 
-        
-        if (LLposeLeft != null) {
-            SmartDashboard.putNumber("LeftLimelightPoseX", LLposeLeft.pose.getY());
-            SmartDashboard.putNumber("LeftLimelightPoseY", LLposeLeft.pose.getX());
-            SmartDashboard.putNumber("LeftLimelightPoseRot", LLposeLeft.pose.getRotation().getDegrees());
-            setStateStdDevs(VecBuilder.fill(0.7, 0.7, Double.MAX_VALUE));
-            addVisionMeasurement(LLposeLeft.pose, LLposeLeft.timestampSeconds);
-        }
     }
 
     public Command path_find_to(Pose2d pose, LinearVelocity endVelocity){
@@ -676,40 +607,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         else{
             return poseEstimate;
         }
-    }
-
-    public void choose_LL(){
-        limelightLeftAvgTagArea = NetworkTableInstance.getDefault().getTable("limelight-left").getEntry("botpose").getDoubleArray(new double[11])[10];
-        limelightRightAvgTagArea = NetworkTableInstance.getDefault().getTable("limelight-right").getEntry("botpose").getDoubleArray(new double[11])[10];
-        SmartDashboard.putNumber("Left Limelight Tag Area", limelightLeftAvgTagArea);
-        SmartDashboard.putNumber("Right Limelight Tag Area", limelightRightAvgTagArea);    
-
-        if(limelightLeftAvgTagArea > 
-        limelightRightAvgTagArea){
-                limelightUsed = "limelight-left";
-            }else{
-                limelightUsed = "limelight-right";
-        }
-        
-        SmartDashboard.putString("Limelight Used", limelightUsed);
-    }
-
-    private LimelightHelper.PoseEstimate get_manual_LL_Estimate(){
-        choose_LL();
-        LimelightHelper.PoseEstimate poseEstimate = new LimelightHelper.PoseEstimate();
-        
-        double[] botPose = LimelightHelper.getBotPose(limelightUsed);
-        SmartDashboard.putNumberArray("Botpose", botPose);
-        if (botPose.length != 0){
-            if (botPose[0] == 0){
-                return null;
-            }
-            poseEstimate.pose = new Pose2d(new Translation2d(botPose[0] + 8.7736 ,botPose[1] + 4.0257), new Rotation2d(Math.toRadians(botPose[5])));
-        }
-
-        Double[] pose = {poseEstimate.pose.getX(), poseEstimate.pose.getY(), poseEstimate.pose.getRotation().getRadians()};
-        SmartDashboard.putNumberArray("Manual Pose", pose);
-        return poseEstimate;
     }
 
     public Command stop() {

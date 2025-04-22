@@ -270,6 +270,7 @@ public class RobotContainer {
 
         driverController.a().and(() -> !isManual).onTrue(ElevatorCommands.runElevatorToPosition(elevatorSubsystem2));
         driverController.b().and(() -> !isManual).onTrue(ElevatorCommands.runElevatorToStow(elevatorSubsystem2));
+        driverController.y().and(() -> !isManual).onTrue(ElevatorCommands.runElevatorToBarge(elevatorSubsystem2));
         driverController.x().onTrue(new InstantCommand(() -> isManual = !isManual));
 
         driverController.povUp().and(() -> !isManual).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(0.3)));

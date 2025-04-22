@@ -76,7 +76,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
         STORED(Degrees.of(90.0)),
         BARGE(Degrees.of(107.0)),
         REEF(Degrees.of(162.0)),
-        GROUND(Degrees.of(213.0));
+        GROUND(Degrees.of(236.0));
 
         private final Angle position;
 

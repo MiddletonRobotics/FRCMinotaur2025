@@ -244,8 +244,8 @@ public class Constants {
         public enum ElevatorStates {
             STOP(0),
             L1(0.13124986979166664), // 0.1213 + 0.051
-            L2(0.2713302083333333 + 0.026), // 0.2485 + 0.051
-            L3(0.5421147135416666 + 0.026), // 0.5099 + 0.051
+            L2(0.2713302083333333 + 0.04), // 0.2485 + 0.051
+            L3(0.5421147135416666 + 0.045), // 0.5099 + 0.051
             L4(0.9606359375 + 0.03 + 0.013), //0.9513 + 0.051 + 0.0254
             BARGE(1.06),
             DEALGEAFIER_L2(0.25148645833333333), // 0.2047 + 0.051
@@ -271,30 +271,38 @@ public class Constants {
 
         public static final List<Pose2d> STATION_WAYPOINTS = new ArrayList<Pose2d>(
             List.of(
-                new Pose2d(1.151, 1.03, Rotation2d.fromDegrees(55)), // 12 Station
-                new Pose2d(1.1383, 7.01, Rotation2d.fromDegrees(-55)) // 13 Station 1.0873
+                new Pose2d(1.188, 0.900, Rotation2d.fromDegrees(55)), // 12 Station
+                new Pose2d(1.188, 7.180, Rotation2d.fromDegrees(-55)) // 13 Station 1.0873
             )
         );
 
         public static final List<Pose2d> LEFT_REEF_WAYPOINTS = new ArrayList<Pose2d>(
             List.of(
-                new Pose2d(3.735, 3.14, Rotation2d.fromDegrees(60)), // 17 Left
-                new Pose2d(3.30, 4.15, Rotation2d.fromDegrees(0)), // 18 Left
-                new Pose2d(4.06, 5.105, Rotation2d.fromDegrees(300)), // 19 Left
-                new Pose2d(5.27, 5.02, Rotation2d.fromDegrees(240)), // 20 Left
-                new Pose2d(5.70, 3.85, Rotation2d.fromDegrees(180)), // 21 Left
-                new Pose2d(4.9113, 2.93927, Rotation2d.fromDegrees(120)) // 22 Left
+                new Pose2d(3.740, 3.060, Rotation2d.fromDegrees(60)), // 17 Left / DONE
+                new Pose2d(3.280, 4.175, Rotation2d.fromDegrees(0)), // 18 Left DONE
+                new Pose2d(4.020, 5.160, Rotation2d.fromDegrees(300)), // 19 Left DONE
+                new Pose2d(5.245, 5.000, Rotation2d.fromDegrees(240)), // 20 Left DONE
+                new Pose2d(5.700, 3.860, Rotation2d.fromDegrees(180)), // 21 Left
+                new Pose2d(4.950, 2.900, Rotation2d.fromDegrees(120)) // 22 Left DONE
             )       
         );
 
         public static final List<Pose2d> RIGHT_REEF_WAYPOINTS = new ArrayList<Pose2d>(
             List.of(
-                new Pose2d(4.025, 2.890, Rotation2d.fromDegrees(60)), // 17 Right
-                new Pose2d(3.30, 3.85, Rotation2d.fromDegrees(0)), // 18 Right
-                new Pose2d(3.713, 4.925, Rotation2d.fromDegrees(300)), // 19 Right
-                new Pose2d(4.995, 5.19, Rotation2d.fromDegrees(240)), // 20 Right
-                new Pose2d(5.70, 4.20, Rotation2d.fromDegrees(180)), // 21 Right
-                new Pose2d(5.23, 3.060, Rotation2d.fromDegrees(120)) // 22 Right
+                new Pose2d(4.020, 2.900, Rotation2d.fromDegrees(60)), // 17 Right DONE
+                new Pose2d(3.280, 3.860, Rotation2d.fromDegrees(0)), // 18 Right DONE
+                new Pose2d(3.740, 5.000, Rotation2d.fromDegrees(300)), // 19 Right DONE
+                new Pose2d(4.950, 5.160, Rotation2d.fromDegrees(240)), // 20 Right DONE
+                new Pose2d(5.700, 4.175, Rotation2d.fromDegrees(180)), // 21 Right DONE
+                new Pose2d(5.245, 3.060, Rotation2d.fromDegrees(120)) // 22 Right DONE
+            )
+        );
+
+        public static final List<Pose2d> AUTO_STARTING_POSES = new ArrayList<Pose2d>(
+            List.of(
+                new Pose2d(7.100, 0.500, Rotation2d.fromDegrees(60)), // Left
+                new Pose2d(7.100, 4.175, Rotation2d.fromDegrees(180)), // Center
+                new Pose2d(7.100, 7.550, Rotation2d.fromDegrees(300)) // Right
             )
         );
 

@@ -11,7 +11,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "CoralPlusAlgaePath1"
+                  "pathName": "FASTCoralAutoLeftPath1"
                 }
               },
               {
@@ -30,28 +30,15 @@
           }
         },
         {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "PrepareL4"
-                }
-              }
-            ]
-          }
-        },
-        {
           "type": "path",
           "data": {
-            "pathName": "CoralPlusAlgaePath1.5"
+            "pathName": "FASTCoralAutoLeftPath1.5"
           }
         },
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.375
+            "waitTime": 0.125
           }
         },
         {
@@ -61,38 +48,25 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "StowElevator"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "FASTCoralAutoLeftPath2"
+          }
+        },
+        {
           "type": "parallel",
           "data": {
             "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "CoralPlusAlgaePath2"
-                }
-              },
               {
                 "type": "named",
                 "data": {
-                  "name": "PrepareDealgification"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 0.5
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "CoralPlusAlgaePath3"
+                  "name": "IndexCoral"
                 }
               },
               {
@@ -102,13 +76,13 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 0.5
+                        "waitTime": 0.375
                       }
                     },
                     {
-                      "type": "named",
+                      "type": "path",
                       "data": {
-                        "name": "AlgeaStart"
+                        "pathName": "FASTCoralAutoLeftPath3"
                       }
                     }
                   ]
@@ -120,7 +94,37 @@
         {
           "type": "named",
           "data": {
-            "name": "ShootBargeNoRetraction"
+            "name": "PrepareL4"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "FASTCoralAutoLeftPath3.5"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.125
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ScoreCoral"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "StowElevator"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "FASTCoralAutoLeftPath4"
           }
         },
         {
@@ -130,7 +134,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "RetractElevatorSafe"
+                  "name": "IndexCoral"
                 }
               },
               {
@@ -140,19 +144,49 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 0.5
+                        "waitTime": 0.375
                       }
                     },
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "CoralPlusAlgaePath4"
+                        "pathName": "FASTCoralAutoLeftPath5"
                       }
                     }
                   ]
                 }
               }
             ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "PrepareL4"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "FASTCoralAutoLeftPath5.5"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.125
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ScoreCoral"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "StowElevator"
           }
         }
       ]

@@ -45,6 +45,13 @@ public class ElevatorSubsystem extends SubsystemBase {
     private final StatusSignal<Temperature> leadTempurature;
     private final StatusSignal<Temperature> followTempurature;
 
+    private final StatusSignal<Boolean> leadTempuratureFault;
+    private final StatusSignal<Boolean> followTempuratureFault;
+    private final StatusSignal<Boolean> leadOverVoltageFault;
+    private final StatusSignal<Boolean> followOverVoltageFault;
+    private final StatusSignal<Boolean> leadSyncCANCoderFault;
+    private final StatusSignal<Boolean> followSyncCANCoderFault;
+
     private final Debouncer connectedDebouncer = new Debouncer(0.5);
     private final Debouncer followerConnectedDebouncer = new Debouncer(0.5);
 
@@ -103,14 +110,31 @@ public class ElevatorSubsystem extends SubsystemBase {
         leadTempurature = elevatorLeader.getDeviceTemp();
         followTempurature = elevatorFollower.getDeviceTemp();
 
+        leadOverVoltageFault = elevatorLeader.getFault_OverSupplyV();
+        followOverVoltageFault = elevatorFollower.getFault_OverSupplyV();
+
+        leadTempuratureFault = elevatorLeader.getFault_DeviceTemp();
+        followTempuratureFault = elevatorFollower.getFault_DeviceTemp();
+
+        leadSyncCANCoderFault = elevatorLeader.getFault_UsingFusedCANcoderWhileUnlicensed();
+        followSyncCANCoderFault = elevatorFollower.getFault_UsingFusedCANcoderWhileUnlicensed();
+
         BaseStatusSignal.setUpdateFrequencyForAll(
             200,
             leadPosition,
             followPosition,
             leadVelocity,
-            followVelocity
+            followVelocity,
+            leadTempurature,
+            followTempurature,
+            leadOverVoltageFault,
+            followOverVoltageFault,
+            leadTempuratureFault, 
+            followTempuratureFault,
+            leadSyncCANCoderFault,
+            followSyncCANCoderFault
         );
-        
+
         BaseStatusSignal.setUpdateFrequencyForAll(
             500,
             elevatorLeader.getDutyCycle(),
@@ -264,23 +288,15 @@ public class ElevatorSubsystem extends SubsystemBase {
         BaseStatusSignal.refreshAll(leadPosition, followPosition, leadVelocity, followVelocity, leadTempurature, followTempurature);
         positionGoalMeters = this.currentElevatorState.getPosition();
 
-        /*
+        elevatorLeaderCANDisconnected.set(!connectedDebouncer.calculate(elevatorLeader.isAlive()));
+        elevatorLeaderOverTempurature.set(leadTempuratureFault.getValue().booleanValue());
+        elevatorLeaderOverCurrent.set(leadOverVoltageFault.getValue().booleanValue());
+        elevatorLeaderFeature.set(leadSyncCANCoderFault.getValue().booleanValue());
 
-        if(isElevatorCooking()) {
-            new LEDSubsystem().setPattern(BlinkinPattern.STROBE_RED);
-        }
-
-        */
-
-        elevatorLeaderCANDisconnected.set(connectedDebouncer.calculate(elevatorLeader.isAlive()));
-        elevatorLeaderOverTempurature.set(elevatorLeader.getFault_DeviceTemp().getValue().booleanValue());
-        elevatorLeaderOverCurrent.set(elevatorLeader.getFault_OverSupplyV().getValue().booleanValue());
-        elevatorLeaderFeature.set(elevatorLeader.getFault_UsingFusedCANcoderWhileUnlicensed().getValue().booleanValue());
-
-        elevatorFollowerCANDisconnected.set(followerConnectedDebouncer.calculate(elevatorFollower.isAlive()));
-        elevatorFollowerOverTempurature.set(elevatorFollower.getFault_DeviceTemp().getValue().booleanValue());
-        elevatorFollowerOverCurrent.set(elevatorFollower.getFault_OverSupplyV().getValue().booleanValue());
-        elevatorFollowerFeature.set(elevatorFollower.getFault_UsingFusedCANcoderWhileUnlicensed().getValue().booleanValue());
+        elevatorFollowerCANDisconnected.set(!followerConnectedDebouncer.calculate(elevatorFollower.isAlive()));
+        elevatorFollowerOverTempurature.set(followTempuratureFault.getValue().booleanValue());
+        elevatorFollowerOverCurrent.set(followOverVoltageFault.getValue().booleanValue());
+        elevatorFollowerFeature.set(followSyncCANCoderFault.getValue().booleanValue());
     }
 
     public void updateLogs() {

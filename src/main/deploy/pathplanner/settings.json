@@ -3,13 +3,13 @@
   "robotLength": 0.9,
   "holonomicMode": true,
   "pathFolders": [
-    "CoralAutoLeft",
+    "FASTCoralPlusAlgea",
     "MoveAutoRight",
     "MoveAutoLeft",
     "MoveAutoCenter",
     "CoralPlusAlgea",
     "CoralAutoRight",
-    "AlgeaAutoCenter"
+    "CoralAutoLeft"
   ],
   "autoFolders": [],
   "defaultMaxVel": 3.35,

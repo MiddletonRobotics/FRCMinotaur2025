@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.5,
-        "y": 6.0
+        "x": 5.23,
+        "y": 3.06
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.111764806222707,
-        "y": 5.984346854530567
+        "x": 5.538345630787036,
+        "y": 1.8113082320601848
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 5.4,
-        "y": 2.5
+        "x": 1.188,
+        "y": 0.9
       },
       "prevControl": {
-        "x": 8.48318606713975,
-        "y": 2.487390403247816
+        "x": 2.524322643037858,
+        "y": 2.4244757740703524
       },
       "nextControl": null,
       "isLocked": false,
@@ -33,8 +33,8 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.35,
-    "maxAcceleration": 2.25,
+    "maxVelocity": 5.0,
+    "maxAcceleration": 5.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 119.99999999999999
+    "rotation": 55.0
   },
   "reversed": false,
-  "folder": "AlgeaAutoCenter",
+  "folder": "FASTCoralAutoLeft",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 119.99999999999999
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }

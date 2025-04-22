@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 3.74,
+        "y": 3.06
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 3.5138518354257644,
+        "y": 2.7024533467521827
+      },
+      "isLocked": false,
+      "linkedName": "17L"
+    },
+    {
+      "anchor": {
+        "x": 4.02,
+        "y": 2.9
+      },
+      "prevControl": {
+        "x": 3.8759343442958514,
+        "y": 2.5709321267740175
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "17R"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.35,
+    "maxAcceleration": 2.25,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 59.99999999999999
+  },
+  "reversed": false,
+  "folder": "ReefAlignmentAuto",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 59.99999999999999
+  },
+  "useDefaultConstraints": true
+}

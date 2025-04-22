@@ -11,7 +11,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "CoralPlusAlgaePath1"
+                  "pathName": "FASTCoralPlusAlgaePath1"
                 }
               },
               {
@@ -32,13 +32,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "CoralPlusAlgaePath1.5"
+            "pathName": "FASTCoralPlusAlgaePath1.5"
           }
         },
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.25
+            "waitTime": 0.1
           }
         },
         {
@@ -54,7 +54,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "CoralPlusAlgaePath2"
+                  "pathName": "FASTCoralPlusAlgaePath2"
                 }
               },
               {
@@ -86,7 +86,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "CoralPlusAlgaePath3"
+                  "pathName": "FASTCoralPlusAlgaePath3"
                 }
               }
             ]
@@ -149,7 +149,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "CoralPlusAlgaePath4.5"
+                  "pathName": "FASTCoralPlusAlgaePath4.5"
                 }
               },
               {
@@ -159,7 +159,7 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 1.125
+                        "waitTime": 0.75
                       }
                     },
                     {
@@ -177,7 +177,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "CoralPlusAlgaePath5"
+            "pathName": "FASTCoralPlusAlgaePath5"
           }
         },
         {
@@ -233,7 +233,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "CoralPlusAlgaePath6"
+            "pathName": "FASTCoralPlusAlgaePath6"
           }
         }
       ]

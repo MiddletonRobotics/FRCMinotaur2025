@@ -3,37 +3,32 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.186485927152318,
-        "y": 6.959685430463576
+        "x": 5.7,
+        "y": 4.175
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.1864859271523196,
-        "y": 6.959685430463576
+        "x": 6.755497809502709,
+        "y": 4.184211189836965
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 14.747982954545455,
-        "y": 4.000071022727272
+        "x": 5.76,
+        "y": 4.02
       },
       "prevControl": {
-        "x": 14.747982954545455,
-        "y": 3.3157968290730455
+        "x": 6.416509140137269,
+        "y": 4.008540590332935
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 0.5,
-      "rotationDegrees": 50.0
-    }
-  ],
+  "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -47,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 180.0
   },
   "reversed": false,
-  "folder": null,
+  "folder": "FASTCoralPlusAlgea",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 180.0
   },
   "useDefaultConstraints": true
 }
