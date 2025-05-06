@@ -127,16 +127,7 @@ public class ProcessorSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         updateLogs();
-
-        pivotCANDisconnected.set(pivotingMotor.getFaults().can);
-        pivotOverTempurature.set(pivotingMotor.getFaults().temperature);
-        pivotOverCurrent.set(pivotingMotor.getWarnings().overcurrent);
-        pivotSensorDisconnected.set(pivotingMotor.getFaults().sensor);
-
-        rollerCANDisconnected.set(rollerMotor.getFaults().can);
-        rollerOverTempurature.set(rollerMotor.getFaults().temperature);
-        rollerOverCurrent.set(rollerMotor.getWarnings().overcurrent);
-        rollerSensorDisconnected.set(rollerMotor.getFaults().sensor);
+        updateAlerts();
     }
 
     public void updateLogs() {
@@ -149,6 +140,18 @@ public class ProcessorSubsystem extends SubsystemBase {
         SmartDashboard.putBoolean("Processor Roller Cooking", isRollerCooking());
         SmartDashboard.putNumber("Processor Pivot Error", calculateError());
         SmartDashboard.putBoolean("Processor At Goal", atGoal());
+    }
+
+    public void updateAlerts() {
+        pivotCANDisconnected.set(pivotingMotor.getFaults().can);
+        pivotOverTempurature.set(pivotingMotor.getFaults().temperature);
+        pivotOverCurrent.set(pivotingMotor.getWarnings().overcurrent);
+        pivotSensorDisconnected.set(pivotingMotor.getFaults().sensor);
+
+        rollerCANDisconnected.set(rollerMotor.getFaults().can);
+        rollerOverTempurature.set(rollerMotor.getFaults().temperature);
+        rollerOverCurrent.set(rollerMotor.getWarnings().overcurrent);
+        rollerSensorDisconnected.set(rollerMotor.getFaults().sensor);
     }
 
     public void setNeutralModes(IdleMode idleMode) {

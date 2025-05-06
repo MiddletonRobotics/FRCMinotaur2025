@@ -39,11 +39,11 @@ import frc.robot.commands.PrepareDealgeaficationL3;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.DealgeafierSubsystem;
 import frc.robot.subsystems.ProcessorSubsystem;
+import frc.robot.subsystems.VisionManager;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.LEDSubsystem;
-import frc.robot.subsystems.Limelight;
 import frc.robot.utilities.BlinkinLEDController.BlinkinPattern;
 import frc.robot.utilities.constants.Constants;
 import frc.robot.utilities.constants.Constants.LimelightConstants.REEFS;
@@ -138,7 +138,7 @@ public class RobotContainer {
         dealgeafierSubsystem.setNeutralModes(IdleMode.kBrake);
         processorSubsystem.setNeutralModes(IdleMode.kBrake);
         ledSubsystem.setPattern(Constants.DriverConstants.DEF_PATTERN);
-        dealgeafierSubsystem.stopRolling();
+        //dealgeafierSubsystem.stopRolling();
     }
 
     public void onAutonomousInit() {

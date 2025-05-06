@@ -25,6 +25,8 @@ public class Robot extends TimedRobot {
   public Robot() {
     m_robotContainer = new RobotContainer();
     ledController = BlinkinLEDController.getInstance();
+
+    DriverStation.silenceJoystickConnectionWarning(true);
   }
 
   public static boolean isBlue() {
@@ -36,22 +38,13 @@ public class Robot extends TimedRobot {
     m_robotContainer.onDisabled();
     ledController.setPattern(BlinkinPattern.GREEN);
     CameraServer.startAutomaticCapture();
+    CameraServer.removeCamera("USB Camera 0");
   }
 
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
-
-    if(m_robotContainer.elevatorSubsystem2.elevatorCurrentPosition() >= ElevatorStates.DEALGEAFIER_L3.getPosition()) {
-      m_robotContainer.drivingState = DrivingState.ELEVATOR_UP;
-    } else {
-      if(m_robotContainer.drivingState == DrivingState.ELEVATOR_UP) {
-        m_robotContainer.drivingState = DrivingState.NORMAL;
-      }
-    }
-
-    SmartDashboard.putNumber("Battery Voltage", RobotController.getBatteryVoltage());
-    SmartDashboard.putData(CommandScheduler.getInstance());
+    //SmartDashboard.putNumber("Battery Voltage", RobotController.getBatteryVoltage());
   }
 
   @Override

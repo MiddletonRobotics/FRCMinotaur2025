@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -20,33 +22,20 @@ import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
-import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
-import com.pathplanner.lib.trajectory.PathPlannerTrajectoryState;
 import com.pathplanner.lib.util.FlippingUtil;
-import com.pathplanner.lib.util.PathPlannerLogging;
-import com.pathplanner.lib.util.FlippingUtil.FieldSymmetry;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructArrayPublisher;
-import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
@@ -54,7 +43,8 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
-import frc.robot.utilities.LimelightHelper;
+import frc.robot.utilities.PhotonPoseEstimator.TimestampedPose;
+import frc.robot.utilities.PhotonPoseEstimator.VisionMeasurement;
 import frc.robot.utilities.constants.Constants;
 
 /**
@@ -81,17 +71,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
 
-    private static boolean doRejectUpdate = false;
-    public static String limelightUsed;
-    private static LimelightHelper.PoseEstimate LLposeLeft;
-    private static LimelightHelper.PoseEstimate LLposeRight;
-    //Get average tag areas (percentage of image), Choose the limelight with the highest average tag area
-    private static double limelightLeftAvgTagArea = 0;
-    private static double limelightRightAvgTagArea = 0;
-
     private Field2d field;
     private static CommandSwerveDrivetrain system;
     private boolean waypointsTransformed = false;
+
+    private final VisionManager visionManager = new VisionManager();
+    public final List<TimestampedPose> poseHistory = new ArrayList<>();
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -351,46 +336,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
     }
 
-    /**
-     * Uses PathPlanner's {@link AutoBuilder#pathfindToPose} to move to the desired pose
-     *
-     * @param pose The desired pose
-     * @return A {@link DeferredCommand} that moves the robot to the desired pose
-     */
-    public Command goToPose(Pose2d pose) {
-        return defer(
-            () -> AutoBuilder.pathfindToPose(
-                pose,
-                new PathConstraints(
-                    3.5,
-                    4.0,
-                    Units.degreesToRadians(540),
-                    Units.degreesToRadians(720)
-                )
-            ).finallyDo((interrupted) -> this.stop())
-        );
-    }
-
-    /**
-     * Moves the robot to the nearest left or right reef
-     *
-     * @param reef Desired left or right reef from {@link Constants.Swerve.REEFS}
-     * @return A {@link DeferredCommand} that moves the robot to the nearest left or right reef
-     */
-    public Command pathToReef(Constants.LimelightConstants.REEFS reef) {
-        return defer(() -> {
-            Pose2d goalPose = this.getState().Pose.nearest(
-                (reef == Constants.LimelightConstants.REEFS.LEFT) ? Constants.LimelightConstants.LEFT_REEF_WAYPOINTS : Constants.LimelightConstants.RIGHT_REEF_WAYPOINTS
-            );
-
-            if (DriverStation.getAlliance().get() == Alliance.Red) {
-                FlippingUtil.flipFieldPose(goalPose);
-            }
-
-            return goToPose(goalPose).withTimeout(0.01).andThen(goToPose(goalPose));
-        });
-    }
-
     public Command flyToReef(Constants.LimelightConstants.REEFS reef) {
         Pose2d curPose = getState().Pose;
         Pose2d goalPose = this.getState().Pose.nearest(
@@ -426,38 +371,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     public Command alignToRightReef (Constants.LimelightConstants.REEFS reef) {
         return new DeferredCommand(() -> flyToReef(reef), Set.of(this));
-    }
-
-    /**
-     * Moves the robot to the red or blue processor depending on current alliance
-     *
-     * @return A {@link DeferredCommand} that moves the robot to the red or blue processor
-     */
-    public Command pathToProcessor() {
-        return defer(() -> {
-            Pose2d target = null;
-
-            if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
-                target = Constants.LimelightConstants.RED_PROCESSOR;
-            } else {
-                target = Constants.LimelightConstants.BLUE_PROCESSOR;
-            }
-
-            return goToPose(target).withTimeout(0.01).andThen(goToPose(target));
-        });
-    }
-
-    /**
-     * Moves the robot to the nearest coral station
-     *
-     * @return A {@link DeferredCommand} that moves the robot to the nearest coral station
-     */
-    public Command pathToStation() {
-        return defer(() -> {
-            Pose2d target = this.getState().Pose.nearest(Constants.LimelightConstants.STATION_WAYPOINTS);
-
-            return goToPose(target).withTimeout(0.01).andThen(goToPose(target));
-        });
     }
 
     private void startSimThread() {
@@ -508,6 +421,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     ) {
         super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
     }
+    
 
     @Override
     public void periodic() {
@@ -529,84 +443,30 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             });
         }
 
-        LimelightHelper.SetRobotOrientation("limelight-left", getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
-        LimelightHelper.SetRobotOrientation("limelight-right", getState().Pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
+        addPoseData();
+    }
 
-        LLposeLeft = get_LL_Estimate(false, "limelight-left");
-        LLposeRight = get_LL_Estimate(false, "limelight-right");
+    public void addPoseData() {
+        Pose2d currentPose = getState().Pose;
+        poseHistory.add(new TimestampedPose(currentPose, Timer.getFPGATimestamp()));
+        Arrays.sort(visionManager.getUnreadResults(poseHistory));
 
-        if (LLposeRight != null) {
-            addVisionMeasurement(LLposeRight.pose, LLposeRight.timestampSeconds, VecBuilder.fill(0.7, 0.7, 0.3));
-        } 
-        
-        if (LLposeLeft != null) {
-            addVisionMeasurement(LLposeLeft.pose, LLposeLeft.timestampSeconds, VecBuilder.fill(0.7, 0.7, 0.3));
+        for (VisionMeasurement measurement : visionManager.getUnreadResults(poseHistory)) {
+            if (measurement.stdDevs() == null) {
+                addVisionMeasurement(measurement.pose(), measurement.timestamp());
+            } else {
+                addVisionMeasurement(
+                    measurement.pose(),
+                    measurement.timestamp(),
+                    measurement.stdDevs()
+                );
+            }
         }
 
-        SmartDashboard.putNumber("Current Pose X", getState().Pose.getX());
-        SmartDashboard.putNumber("Current Pose Y", getState().Pose.getY());
-        SmartDashboard.putNumber("Current Pose Rotation", getState().Pose.getRotation().getDegrees());
-
-        SmartDashboard.putNumber("Left Limelight Tag ID", LimelightHelper.getFiducialID("limelight-left"));
-        SmartDashboard.putNumber("Right Limelight Tag ID", LimelightHelper.getFiducialID("limelight-right"));
-
-        Pose2d currentPose = getState().Pose;
         field.setRobotPose(currentPose);
 
         SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
         SmartDashboard.putData("Field",field);
-    }
-
-    public Command path_find_to(Pose2d pose, LinearVelocity endVelocity){
-        return AutoBuilder.pathfindToPose(pose, TunerConstants.oTF_Constraints, endVelocity);
-    }
-
-    private LimelightHelper.PoseEstimate get_LL_Estimate(boolean useMegaTag2, String llName){
-        doRejectUpdate = false;
-        LimelightHelper.PoseEstimate poseEstimate = new LimelightHelper.PoseEstimate();
-
-        if (useMegaTag2 == false) {
-            poseEstimate = LimelightHelper.getBotPoseEstimate_wpiBlue(llName);
-
-            if (poseEstimate == null) {
-                doRejectUpdate = true;
-            } else {
-                if (poseEstimate.tagCount == 1 && poseEstimate.rawFiducials.length == 1) {
-                    if (poseEstimate.rawFiducials[0].ambiguity > .7) {
-                        doRejectUpdate = true;
-                    }
-                    if (poseEstimate.rawFiducials[0].distToCamera > 3) {
-                        doRejectUpdate = true;
-                    }
-                
-                }
-                if (poseEstimate.tagCount == 0) {
-                    doRejectUpdate = true;
-                }
-            }
-        } else if (useMegaTag2 == true) {
-            poseEstimate = LimelightHelper.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
-
-            if (poseEstimate == null) {
-                doRejectUpdate = true;
-            } else {
-                if (Math.abs(getPigeon2().getAngularVelocityZWorld().getValueAsDouble()) > 720) // if our angular velocity is greater than 720 degrees per second,
-                                                        // ignore vision updates. Might need to reduce to ~180
-                {
-                    doRejectUpdate = true;
-                }
-                if (poseEstimate.tagCount == 0) {
-                    doRejectUpdate = true;
-                }
-            }
-        }
-
-        if (doRejectUpdate){
-            return null;
-        }
-        else{
-            return poseEstimate;
-        }
     }
 
     public Command stop() {
