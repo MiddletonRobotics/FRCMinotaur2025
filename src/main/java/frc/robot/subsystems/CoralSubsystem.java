@@ -88,16 +88,19 @@ public class CoralSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         updateLogs();
-
-        rollerCANDisconnected.set(coralSpinnerMotor.getFaults().can);
-        rollerOverTempurature.set(coralSpinnerMotor.getFaults().temperature);
-        rollerOverCurrent.set(coralSpinnerMotor.getWarnings().overcurrent);
-        rollerSensorDisconnected.set(coralSpinnerMotor.getFaults().sensor);
+        updateAlerts();
     }
 
     public void updateLogs() {
         SmartDashboard.putBoolean("Coral First Beam Break", firstBeamBroken());
         SmartDashboard.putBoolean("Coral Second Beam Break", secondBeamBreak());
+    }
+
+    public void updateAlerts() {
+        rollerCANDisconnected.set(coralSpinnerMotor.getFaults().can);
+        rollerOverTempurature.set(coralSpinnerMotor.getFaults().temperature);
+        rollerOverCurrent.set(coralSpinnerMotor.getWarnings().overcurrent);
+        rollerSensorDisconnected.set(coralSpinnerMotor.getFaults().sensor);
     }
 }
 

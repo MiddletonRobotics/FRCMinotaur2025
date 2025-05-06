@@ -87,17 +87,14 @@ public class RobotContainer {
     private final CommandXboxController driverController = new CommandXboxController(driverControllerPort);
     private final XboxController driverControllerHID = driverController.getHID();
     private final CommandXboxController operatorController = new CommandXboxController(operatorControllerPort);
-    public final CommandSwerveDrivetrain drivetrain = CommandSwerveDrivetrain.system();
 
+    public final CommandSwerveDrivetrain drivetrain = CommandSwerveDrivetrain.system();
     public CoralSubsystem coralSubsystem = new CoralSubsystem();
     public final DealgeafierSubsystem dealgeafierSubsystem = new DealgeafierSubsystem();
     public final ElevatorSubsystem elevatorSubsystem2 = new ElevatorSubsystem();
     public final ProcessorSubsystem processorSubsystem = new ProcessorSubsystem();
-    //public final Limelight limelights = Limelight.system();
     private LEDSubsystem ledSubsystem = new LEDSubsystem();
     private boolean isManual = false;
-    //private final Limelight leftElevatorLL = new Limelight(drivetrain, "limelight-left");
-    //private final Limelight rightElevatorLL = new Limelight(drivetrain, "limelight-right");
 
     public RobotContainer() {
         NamedCommands.registerCommand("StowElevator", ElevatorCommands.runElevatorToStow(elevatorSubsystem2));
@@ -149,69 +146,6 @@ public class RobotContainer {
         dealgeafierSubsystem.setNeutralModes(IdleMode.kCoast);
         processorSubsystem.setNeutralModes(IdleMode.kCoast);
     }
-
-    /* 
-
-    public void configureOperatorBindings() {
-        operatorController.leftBumper().onTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.L1)));
-        operatorController.leftTrigger(0.5).onTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.L2)));
-        operatorController.rightBumper().onTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.L3)));
-        operatorController.rightTrigger(0.5).onTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.L4)));
-        operatorController.povLeft().onTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.BARGE)));
-        operatorController.povRight().onTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.DEALGEAFIER_L2)));
-        operatorController.povUp().onTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.DEALGEAFIER_L3)));
-        operatorController.x().onTrue(new InstantCommand(() -> elevatorSubsystem.setElevatorState(ElevatorStates.STOW)));
-
-        operatorController.y().onTrue(new ConditionalCommand(
-            DealgeafierCommands.runPivotToStored(dealgeafierSubsystem),
-            DealgeafierCommands.runPivotToReef(dealgeafierSubsystem).andThen(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem)),
-            () -> dealgeafierSubsystem.getPivotingState() == PivotingState.REEF || dealgeafierSubsystem.getLimitSwitch()
-        ));
-
-        operatorController.start().onTrue(DealgeafierCommands.shootAlgea(dealgeafierSubsystem));
-        operatorController.a().onTrue(ProcessorCommands.intakeAlgea(processorSubsystem, GroundPivotingState.GROUND));
-        operatorController.b().onTrue(ProcessorCommands.spitOutBall(processorSubsystem));
-    }
-        */
-
-        /*
-         
-    private void configureDriverBindings() {
-        // Note that X is defined as forward according to WPILib convention, and Y is defined as to the left according to WPILib convention.
-        drivetrain.setDefaultCommand(
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX(limiterX.calculate(-driverController.getLeftY() * MaxSpeed)) // Drive forward with negative Y (forward)
-                    .withVelocityY(limiterY.calculate(-driverController.getLeftX() * MaxSpeed)) // Drive left with negative X (left)
-                    .withRotationalRate(limiterRotate.calculate(-driverController.getRightX() * MaxAngularRate)) // Drive counterclockwise with negative X (left)
-            )
-        );
-
-        driverController.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        driverController.b().whileTrue(drivetrain.applyRequest(() -> point.withModuleDirection(new Rotation2d(-driverController.getLeftY(), -driverController.getLeftX()))));
-
-        driverController.x().whileTrue(new InstantCommand(() -> coralSubsystem.spinCoral(-1)));
-        driverController.x().whileFalse(new InstantCommand(() -> coralSubsystem.stopCoral()));
-
-        driverController.y().whileTrue(new InstantCommand(() -> coralSubsystem.spinCoral(0.4)));
-        driverController.y().whileFalse(new InstantCommand(() -> coralSubsystem.stopCoral()));
-
-        driverController.leftTrigger(0.5).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(0.5)));
-        driverController.leftTrigger(0.5).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
-
-        driverController.rightTrigger(0.5).whileTrue(new RunCommand(() -> elevatorSubsystem2.setSpeed(-0.2)));
-        driverController.rightTrigger(0.5).onFalse(new InstantCommand(() -> elevatorSubsystem2.setSpeed(0.0)));
-
-        driverController.leftBumper().whileTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(1)));
-        driverController.leftBumper().whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
-
-        driverController.rightBumper().whileTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(-1)));
-        driverController.rightBumper().whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
-
-        driverController.povUp().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-        drivetrain.registerTelemetry(logger::telemeterize);
-    }
-
-    */
 
     public void configureOperatorBindings() {   
         operatorController.y().and(() -> !isManual).onTrue(ProcessorCommands.startPivotToIntaken(processorSubsystem));

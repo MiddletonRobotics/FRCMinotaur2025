@@ -163,18 +163,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         updateLogs();
-
-        pivotingEncoder.setPosition(getAbsoluteEncoderPosition().in(Radians));
-
-        pivotCANDisconnected.set(pivotingMotor.getFaults().can);
-        pivotOverTempurature.set(pivotingMotor.getFaults().temperature);
-        pivotOverCurrent.set(pivotingMotor.getWarnings().overcurrent);
-        pivotSensorDisconnected.set(pivotingMotor.getFaults().sensor);
-
-        rollerCANDisconnected.set(rollerMotor.getFaults().can);
-        rollerOverTempurature.set(rollerMotor.getFaults().temperature);
-        rollerOverCurrent.set(rollerMotor.getWarnings().overcurrent);
-        rollerSensorDisconnected.set(rollerMotor.getFaults().sensor);
+        updateAlerts();
     }
 
     public void updateLogs() {
@@ -186,6 +175,20 @@ public class DealgeafierSubsystem extends SubsystemBase {
         SmartDashboard.putBoolean("Dealgeafier Limit- Switch", getLimitSwitch());
         SmartDashboard.putNumber("Dealgeafier Pivot Error", calculateError());
         SmartDashboard.putBoolean("Dealgeafier At Goal", atTargetPosition());
+
+        pivotingEncoder.setPosition(getAbsoluteEncoderPosition().in(Radians));
+    }
+
+    public void updateAlerts() {
+        pivotCANDisconnected.set(pivotingMotor.getFaults().can);
+        pivotOverTempurature.set(pivotingMotor.getFaults().temperature);
+        pivotOverCurrent.set(pivotingMotor.getWarnings().overcurrent);
+        pivotSensorDisconnected.set(pivotingMotor.getFaults().sensor);
+
+        rollerCANDisconnected.set(rollerMotor.getFaults().can);
+        rollerOverTempurature.set(rollerMotor.getFaults().temperature);
+        rollerOverCurrent.set(rollerMotor.getWarnings().overcurrent);
+        rollerSensorDisconnected.set(rollerMotor.getFaults().sensor);
     }
 
     public Angle getAbsoluteEncoderPosition() {

@@ -284,19 +284,10 @@ public class ElevatorSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         updateLogs();
+        updateAlerts();
         
         BaseStatusSignal.refreshAll(leadPosition, followPosition, leadVelocity, followVelocity, leadTempurature, followTempurature);
         positionGoalMeters = this.currentElevatorState.getPosition();
-
-        elevatorLeaderCANDisconnected.set(!connectedDebouncer.calculate(elevatorLeader.isAlive()));
-        elevatorLeaderOverTempurature.set(leadTempuratureFault.getValue().booleanValue());
-        elevatorLeaderOverCurrent.set(leadOverVoltageFault.getValue().booleanValue());
-        elevatorLeaderFeature.set(leadSyncCANCoderFault.getValue().booleanValue());
-
-        elevatorFollowerCANDisconnected.set(!followerConnectedDebouncer.calculate(elevatorFollower.isAlive()));
-        elevatorFollowerOverTempurature.set(followTempuratureFault.getValue().booleanValue());
-        elevatorFollowerOverCurrent.set(followOverVoltageFault.getValue().booleanValue());
-        elevatorFollowerFeature.set(followSyncCANCoderFault.getValue().booleanValue());
     }
 
     public void updateLogs() {
@@ -310,5 +301,17 @@ public class ElevatorSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Elevator Error", (positionGoalMeters  / (2 * Math.PI * ElevatorConstants.SprocketPitchDiameter) * ElevatorConstants.ElevatorGearRatio) - leadPosition.getValueAsDouble());
         SmartDashboard.putNumber("Elevator Lead Temp", leadTempurature.getValue().in(Celsius));
         SmartDashboard.putNumber("Elevator Follow Temp", followTempurature.getValue().in(Celsius)); 
+    }
+
+    public void updateAlerts() {
+        elevatorLeaderCANDisconnected.set(!connectedDebouncer.calculate(elevatorLeader.isAlive()));
+        elevatorLeaderOverTempurature.set(leadTempuratureFault.getValue().booleanValue());
+        elevatorLeaderOverCurrent.set(leadOverVoltageFault.getValue().booleanValue());
+        elevatorLeaderFeature.set(leadSyncCANCoderFault.getValue().booleanValue());
+
+        elevatorFollowerCANDisconnected.set(!followerConnectedDebouncer.calculate(elevatorFollower.isAlive()));
+        elevatorFollowerOverTempurature.set(followTempuratureFault.getValue().booleanValue());
+        elevatorFollowerOverCurrent.set(followOverVoltageFault.getValue().booleanValue());
+        elevatorFollowerFeature.set(followSyncCANCoderFault.getValue().booleanValue());
     }
 }
