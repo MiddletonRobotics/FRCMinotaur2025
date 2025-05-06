@@ -352,7 +352,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         );
 
         // The values are low so if anything goes wrong we can disable the robot
-        PathConstraints constraints = new PathConstraints(2.5, 2.25, 2 * Math.PI, 4 * Math.PI);
+        PathConstraints constraints = new PathConstraints(0.5, 0.125, 2 * Math.PI, 4 * Math.PI);
 
         PathPlannerPath alignmentPath = new PathPlannerPath(
             waypoints,
@@ -365,7 +365,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         SmartDashboard.putNumber("Goal Pose Y", goalPose.getY());
         SmartDashboard.putNumber("Goal Pose Rotation", goalPose.getRotation().getDegrees());
 
-        resetPose(getState().Pose);
+        //resetPose(getState().Pose);
         return AutoBuilder.followPath(alignmentPath);
     }
 
