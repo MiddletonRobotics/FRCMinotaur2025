@@ -93,9 +93,6 @@ public class ElevatorSubsystem extends SubsystemBase {
         elevatorLeader.getConfigurator().apply(elevatorConfiguration);
         elevatorFollower.getConfigurator().apply(elevatorConfiguration.MotorOutput.withInverted(InvertedValue.Clockwise_Positive));  
 
-        elevatorLeader.optimizeBusUtilization();
-        elevatorFollower.optimizeBusUtilization();
-
         positionVoltageRequest = new MotionMagicVoltage(0.0);
         voltageRequest = new VoltageOut(0.0);
 
@@ -135,12 +132,16 @@ public class ElevatorSubsystem extends SubsystemBase {
             followSyncCANCoderFault
         );
 
+        /* 
+
         BaseStatusSignal.setUpdateFrequencyForAll(
             500,
             elevatorLeader.getDutyCycle(),
             elevatorLeader.getMotorVoltage(),
             elevatorLeader.getTorqueCurrent()
         );
+
+        */
 
         PhoenixUtil.run("Optimize Elevator CAN Utilization", () ->
             ParentDevice.optimizeBusUtilizationForAll(20, elevatorLeader, elevatorFollower)

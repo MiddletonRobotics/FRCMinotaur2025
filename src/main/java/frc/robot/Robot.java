@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.controls.SingleFadeAnimation;
+import com.ctre.phoenix6.hardware.CANdle;
+
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
@@ -20,11 +23,12 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private final RobotContainer m_robotContainer;
-  private final BlinkinLEDController ledController;
+  private CANdle ledController;
   
   public Robot() {
     m_robotContainer = new RobotContainer();
-    ledController = BlinkinLEDController.getInstance();
+    ledController = new CANdle(23);
+    ledController.setControl(new SingleFadeAnimation(1, 100));
 
     DriverStation.silenceJoystickConnectionWarning(true);
   }
@@ -36,8 +40,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     m_robotContainer.onDisabled();
-    ledController.setPattern(BlinkinPattern.GREEN);
-    CameraServer.startAutomaticCapture();
+
     CameraServer.removeCamera("USB Camera 0");
   }
 
@@ -77,8 +80,6 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-
-    m_robotContainer.onTeleopInit();
   }
 
   @Override

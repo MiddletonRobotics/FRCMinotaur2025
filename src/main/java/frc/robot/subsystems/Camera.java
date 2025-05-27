@@ -5,6 +5,8 @@ import java.util.Optional;
 
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.simulation.PhotonCameraSim;
+import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.targeting.PhotonPipelineResult;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
@@ -13,6 +15,7 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -22,6 +25,8 @@ import frc.robot.utilities.PhotonPoseEstimator.ConstrainedSolvepnpParams;
 
 public class Camera {
     private final PhotonCamera camera;
+    private final PhotonCameraSim cameraSim;
+    private final SimCameraProperties simProp;
     private final PhotonPoseEstimator poseEstimator;
     private final Optional<ConstrainedSolvepnpParams> constrainedPnpParams;
     private final Debouncer disabledDebouncer = new Debouncer(5.0, DebounceType.kFalling);
@@ -29,9 +34,19 @@ public class Camera {
     public static final AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
     public Camera(String cameraName, Transform3d cameraToRobot) {
+        simProp = new SimCameraProperties();
+        setupCameraSim();
+
         camera = new PhotonCamera(cameraName);
+        cameraSim = new PhotonCameraSim(camera, simProp);
         poseEstimator = new PhotonPoseEstimator(kTagLayout, PoseStrategy.PNP_DISTANCE_TRIG_SOLVE, cameraToRobot);
         constrainedPnpParams = Optional.of(new ConstrainedSolvepnpParams(true, 0.0));
+    }
+
+    public void setupCameraSim() {
+        simProp.setCalibration(640, 720, Rotation2d.fromDegrees(70));
+        simProp.setFPS(28);
+        simProp.setAvgLatencyMs(50);
     }
 
     /**
@@ -60,7 +75,7 @@ public class Camera {
 
     public void refresh(List<PhotonPoseEstimator.VisionMeasurement> measurements, List<Pose3d> targets) {
         // If we are disabled, use Constrained SolvePNP to estimate the robot's heading.
-        boolean usingTrig = disabledDebouncer.calculate(DriverStation.isEnabled());
+        boolean usingTrig = disabledDebouncer.calculate(false);
         poseEstimator.setPrimaryStrategy(usingTrig ? PoseStrategy.PNP_DISTANCE_TRIG_SOLVE : PoseStrategy.CONSTRAINED_SOLVEPNP);
 
         for (PhotonPipelineResult result : camera.getAllUnreadResults()) {
@@ -87,7 +102,7 @@ public class Camera {
 
             // Calculate the angular pose estimation weight. If we're solving via trig, reject the heading estimate to ensure the pose estimator doesn't "poison" itself with
             // essentially duplicate data. Otherwise, weight the estimate similar to X/Y.
-            double angStd = (usingTrig ? 1e5 : 0.14) * distance * distance;
+            double angStd = (usingTrig ? 0.1 : 0.14) * distance * distance;
 
             // Push the measurement to the supplied measurements list.
             measurements.add(

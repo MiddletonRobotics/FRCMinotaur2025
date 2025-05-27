@@ -76,7 +76,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private boolean waypointsTransformed = false;
 
     private final VisionManager visionManager = new VisionManager();
-    public final List<TimestampedPose> poseHistory = new ArrayList<>();
+    public final List<TimestampedPose> poseHistory = new ArrayList<TimestampedPose>();
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -256,9 +256,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 ),
                 new PPHolonomicDriveController(
                     // PID constants for translation
-                    new PIDConstants(10, 0, 0),
+                    new PIDConstants(7, 0, 0),
                     // PID constants for rotation
-                    new PIDConstants(7, 0, 0)
+                    new PIDConstants(5, 0, 0.1)
                 ),
                 config,
                 // Assume the path needs to be flipped for Red vs Blue, this is normally the case
@@ -338,12 +338,15 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     public Command flyToReef(Constants.LimelightConstants.REEFS reef) {
         Pose2d curPose = getState().Pose;
-        Pose2d goalPose = this.getState().Pose.nearest(
+        Pose2d reefPose = this.getState().Pose.nearest(
             (reef == Constants.LimelightConstants.REEFS.LEFT) ? Constants.LimelightConstants.LEFT_REEF_WAYPOINTS : Constants.LimelightConstants.RIGHT_REEF_WAYPOINTS
         );
+        Pose2d goalPose;
 
         if (DriverStation.getAlliance().get() == Alliance.Red) {
-            FlippingUtil.flipFieldPose(goalPose);
+            goalPose = FlippingUtil.flipFieldPose(reefPose);
+        } else {
+            goalPose = reefPose;
         }
         
         List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(
@@ -421,7 +424,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     ) {
         super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
     }
-    
 
     @Override
     public void periodic() {
@@ -449,7 +451,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public void addPoseData() {
         Pose2d currentPose = getState().Pose;
         poseHistory.add(new TimestampedPose(currentPose, Timer.getFPGATimestamp()));
-        Arrays.sort(visionManager.getUnreadResults(poseHistory));
+
+        if (poseHistory.size() == 15) {
+            poseHistory.remove(0);
+        }
 
         for (VisionMeasurement measurement : visionManager.getUnreadResults(poseHistory)) {
             if (measurement.stdDevs() == null) {

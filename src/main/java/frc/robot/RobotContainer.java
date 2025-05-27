@@ -130,8 +130,6 @@ public class RobotContainer {
     }
 
     public void onTeleopInit() {
-        dealgeafierSubsystem.setNeutralModes(IdleMode.kBrake);
-        processorSubsystem.setNeutralModes(IdleMode.kBrake);
         ledSubsystem.setPattern(Constants.DriverConstants.DEF_PATTERN);
         //dealgeafierSubsystem.stopRolling();
     }
