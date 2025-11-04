@@ -3,10 +3,11 @@
   "robotLength": 0.9,
   "holonomicMode": true,
   "pathFolders": [
-    "FASTCoralPlusAlgea",
+    "New Folder",
     "MoveAutoRight",
     "MoveAutoLeft",
     "MoveAutoCenter",
+    "FASTCoralPlusAlgea",
     "CoralPlusAlgea",
     "CoralAutoRight",
     "CoralAutoLeft"

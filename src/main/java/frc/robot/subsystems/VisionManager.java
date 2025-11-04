@@ -27,8 +27,8 @@ public class VisionManager {
         kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeAndyMark);
 
         cameras = new Camera[] {
-            new Camera("elevatorLeft", new Transform3d(new Translation3d(0.178, 0.285 + 0.0214, 0.145), new Rotation3d(0, Math.toRadians(-20), Math.toRadians(-30.76)))),    
-            new Camera("elevatorRight", new Transform3d(new Translation3d(0.178 - 0.0243, -0.285, 0.145), new Rotation3d(0, Math.toRadians(-30), Math.toRadians(30.76))))
+            new Camera("el", new Transform3d(new Translation3d(0.178, 0.285 + 0.0214, 0.145), new Rotation3d(0, Math.toRadians(-20), Math.toRadians(-30.76)))),    
+            new Camera("er", new Transform3d(new Translation3d(0.178 - 0.0243, -0.285, 0.145), new Rotation3d(0, Math.toRadians(-30), Math.toRadians(30.76))))
         };
 
         // Hit the undocumented Photon Turbo Button™: https://github.com/PhotonVision/photonvision/pull/1662

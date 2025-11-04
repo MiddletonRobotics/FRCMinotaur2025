@@ -85,6 +85,7 @@ public class RobotContainer {
     private final CommandXboxController driverController = new CommandXboxController(driverControllerPort);
     private final XboxController driverControllerHID = driverController.getHID();
     private final CommandXboxController operatorController = new CommandXboxController(operatorControllerPort);
+    private final CommandXboxController outreachController = new CommandXboxController(2);
 
     public final CommandSwerveDrivetrain drivetrain = CommandSwerveDrivetrain.system();
     public CoralSubsystem coralSubsystem = new CoralSubsystem();
@@ -125,6 +126,7 @@ public class RobotContainer {
         //configureDriverBindings();
         configureOperatorBindings();
         configureTestingBindings();
+        outreach();
 
         PathfindingCommand.warmupCommand().schedule();
     }
@@ -252,6 +254,25 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
         
+    }
+
+    public void outreach() {
+        drivetrain.setDefaultCommand(
+            drivetrain.applyRequest(() ->
+                drive.withVelocityX((-outreachController.getLeftY() * MaxSpeed) * drivingState.getPosition()) // Drive forward with negative Y (forward)
+                    .withVelocityY((-outreachController.getLeftX() * MaxSpeed) * drivingState.getPosition()) // Drive left with negative X (left)
+                    .withRotationalRate((-outreachController.getRightX() * MaxAngularRate) * drivingState.getPosition()) // Drive counterclockwise with negative X (left)
+            )
+        );
+
+        outreachController.rightTrigger().onTrue(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem));
+        outreachController.rightBumper().onTrue(DealgeafierCommands.shootAlgea(dealgeafierSubsystem, ledSubsystem));
+
+        outreachController.a().onTrue(ElevatorCommands.runElevatorToL4(elevatorSubsystem2));
+        outreachController.b().onTrue(ElevatorCommands.runElevatorToStow(elevatorSubsystem2));
+
+        outreachController.povLeft().onTrue(DealgeafierCommands.runPivotToReef(dealgeafierSubsystem));
+        outreachController.povDown().onTrue(DealgeafierCommands.runPivotToGround(dealgeafierSubsystem));
     }
 
     public Command getAutonomousCommand() {

@@ -24,7 +24,7 @@ public class DealgeafierCommands {
         return new SequentialCommandGroup(
             new PrintCommand("Running the Auto Algae Shooting"),
             new RunCommand(() -> dealgeaElevatorSubsystem.startRolling(1), dealgeaElevatorSubsystem).until(() -> !dealgeaElevatorSubsystem.getLimitSwitch()),
-            new WaitCommand(0.1),
+            new WaitCommand(1),
             new InstantCommand(() -> dealgeaElevatorSubsystem.stopRolling())
         ).withName("Auto Algea Shooting");
     }

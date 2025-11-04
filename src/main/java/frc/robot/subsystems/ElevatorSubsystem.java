@@ -68,8 +68,8 @@ public class ElevatorSubsystem extends SubsystemBase {
     private double positionGoalMeters;
 
     public ElevatorSubsystem() {
-        elevatorLeader = new TalonFX(Constants.ElevatorConstants.rightElevatorID);
-        elevatorFollower = new TalonFX(Constants.ElevatorConstants.leftElevatorID);
+        elevatorLeader = new TalonFX(Constants.ElevatorConstants.rightElevatorID, "*");
+        elevatorFollower = new TalonFX(Constants.ElevatorConstants.leftElevatorID, "*");
 
         elevatorConfiguration = new TalonFXConfiguration();
         elevatorConfiguration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;

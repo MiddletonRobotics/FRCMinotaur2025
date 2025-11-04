@@ -20,8 +20,8 @@
         "y": 5.18
       },
       "prevControl": {
-        "x": 5.905691225165563,
-        "y": 6.443936258278146
+        "x": 5.814940068493151,
+        "y": 6.571853595890412
       },
       "nextControl": null,
       "isLocked": false,
@@ -46,13 +46,13 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
+    "velocity": 0.0,
     "rotation": -119.99999999999999
   },
   "reversed": false,
   "folder": "FASTCoralPlusAlgea",
   "idealStartingState": {
-    "velocity": 0,
+    "velocity": 0.0,
     "rotation": 0.0
   },
   "useDefaultConstraints": false
