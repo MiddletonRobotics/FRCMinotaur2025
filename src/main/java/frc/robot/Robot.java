@@ -23,12 +23,9 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private final RobotContainer m_robotContainer;
-  private CANdle ledController;
   
   public Robot() {
     m_robotContainer = new RobotContainer();
-    ledController = new CANdle(23);
-    ledController.setControl(new SingleFadeAnimation(1, 100));
 
     DriverStation.silenceJoystickConnectionWarning(true);
   }
@@ -42,6 +39,7 @@ public class Robot extends TimedRobot {
     m_robotContainer.onDisabled();
 
     CameraServer.removeCamera("USB Camera 0");
+    disabledInit();
   }
 
   @Override
@@ -51,7 +49,9 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+    m_robotContainer.onDisabled();
+  }
 
   @Override
   public void disabledPeriodic() {}
@@ -62,7 +62,6 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-    m_robotContainer.onAutonomousInit();
 
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
