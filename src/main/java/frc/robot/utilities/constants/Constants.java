@@ -13,6 +13,7 @@ import static edu.wpi.first.units.Units.Volts;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ctre.phoenix6.signals.RGBWColor;
 import com.pathplanner.lib.config.PIDConstants;
 
 import edu.wpi.first.math.VecBuilder;
@@ -311,6 +312,14 @@ public class Constants {
 
         public static final Vector<N3> MT1_STDEVS = VecBuilder.fill(0.5, 0.5, 1.0);
         public static final Vector<N3> MT2_STDEVS = VecBuilder.fill(0.7, 0.7, 694694);
+    }
+
+    public static final class LEDConstants {
+        public static RGBWColor yellow = new RGBWColor(255, 255, 0, 0);
+        public static RGBWColor green = new RGBWColor(0, 255, 0, 0);
+        public static RGBWColor red = new RGBWColor(255, 0, 0, 0);
+        public static RGBWColor blue = new RGBWColor(0, 0, 255, 0);
+        public static RGBWColor teal = new RGBWColor(0, 255, 255, 0);
     }
 
     public static final class DriverConstants {
