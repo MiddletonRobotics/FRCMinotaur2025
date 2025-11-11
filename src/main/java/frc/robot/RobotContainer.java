@@ -7,6 +7,8 @@ package frc.robot;
 import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.controls.LarsonAnimation;
+import com.ctre.phoenix6.signals.RGBWColor;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -16,7 +18,9 @@ import com.pathplanner.lib.events.EventTrigger;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -131,18 +135,15 @@ public class RobotContainer {
         PathfindingCommand.warmupCommand().schedule();
     }
 
-    public void onTeleopInit() {
-        ledSubsystem.setPattern(Constants.DriverConstants.DEF_PATTERN);
-        //dealgeafierSubsystem.stopRolling();
-    }
-
-    public void onAutonomousInit() {
-        ledSubsystem.setPattern(Constants.DriverConstants.DEF_PATTERN);
-    }
-
     public void onDisabled() {
         dealgeafierSubsystem.setNeutralModes(IdleMode.kCoast);
         processorSubsystem.setNeutralModes(IdleMode.kCoast);
+
+        if(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
+            ledSubsystem.setPattern(new LarsonAnimation(8, 76).withColor(RGBWColor.fromHex("#FF0000").get()));
+        } else {
+            ledSubsystem.setPattern(new LarsonAnimation(8, 76).withColor(RGBWColor.fromHex("#0000FF").get()));
+        }
     }
 
     public void configureOperatorBindings() {   
@@ -160,7 +161,7 @@ public class RobotContainer {
         operatorController.povLeft().and(() -> !isManual).onTrue(DealgeafierCommands.runPivotToReef(dealgeafierSubsystem));
         operatorController.povDown().and(() -> !isManual).onTrue(DealgeafierCommands.runPivotToGround(dealgeafierSubsystem));
 
-        operatorController.rightTrigger().and(() -> !isManual).onTrue(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem));
+        operatorController.rightTrigger().and(() -> !isManual).onTrue(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem, ledSubsystem));
         operatorController.rightBumper().and(() -> !isManual).onTrue(DealgeafierCommands.shootAlgea(dealgeafierSubsystem, ledSubsystem));
 
         operatorController.leftBumper().and(() -> !isManual).whileTrue(new RunCommand(() -> dealgeafierSubsystem.startPivot(-0.23)));
@@ -249,9 +250,6 @@ public class RobotContainer {
         driverController.rightBumper().and(() -> isManual).whileTrue(new InstantCommand(() -> processorSubsystem.rollFlywheel(-0.6)));
         driverController.rightBumper().and(() -> isManual).whileFalse(new InstantCommand(() -> processorSubsystem.stopFlywheel()));
 
-        new Trigger(() -> processorSubsystem.isRollerCooking()).onTrue(LEDCommands.intakenAlgea(ledSubsystem));
-        new Trigger(() -> dealgeafierSubsystem.getLimitSwitch()).onTrue(LEDCommands.intakenAlgea(ledSubsystem));
-
         drivetrain.registerTelemetry(logger::telemeterize);
         
     }
@@ -265,8 +263,11 @@ public class RobotContainer {
             )
         );
 
-        outreachController.rightTrigger().onTrue(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem));
+        outreachController.rightTrigger().onTrue(DealgeafierCommands.intakeUntilBroken(dealgeafierSubsystem, ledSubsystem));
         outreachController.rightBumper().onTrue(DealgeafierCommands.shootAlgea(dealgeafierSubsystem, ledSubsystem));
+
+        outreachController.leftTrigger(0.5).onTrue(CoralCommands.funnelIntakingUntilBroken(coralSubsystem, elevatorSubsystem2, ledSubsystem));
+        outreachController.leftBumper().onTrue(CoralCommands.scoreCoral(coralSubsystem, ledSubsystem));
 
         outreachController.a().onTrue(ElevatorCommands.runElevatorToL4(elevatorSubsystem2));
         outreachController.b().onTrue(ElevatorCommands.runElevatorToStow(elevatorSubsystem2));
