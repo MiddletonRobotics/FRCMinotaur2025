@@ -75,8 +75,8 @@ public class DealgeafierSubsystem extends SubsystemBase {
         START(Degrees.of(71.0)),
         STORED(Degrees.of(90.0)),
         BARGE(Degrees.of(107.0)),
-        REEF(Degrees.of(176.0)),
-        GROUND(Degrees.of(200.0));
+        REEF(Degrees.of(180.0)),
+        GROUND(Degrees.of(210.0));
 
         private final Angle position;
 
@@ -89,7 +89,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
         }
     }
 
-    public PivotingState pivotingState = PivotingState.STORED;
+    public PivotingState pivotingState = PivotingState.START;
 
     public DealgeafierSubsystem() {
         pivotingMotor = new SparkMax(Constants.DealgeafierConstants.pivotingMotorID, MotorType.kBrushless);
@@ -156,7 +156,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
 
     public void configurePivotingEncoder() {
         absoluteEncoderConfiguration.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 1;
-        absoluteEncoderConfiguration.MagnetSensor.MagnetOffset = -0.452;
+        absoluteEncoderConfiguration.MagnetSensor.MagnetOffset = 0.43223437500000006;
         absolutePivotingEncoder.getConfigurator().apply(absoluteEncoderConfiguration);
     }
 
@@ -168,13 +168,14 @@ public class DealgeafierSubsystem extends SubsystemBase {
 
     public void updateLogs() {
         SmartDashboard.putNumber("Dealgeafier Pivot Position", pivotingEncoder.getPosition());
-        SmartDashboard.putNumber("Dealgeafier Absolute Pivot Position", absolutePivotingEncoder.getAbsolutePosition().getValue().in(Rotations));
+        SmartDashboard.putNumber("Dealgeafier Pivot Absolute Position", absolutePivotingEncoder.getAbsolutePosition().getValue().in(Rotations));
         SmartDashboard.putNumber("Dealgeafier Pivot Temp.", pivotingMotor.getMotorTemperature());
         SmartDashboard.putNumber("Dealgeafier Pivot Target", pivotingState.getPosition().in(Radians));
-        SmartDashboard.putNumber("Dealgeafier Motor Temp.", rollerMotor.getMotorTemperature());
-        SmartDashboard.putBoolean("Dealgeafier Limit- Switch", getLimitSwitch());
+        SmartDashboard.putNumber("Dealgeafier Roller Temp.", rollerMotor.getMotorTemperature());
+        SmartDashboard.putBoolean("Dealgeafier Roller Cooked", isRollerCooked());
+        SmartDashboard.putBoolean("Dealgeafier Roller Limit Switch", getLimitSwitch());
         SmartDashboard.putNumber("Dealgeafier Pivot Error", calculateError());
-        SmartDashboard.putBoolean("Dealgeafier At Goal", atTargetPosition());
+        SmartDashboard.putBoolean("Dealgeafier Pivot AtGoal", atTargetPosition());
 
         pivotingEncoder.setPosition(getAbsoluteEncoderPosition().in(Radians));
     }
@@ -228,6 +229,10 @@ public class DealgeafierSubsystem extends SubsystemBase {
         pivotingPIDController.setReference(targetPosition.in(Radians), ControlType.kPosition, ClosedLoopSlot.kSlot0, feedforward.calculate(targetPosition.in(Radians), 0.15), ArbFFUnits.kVoltage);
     }
 
+    public boolean isRollerCooked() {
+        return rollerMotor.getOutputCurrent() > 48;
+    }
+
     public void runToProfiledPosition() {
         TrapezoidProfile.State desiredState = profile.calculate(timer.get(), currentAngle, goalAngle);
         double ff = feedforward.calculate(desiredState.position, desiredState.velocity);
@@ -254,11 +259,7 @@ public class DealgeafierSubsystem extends SubsystemBase {
     }
 
     public void stopRolling() {
-        if(getLimitSwitch()) {
-            rollerMotor.set(-0.9);
-        } else {
-            rollerMotor.set(-0.1);
-        }
+        rollerMotor.set(-0.1);
     }
 
     public void startPivot(double speed) {
